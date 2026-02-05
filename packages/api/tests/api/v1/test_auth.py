@@ -1,6 +1,6 @@
-
 import pytest
 from httpx import AsyncClient
+
 
 @pytest.mark.asyncio
 async def test_auth_flow(client: AsyncClient):
@@ -22,11 +22,11 @@ async def test_auth_flow(client: AsyncClient):
     data = response.json()
     # In dev mode, message format is "Código de verificação: XXXXXX"
     assert "Código de verificação" in data["message"]
-    
+
     # Extract code
     message = data["message"]
     code = message.split(": ")[1].strip()
-    
+
     # 2. Verify Code
     response = await client.post("/api/v1/auth/verify", json={"phone": phone, "code": code})
     assert response.status_code == 200

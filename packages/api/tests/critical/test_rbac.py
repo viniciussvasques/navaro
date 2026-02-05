@@ -1,8 +1,9 @@
 """Tests for RBAC (Role-Based Access Control) permissions."""
 
-import pytest
+from unittest.mock import MagicMock
 from uuid import uuid4
-from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 
 class TestRBACPermissions:
@@ -52,7 +53,7 @@ class TestRBACPermissions:
         """Test that clients can view their own appointments."""
         appointment = MagicMock()
         appointment.user_id = client_user.id
-        
+
         can_access = appointment.user_id == client_user.id
         assert can_access is True
 
@@ -61,7 +62,7 @@ class TestRBACPermissions:
         other_user_id = uuid4()
         appointment = MagicMock()
         appointment.user_id = other_user_id
-        
+
         can_access = appointment.user_id == client_user.id
         assert can_access is False
 
@@ -76,7 +77,7 @@ class TestRBACPermissions:
         """Test that staff can view their own schedule."""
         schedule = MagicMock()
         schedule.staff_id = staff_user.id
-        
+
         can_access = schedule.staff_id == staff_user.id
         assert can_access is True
 
@@ -85,7 +86,7 @@ class TestRBACPermissions:
         other_staff_id = uuid4()
         schedule = MagicMock()
         schedule.staff_id = other_staff_id
-        
+
         can_access = schedule.staff_id == staff_user.id
         assert can_access is False
 
@@ -93,10 +94,10 @@ class TestRBACPermissions:
         """Test multi-tenant: staff only sees their establishment."""
         own_establishment = staff_user.establishment_id
         other_establishment = uuid4()
-        
+
         can_access_own = True  # Would be filtered by establishment_id
-        can_access_other = (other_establishment == staff_user.establishment_id)
-        
+        can_access_other = other_establishment == staff_user.establishment_id
+
         assert can_access_own is True
         assert can_access_other is False
 
@@ -105,7 +106,7 @@ class TestRBACPermissions:
     def test_manager_can_view_all_staff_in_establishment(self, manager_user):
         """Test that managers can view all staff in their establishment."""
         establishment_id = manager_user.owned_establishments[0]
-        
+
         # Manager owns this establishment
         can_manage = establishment_id in manager_user.owned_establishments
         assert can_manage is True
@@ -113,7 +114,7 @@ class TestRBACPermissions:
     def test_manager_cannot_manage_other_establishments(self, manager_user):
         """Test that managers cannot manage other establishments."""
         other_establishment = uuid4()
-        
+
         can_manage = other_establishment in manager_user.owned_establishments
         assert can_manage is False
 
@@ -122,7 +123,7 @@ class TestRBACPermissions:
         establishment = MagicMock()
         establishment.id = manager_user.owned_establishments[0]
         establishment.owner_id = manager_user.id
-        
+
         can_update = establishment.owner_id == manager_user.id
         assert can_update is True
 
@@ -131,7 +132,7 @@ class TestRBACPermissions:
     def test_admin_can_access_all_establishments(self, admin_user):
         """Test that admins can access all establishments."""
         any_establishment = uuid4()
-        
+
         # Admins bypass all checks
         can_access = admin_user.is_admin
         assert can_access is True
@@ -144,7 +145,7 @@ class TestRBACPermissions:
     def test_admin_can_view_any_user(self, admin_user):
         """Test that admins can view any user."""
         any_user_id = uuid4()
-        
+
         can_view = admin_user.is_admin
         assert can_view is True
 
@@ -154,15 +155,16 @@ class TestRBACPermissions:
         """Test that data is isolated between establishments."""
         establishment_1 = uuid4()
         establishment_2 = uuid4()
-        
+
         # Appointments should be filtered by establishment
         appointments_e1 = [{"id": uuid4(), "establishment_id": establishment_1}]
         appointments_e2 = [{"id": uuid4(), "establishment_id": establishment_2}]
-        
+
         # Query for e1 should not return e2's data
-        e1_filtered = [a for a in appointments_e1 + appointments_e2 
-                       if a["establishment_id"] == establishment_1]
-        
+        e1_filtered = [
+            a for a in appointments_e1 + appointments_e2 if a["establishment_id"] == establishment_1
+        ]
+
         assert len(e1_filtered) == 1
         assert all(a["establishment_id"] == establishment_1 for a in e1_filtered)
 
@@ -170,10 +172,10 @@ class TestRBACPermissions:
         """Test that cross-tenant access is denied."""
         staff_establishment = staff_user.establishment_id
         other_establishment = uuid4()
-        
+
         # Staff trying to access other establishment's data
         resource = MagicMock()
         resource.establishment_id = other_establishment
-        
+
         has_access = resource.establishment_id == staff_establishment
         assert has_access is False

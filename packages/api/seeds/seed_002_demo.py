@@ -1,47 +1,40 @@
 """Seed 002: Create demo establishment with services and staff."""
 
-from datetime import datetime, timedelta, timezone
-
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.logging import get_logger
 from app.models import (
-    User,
-    UserRole,
     Establishment,
     EstablishmentCategory,
     EstablishmentStatus,
-    SubscriptionTier,
     Service,
     StaffMember,
     SubscriptionPlan,
     SubscriptionPlanItem,
+    SubscriptionTier,
+    User,
+    UserRole,
 )
-from app.core.logging import get_logger
-
 
 logger = get_logger(__name__)
 
 
 async def seed(db: AsyncSession) -> None:
     """Create demo establishment if not exists."""
-    
+
     # Check if demo exists
-    result = await db.execute(
-        select(Establishment).where(Establishment.slug == "barbearia-demo")
-    )
+    result = await db.execute(select(Establishment).where(Establishment.slug == "barbearia-demo"))
     existing = result.scalar_one_or_none()
-    
+
     if existing:
         logger.info("Demo establishment already exists, skipping")
         return
-    
+
     # Create or get owner
-    result = await db.execute(
-        select(User).where(User.phone == "+5511888888888")
-    )
+    result = await db.execute(select(User).where(User.phone == "+5511888888888"))
     owner = result.scalar_one_or_none()
-    
+
     if not owner:
         owner = User(
             phone="+5511888888888",
@@ -51,7 +44,7 @@ async def seed(db: AsyncSession) -> None:
         )
         db.add(owner)
         await db.flush()
-    
+
     # Create establishment
     establishment = Establishment(
         owner_id=owner.id,
@@ -79,7 +72,7 @@ async def seed(db: AsyncSession) -> None:
     )
     db.add(establishment)
     await db.flush()
-    
+
     # Create services
     services_data = [
         {"name": "Corte Masculino", "price": 45.00, "duration": 30},
@@ -91,7 +84,7 @@ async def seed(db: AsyncSession) -> None:
         {"name": "Hidratação", "price": 40.00, "duration": 30},
         {"name": "Pigmentação", "price": 50.00, "duration": 40},
     ]
-    
+
     services = []
     for i, data in enumerate(services_data):
         service = Service(
@@ -104,14 +97,14 @@ async def seed(db: AsyncSession) -> None:
         db.add(service)
         services.append(service)
     await db.flush()
-    
+
     # Create staff
     staff_data = [
         {"name": "Carlos", "role": "barbeiro"},
         {"name": "Pedro", "role": "barbeiro"},
         {"name": "Lucas", "role": "barbeiro"},
     ]
-    
+
     default_schedule = {
         "monday": {"start": "09:00", "end": "19:00"},
         "tuesday": {"start": "09:00", "end": "19:00"},
@@ -121,7 +114,7 @@ async def seed(db: AsyncSession) -> None:
         "saturday": {"start": "09:00", "end": "17:00"},
         "sunday": None,
     }
-    
+
     staff_members = []
     for data in staff_data:
         staff = StaffMember(
@@ -134,7 +127,7 @@ async def seed(db: AsyncSession) -> None:
         db.add(staff)
         staff_members.append(staff)
     await db.flush()
-    
+
     # Create subscription plan
     plan = SubscriptionPlan(
         establishment_id=establishment.id,
@@ -144,7 +137,7 @@ async def seed(db: AsyncSession) -> None:
     )
     db.add(plan)
     await db.flush()
-    
+
     # Add corte masculino to plan (4x/month)
     plan_item = SubscriptionPlanItem(
         plan_id=plan.id,
@@ -152,7 +145,7 @@ async def seed(db: AsyncSession) -> None:
         quantity_per_month=4,
     )
     db.add(plan_item)
-    
+
     logger.info(
         "Demo establishment created",
         establishment_id=str(establishment.id),

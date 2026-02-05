@@ -1,0 +1,919 @@
+Using selector: EpollSelector
+Using selector: EpollSelector
+[2m2026-02-05T14:51:43.400880Z[0m [[32m[1minfo     [0m] [1mStarting application          [0m [[0m[1m[34mapp.main[0m][0m [36mapp[0m=[35m'Navaro API'[0m [36menvironment[0m=[35mdevelopment[0m [36mmode[0m=[35mdebug[0m [36mname[0m=[35m'Navaro API'[0m [36mversion[0m=[35m1.0.0[0m
+2026-02-05 15:51:43,463 INFO sqlalchemy.engine.Engine select pg_catalog.version()
+select pg_catalog.version()
+2026-02-05 15:51:43,464 INFO sqlalchemy.engine.Engine [raw sql] ()
+[raw sql] ()
+2026-02-05 15:51:43,471 INFO sqlalchemy.engine.Engine select current_schema()
+select current_schema()
+2026-02-05 15:51:43,471 INFO sqlalchemy.engine.Engine [raw sql] ()
+[raw sql] ()
+2026-02-05 15:51:43,477 INFO sqlalchemy.engine.Engine show standard_conforming_strings
+show standard_conforming_strings
+2026-02-05 15:51:43,478 INFO sqlalchemy.engine.Engine [raw sql] ()
+[raw sql] ()
+2026-02-05 15:51:43,480 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+BEGIN (implicit)
+2026-02-05 15:51:43,488 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-05 15:51:43,489 INFO sqlalchemy.engine.Engine [generated in 0.00067s] ('users', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+[generated in 0.00067s] ('users', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-05 15:51:43,505 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-05 15:51:43,506 INFO sqlalchemy.engine.Engine [cached since 0.0179s ago] ('establishments', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+[cached since 0.0179s ago] ('establishments', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-05 15:51:43,510 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-05 15:51:43,510 INFO sqlalchemy.engine.Engine [cached since 0.02217s ago] ('service_staff', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+[cached since 0.02217s ago] ('service_staff', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-05 15:51:43,515 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-05 15:51:43,515 INFO sqlalchemy.engine.Engine [cached since 0.02717s ago] ('services', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+[cached since 0.02717s ago] ('services', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-05 15:51:43,518 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-05 15:51:43,518 INFO sqlalchemy.engine.Engine [cached since 0.02998s ago] ('service_bundles', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+[cached since 0.02998s ago] ('service_bundles', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-05 15:51:43,520 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-05 15:51:43,520 INFO sqlalchemy.engine.Engine [cached since 0.03219s ago] ('service_bundle_items', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+[cached since 0.03219s ago] ('service_bundle_items', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-05 15:51:43,522 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-05 15:51:43,523 INFO sqlalchemy.engine.Engine [cached since 0.03442s ago] ('staff_members', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+[cached since 0.03442s ago] ('staff_members', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-05 15:51:43,524 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-05 15:51:43,524 INFO sqlalchemy.engine.Engine [cached since 0.0359s ago] ('staff_blocks', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+[cached since 0.0359s ago] ('staff_blocks', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-05 15:51:43,525 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-05 15:51:43,526 INFO sqlalchemy.engine.Engine [cached since 0.03745s ago] ('subscription_plans', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+[cached since 0.03745s ago] ('subscription_plans', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-05 15:51:43,528 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-05 15:51:43,528 INFO sqlalchemy.engine.Engine [cached since 0.03995s ago] ('subscription_plan_items', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+[cached since 0.03995s ago] ('subscription_plan_items', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-05 15:51:43,530 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-05 15:51:43,530 INFO sqlalchemy.engine.Engine [cached since 0.04209s ago] ('subscriptions', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+[cached since 0.04209s ago] ('subscriptions', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-05 15:51:43,532 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-05 15:51:43,532 INFO sqlalchemy.engine.Engine [cached since 0.04374s ago] ('subscription_usage', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+[cached since 0.04374s ago] ('subscription_usage', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-05 15:51:43,535 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-05 15:51:43,535 INFO sqlalchemy.engine.Engine [cached since 0.04724s ago] ('appointments', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+[cached since 0.04724s ago] ('appointments', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-05 15:51:43,539 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-05 15:51:43,539 INFO sqlalchemy.engine.Engine [cached since 0.05123s ago] ('appointment_products', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+[cached since 0.05123s ago] ('appointment_products', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-05 15:51:43,541 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-05 15:51:43,542 INFO sqlalchemy.engine.Engine [cached since 0.0534s ago] ('checkins', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+[cached since 0.0534s ago] ('checkins', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-05 15:51:43,543 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-05 15:51:43,543 INFO sqlalchemy.engine.Engine [cached since 0.05481s ago] ('queue_entries', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+[cached since 0.05481s ago] ('queue_entries', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-05 15:51:43,544 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-05 15:51:43,544 INFO sqlalchemy.engine.Engine [cached since 0.05627s ago] ('reviews', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+[cached since 0.05627s ago] ('reviews', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-05 15:51:43,547 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-05 15:51:43,548 INFO sqlalchemy.engine.Engine [cached since 0.0595s ago] ('favorites', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+[cached since 0.0595s ago] ('favorites', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-05 15:51:43,550 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-05 15:51:43,551 INFO sqlalchemy.engine.Engine [cached since 0.06243s ago] ('favorite_staff', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+[cached since 0.06243s ago] ('favorite_staff', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-05 15:51:43,554 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-05 15:51:43,554 INFO sqlalchemy.engine.Engine [cached since 0.06593s ago] ('payments', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+[cached since 0.06593s ago] ('payments', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-05 15:51:43,558 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-05 15:51:43,558 INFO sqlalchemy.engine.Engine [cached since 0.07022s ago] ('tips', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+[cached since 0.07022s ago] ('tips', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-05 15:51:43,560 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-05 15:51:43,561 INFO sqlalchemy.engine.Engine [cached since 0.07247s ago] ('payouts', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+[cached since 0.07247s ago] ('payouts', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-05 15:51:43,562 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-05 15:51:43,562 INFO sqlalchemy.engine.Engine [cached since 0.0742s ago] ('portfolio_images', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+[cached since 0.0742s ago] ('portfolio_images', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-05 15:51:43,564 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-05 15:51:43,564 INFO sqlalchemy.engine.Engine [cached since 0.07598s ago] ('search_history', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+[cached since 0.07598s ago] ('search_history', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-05 15:51:43,566 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-05 15:51:43,566 INFO sqlalchemy.engine.Engine [cached since 0.07765s ago] ('products', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+[cached since 0.07765s ago] ('products', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-05 15:51:43,568 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-05 15:51:43,569 INFO sqlalchemy.engine.Engine [cached since 0.08049s ago] ('establishment_plugins', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+[cached since 0.08049s ago] ('establishment_plugins', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-05 15:51:43,571 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-05 15:51:43,571 INFO sqlalchemy.engine.Engine [cached since 0.0829s ago] ('ad_campaigns', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+[cached since 0.0829s ago] ('ad_campaigns', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-05 15:51:43,573 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-05 15:51:43,574 INFO sqlalchemy.engine.Engine [cached since 0.08541s ago] ('notifications', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+[cached since 0.08541s ago] ('notifications', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-05 15:51:43,600 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-05 15:51:43,601 INFO sqlalchemy.engine.Engine [cached since 0.1125s ago] ('user_debts', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+[cached since 0.1125s ago] ('user_debts', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-05 15:51:43,602 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-05 15:51:43,602 INFO sqlalchemy.engine.Engine [cached since 0.1143s ago] ('user_wallets', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+[cached since 0.1143s ago] ('user_wallets', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-05 15:51:43,604 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-05 15:51:43,604 INFO sqlalchemy.engine.Engine [cached since 0.1159s ago] ('wallet_transactions', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+[cached since 0.1159s ago] ('wallet_transactions', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-05 15:51:43,608 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+2026-02-05 15:51:43,609 INFO sqlalchemy.engine.Engine [generated in 0.00055s] ('userrole', 'pg_catalog')
+[generated in 0.00055s] ('userrole', 'pg_catalog')
+2026-02-05 15:51:43,614 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+2026-02-05 15:51:43,614 INFO sqlalchemy.engine.Engine [cached since 0.006172s ago] ('establishmentcategory', 'pg_catalog')
+[cached since 0.006172s ago] ('establishmentcategory', 'pg_catalog')
+2026-02-05 15:51:43,617 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+2026-02-05 15:51:43,618 INFO sqlalchemy.engine.Engine [cached since 0.00932s ago] ('establishmentstatus', 'pg_catalog')
+[cached since 0.00932s ago] ('establishmentstatus', 'pg_catalog')
+2026-02-05 15:51:43,622 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+2026-02-05 15:51:43,622 INFO sqlalchemy.engine.Engine [cached since 0.01398s ago] ('subscriptiontier', 'pg_catalog')
+[cached since 0.01398s ago] ('subscriptiontier', 'pg_catalog')
+2026-02-05 15:51:43,625 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+2026-02-05 15:51:43,625 INFO sqlalchemy.engine.Engine [cached since 0.01721s ago] ('subscriptionstatus', 'pg_catalog')
+[cached since 0.01721s ago] ('subscriptionstatus', 'pg_catalog')
+2026-02-05 15:51:43,629 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+2026-02-05 15:51:43,629 INFO sqlalchemy.engine.Engine [cached since 0.02065s ago] ('appointmentstatus', 'pg_catalog')
+[cached since 0.02065s ago] ('appointmentstatus', 'pg_catalog')
+2026-02-05 15:51:43,632 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+2026-02-05 15:51:43,632 INFO sqlalchemy.engine.Engine [cached since 0.02375s ago] ('paymenttype', 'pg_catalog')
+[cached since 0.02375s ago] ('paymenttype', 'pg_catalog')
+2026-02-05 15:51:43,636 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+2026-02-05 15:51:43,636 INFO sqlalchemy.engine.Engine [cached since 0.02763s ago] ('queuestatus', 'pg_catalog')
+[cached since 0.02763s ago] ('queuestatus', 'pg_catalog')
+2026-02-05 15:51:43,640 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+2026-02-05 15:51:43,641 INFO sqlalchemy.engine.Engine [cached since 0.03238s ago] ('paymentpurpose', 'pg_catalog')
+[cached since 0.03238s ago] ('paymentpurpose', 'pg_catalog')
+2026-02-05 15:51:43,645 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+2026-02-05 15:51:43,645 INFO sqlalchemy.engine.Engine [cached since 0.03721s ago] ('paymentstatus', 'pg_catalog')
+[cached since 0.03721s ago] ('paymentstatus', 'pg_catalog')
+2026-02-05 15:51:43,652 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+2026-02-05 15:51:43,652 INFO sqlalchemy.engine.Engine [cached since 0.0437s ago] ('notificationtype', 'pg_catalog')
+[cached since 0.0437s ago] ('notificationtype', 'pg_catalog')
+2026-02-05 15:51:43,655 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+2026-02-05 15:51:43,655 INFO sqlalchemy.engine.Engine [cached since 0.04704s ago] ('debtstatus', 'pg_catalog')
+[cached since 0.04704s ago] ('debtstatus', 'pg_catalog')
+2026-02-05 15:51:43,658 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+2026-02-05 15:51:43,659 INFO sqlalchemy.engine.Engine [cached since 0.05047s ago] ('transactiontype', 'pg_catalog')
+[cached since 0.05047s ago] ('transactiontype', 'pg_catalog')
+2026-02-05 15:51:43,662 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+2026-02-05 15:51:43,662 INFO sqlalchemy.engine.Engine [cached since 0.05395s ago] ('transactionstatus', 'pg_catalog')
+[cached since 0.05395s ago] ('transactionstatus', 'pg_catalog')
+2026-02-05 15:51:43,664 INFO sqlalchemy.engine.Engine COMMIT
+COMMIT
+[2m2026-02-05T14:51:43.666411Z[0m [[32m[1minfo     [0m] [1mDatabase initialized          [0m [[0m[1m[34mapp.main[0m][0m [36mapp[0m=[35m'Navaro API'[0m [36menvironment[0m=[35mdevelopment[0m [36mmode[0m=[35mdebug[0m [36mversion[0m=[35m1.0.0[0m
+[2m2026-02-05T14:51:43.674859Z[0m [[32m[1minfo     [0m] [1mVerification code sent        [0m [[0m[1m[34mapp.api.v1.auth[0m][0m [36mapp[0m=[35m'Navaro API'[0m [36menvironment[0m=[35mdevelopment[0m [36mmethod[0m=[35mPOST[0m [36mmode[0m=[35mdebug[0m [36mpath[0m=[35m/api/v1/auth/send-code[0m [36mphone[0m=[35m+5511988887777[0m [36mrequest_id[0m=[35m384c38bc-9cf1-4f10-94eb-0343ab80c8ec[0m [36mversion[0m=[35m1.0.0[0m
+[2m2026-02-05T14:51:43.676164Z[0m [[32m[1minfo     [0m] [1mRequest completed             [0m [[0m[1m[34mapp.core.middleware[0m][0m [36mapp[0m=[35m'Navaro API'[0m [36mduration_ms[0m=[35m5.47[0m [36menvironment[0m=[35mdevelopment[0m [36mmethod[0m=[35mPOST[0m [36mmode[0m=[35mdebug[0m [36mpath[0m=[35m/api/v1/auth/send-code[0m [36mrequest_id[0m=[35m384c38bc-9cf1-4f10-94eb-0343ab80c8ec[0m [36mstatus_code[0m=[35m200[0m [36mversion[0m=[35m1.0.0[0m
+2026-02-05 15:51:43,686 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+BEGIN (implicit)
+2026-02-05 15:51:43,844 INFO sqlalchemy.engine.Engine SELECT users.phone, users.name, users.email, users.avatar_url, users.role, users.referral_code, users.referred_by_id, users.id, users.created_at, users.updated_at 
+FROM users 
+WHERE users.phone = $1::VARCHAR
+SELECT users.phone, users.name, users.email, users.avatar_url, users.role, users.referral_code, users.referred_by_id, users.id, users.created_at, users.updated_at 
+FROM users 
+WHERE users.phone = $1::VARCHAR
+2026-02-05 15:51:43,845 INFO sqlalchemy.engine.Engine [generated in 0.00062s] ('+5511988887777',)
+[generated in 0.00062s] ('+5511988887777',)
+[2m2026-02-05T14:51:43.900832Z[0m [[32m[1minfo     [0m] [1mUser authenticated            [0m [[0m[1m[34mapp.api.v1.auth[0m][0m [36mapp[0m=[35m'Navaro API'[0m [36menvironment[0m=[35mdevelopment[0m [36mmethod[0m=[35mPOST[0m [36mmode[0m=[35mdebug[0m [36mpath[0m=[35m/api/v1/auth/verify[0m [36mrequest_id[0m=[35m12271407-cfa8-4fc0-808a-70f4abb9e670[0m [36muser_id[0m=[35m1bec427c-d8f4-47f8-963a-f2dcba2a6133[0m [36mversion[0m=[35m1.0.0[0m
+2026-02-05 15:51:43,902 INFO sqlalchemy.engine.Engine ROLLBACK
+ROLLBACK
+[2m2026-02-05T14:51:43.903089Z[0m [[32m[1minfo     [0m] [1mRequest completed             [0m [[0m[1m[34mapp.core.middleware[0m][0m [36mapp[0m=[35m'Navaro API'[0m [36mduration_ms[0m=[35m224.74[0m [36menvironment[0m=[35mdevelopment[0m [36mmethod[0m=[35mPOST[0m [36mmode[0m=[35mdebug[0m [36mpath[0m=[35m/api/v1/auth/verify[0m [36mrequest_id[0m=[35m12271407-cfa8-4fc0-808a-70f4abb9e670[0m [36mstatus_code[0m=[35m200[0m [36mversion[0m=[35m1.0.0[0m
+2026-02-05 15:51:43,914 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+BEGIN (implicit)
+2026-02-05 15:51:43,917 INFO sqlalchemy.engine.Engine SELECT users.phone, users.name, users.email, users.avatar_url, users.role, users.referral_code, users.referred_by_id, users.id, users.created_at, users.updated_at 
+FROM users 
+WHERE users.id = $1::UUID
+SELECT users.phone, users.name, users.email, users.avatar_url, users.role, users.referral_code, users.referred_by_id, users.id, users.created_at, users.updated_at 
+FROM users 
+WHERE users.id = $1::UUID
+2026-02-05 15:51:43,917 INFO sqlalchemy.engine.Engine [generated in 0.00050s] (UUID('1bec427c-d8f4-47f8-963a-f2dcba2a6133'),)
+[generated in 0.00050s] (UUID('1bec427c-d8f4-47f8-963a-f2dcba2a6133'),)
+2026-02-05 15:51:43,928 INFO sqlalchemy.engine.Engine SELECT establishments.owner_id, establishments.name, establishments.slug, establishments.category, establishments.description, establishments.address, establishments.city, establishments.state, establishments.zip_code, establishments.latitude, establishments.longitude, establishments.phone, establishments.whatsapp, establishments.logo_url, establishments.cover_url, establishments.google_place_id, establishments.google_maps_url, establishments.business_hours, establishments.queue_mode_enabled, establishments.status, establishments.subscription_tier, establishments.stripe_account_id, establishments.cancellation_fee_fixed, establishments.no_show_fee_percent, establishments.deposit_percent, establishments.id, establishments.created_at, establishments.updated_at 
+FROM establishments 
+WHERE establishments.slug = $1::VARCHAR
+SELECT establishments.owner_id, establishments.name, establishments.slug, establishments.category, establishments.description, establishments.address, establishments.city, establishments.state, establishments.zip_code, establishments.latitude, establishments.longitude, establishments.phone, establishments.whatsapp, establishments.logo_url, establishments.cover_url, establishments.google_place_id, establishments.google_maps_url, establishments.business_hours, establishments.queue_mode_enabled, establishments.status, establishments.subscription_tier, establishments.stripe_account_id, establishments.cancellation_fee_fixed, establishments.no_show_fee_percent, establishments.deposit_percent, establishments.id, establishments.created_at, establishments.updated_at 
+FROM establishments 
+WHERE establishments.slug = $1::VARCHAR
+2026-02-05 15:51:43,928 INFO sqlalchemy.engine.Engine [generated in 0.00051s] ('advanced-barbershop',)
+[generated in 0.00051s] ('advanced-barbershop',)
+2026-02-05 15:51:43,975 INFO sqlalchemy.engine.Engine SELECT establishments.owner_id, establishments.name, establishments.slug, establishments.category, establishments.description, establishments.address, establishments.city, establishments.state, establishments.zip_code, establishments.latitude, establishments.longitude, establishments.phone, establishments.whatsapp, establishments.logo_url, establishments.cover_url, establishments.google_place_id, establishments.google_maps_url, establishments.business_hours, establishments.queue_mode_enabled, establishments.status, establishments.subscription_tier, establishments.stripe_account_id, establishments.cancellation_fee_fixed, establishments.no_show_fee_percent, establishments.deposit_percent, establishments.id, establishments.created_at, establishments.updated_at 
+FROM establishments 
+WHERE establishments.slug = $1::VARCHAR
+SELECT establishments.owner_id, establishments.name, establishments.slug, establishments.category, establishments.description, establishments.address, establishments.city, establishments.state, establishments.zip_code, establishments.latitude, establishments.longitude, establishments.phone, establishments.whatsapp, establishments.logo_url, establishments.cover_url, establishments.google_place_id, establishments.google_maps_url, establishments.business_hours, establishments.queue_mode_enabled, establishments.status, establishments.subscription_tier, establishments.stripe_account_id, establishments.cancellation_fee_fixed, establishments.no_show_fee_percent, establishments.deposit_percent, establishments.id, establishments.created_at, establishments.updated_at 
+FROM establishments 
+WHERE establishments.slug = $1::VARCHAR
+2026-02-05 15:51:43,975 INFO sqlalchemy.engine.Engine [cached since 0.04789s ago] ('advanced-barbershop-1',)
+[cached since 0.04789s ago] ('advanced-barbershop-1',)
+2026-02-05 15:51:43,979 INFO sqlalchemy.engine.Engine SELECT establishments.owner_id, establishments.name, establishments.slug, establishments.category, establishments.description, establishments.address, establishments.city, establishments.state, establishments.zip_code, establishments.latitude, establishments.longitude, establishments.phone, establishments.whatsapp, establishments.logo_url, establishments.cover_url, establishments.google_place_id, establishments.google_maps_url, establishments.business_hours, establishments.queue_mode_enabled, establishments.status, establishments.subscription_tier, establishments.stripe_account_id, establishments.cancellation_fee_fixed, establishments.no_show_fee_percent, establishments.deposit_percent, establishments.id, establishments.created_at, establishments.updated_at 
+FROM establishments 
+WHERE establishments.slug = $1::VARCHAR
+SELECT establishments.owner_id, establishments.name, establishments.slug, establishments.category, establishments.description, establishments.address, establishments.city, establishments.state, establishments.zip_code, establishments.latitude, establishments.longitude, establishments.phone, establishments.whatsapp, establishments.logo_url, establishments.cover_url, establishments.google_place_id, establishments.google_maps_url, establishments.business_hours, establishments.queue_mode_enabled, establishments.status, establishments.subscription_tier, establishments.stripe_account_id, establishments.cancellation_fee_fixed, establishments.no_show_fee_percent, establishments.deposit_percent, establishments.id, establishments.created_at, establishments.updated_at 
+FROM establishments 
+WHERE establishments.slug = $1::VARCHAR
+2026-02-05 15:51:43,979 INFO sqlalchemy.engine.Engine [cached since 0.0516s ago] ('advanced-barbershop-2',)
+[cached since 0.0516s ago] ('advanced-barbershop-2',)
+2026-02-05 15:51:43,981 INFO sqlalchemy.engine.Engine SELECT establishments.owner_id, establishments.name, establishments.slug, establishments.category, establishments.description, establishments.address, establishments.city, establishments.state, establishments.zip_code, establishments.latitude, establishments.longitude, establishments.phone, establishments.whatsapp, establishments.logo_url, establishments.cover_url, establishments.google_place_id, establishments.google_maps_url, establishments.business_hours, establishments.queue_mode_enabled, establishments.status, establishments.subscription_tier, establishments.stripe_account_id, establishments.cancellation_fee_fixed, establishments.no_show_fee_percent, establishments.deposit_percent, establishments.id, establishments.created_at, establishments.updated_at 
+FROM establishments 
+WHERE establishments.slug = $1::VARCHAR
+SELECT establishments.owner_id, establishments.name, establishments.slug, establishments.category, establishments.description, establishments.address, establishments.city, establishments.state, establishments.zip_code, establishments.latitude, establishments.longitude, establishments.phone, establishments.whatsapp, establishments.logo_url, establishments.cover_url, establishments.google_place_id, establishments.google_maps_url, establishments.business_hours, establishments.queue_mode_enabled, establishments.status, establishments.subscription_tier, establishments.stripe_account_id, establishments.cancellation_fee_fixed, establishments.no_show_fee_percent, establishments.deposit_percent, establishments.id, establishments.created_at, establishments.updated_at 
+FROM establishments 
+WHERE establishments.slug = $1::VARCHAR
+2026-02-05 15:51:43,981 INFO sqlalchemy.engine.Engine [cached since 0.05387s ago] ('advanced-barbershop-3',)
+[cached since 0.05387s ago] ('advanced-barbershop-3',)
+2026-02-05 15:51:43,983 INFO sqlalchemy.engine.Engine SELECT establishments.owner_id, establishments.name, establishments.slug, establishments.category, establishments.description, establishments.address, establishments.city, establishments.state, establishments.zip_code, establishments.latitude, establishments.longitude, establishments.phone, establishments.whatsapp, establishments.logo_url, establishments.cover_url, establishments.google_place_id, establishments.google_maps_url, establishments.business_hours, establishments.queue_mode_enabled, establishments.status, establishments.subscription_tier, establishments.stripe_account_id, establishments.cancellation_fee_fixed, establishments.no_show_fee_percent, establishments.deposit_percent, establishments.id, establishments.created_at, establishments.updated_at 
+FROM establishments 
+WHERE establishments.slug = $1::VARCHAR
+SELECT establishments.owner_id, establishments.name, establishments.slug, establishments.category, establishments.description, establishments.address, establishments.city, establishments.state, establishments.zip_code, establishments.latitude, establishments.longitude, establishments.phone, establishments.whatsapp, establishments.logo_url, establishments.cover_url, establishments.google_place_id, establishments.google_maps_url, establishments.business_hours, establishments.queue_mode_enabled, establishments.status, establishments.subscription_tier, establishments.stripe_account_id, establishments.cancellation_fee_fixed, establishments.no_show_fee_percent, establishments.deposit_percent, establishments.id, establishments.created_at, establishments.updated_at 
+FROM establishments 
+WHERE establishments.slug = $1::VARCHAR
+2026-02-05 15:51:43,983 INFO sqlalchemy.engine.Engine [cached since 0.0558s ago] ('advanced-barbershop-4',)
+[cached since 0.0558s ago] ('advanced-barbershop-4',)
+2026-02-05 15:51:43,986 INFO sqlalchemy.engine.Engine SELECT establishments.owner_id, establishments.name, establishments.slug, establishments.category, establishments.description, establishments.address, establishments.city, establishments.state, establishments.zip_code, establishments.latitude, establishments.longitude, establishments.phone, establishments.whatsapp, establishments.logo_url, establishments.cover_url, establishments.google_place_id, establishments.google_maps_url, establishments.business_hours, establishments.queue_mode_enabled, establishments.status, establishments.subscription_tier, establishments.stripe_account_id, establishments.cancellation_fee_fixed, establishments.no_show_fee_percent, establishments.deposit_percent, establishments.id, establishments.created_at, establishments.updated_at 
+FROM establishments 
+WHERE establishments.slug = $1::VARCHAR
+SELECT establishments.owner_id, establishments.name, establishments.slug, establishments.category, establishments.description, establishments.address, establishments.city, establishments.state, establishments.zip_code, establishments.latitude, establishments.longitude, establishments.phone, establishments.whatsapp, establishments.logo_url, establishments.cover_url, establishments.google_place_id, establishments.google_maps_url, establishments.business_hours, establishments.queue_mode_enabled, establishments.status, establishments.subscription_tier, establishments.stripe_account_id, establishments.cancellation_fee_fixed, establishments.no_show_fee_percent, establishments.deposit_percent, establishments.id, establishments.created_at, establishments.updated_at 
+FROM establishments 
+WHERE establishments.slug = $1::VARCHAR
+2026-02-05 15:51:43,986 INFO sqlalchemy.engine.Engine [cached since 0.05829s ago] ('advanced-barbershop-5',)
+[cached since 0.05829s ago] ('advanced-barbershop-5',)
+2026-02-05 15:51:43,989 INFO sqlalchemy.engine.Engine SELECT establishments.owner_id, establishments.name, establishments.slug, establishments.category, establishments.description, establishments.address, establishments.city, establishments.state, establishments.zip_code, establishments.latitude, establishments.longitude, establishments.phone, establishments.whatsapp, establishments.logo_url, establishments.cover_url, establishments.google_place_id, establishments.google_maps_url, establishments.business_hours, establishments.queue_mode_enabled, establishments.status, establishments.subscription_tier, establishments.stripe_account_id, establishments.cancellation_fee_fixed, establishments.no_show_fee_percent, establishments.deposit_percent, establishments.id, establishments.created_at, establishments.updated_at 
+FROM establishments 
+WHERE establishments.slug = $1::VARCHAR
+SELECT establishments.owner_id, establishments.name, establishments.slug, establishments.category, establishments.description, establishments.address, establishments.city, establishments.state, establishments.zip_code, establishments.latitude, establishments.longitude, establishments.phone, establishments.whatsapp, establishments.logo_url, establishments.cover_url, establishments.google_place_id, establishments.google_maps_url, establishments.business_hours, establishments.queue_mode_enabled, establishments.status, establishments.subscription_tier, establishments.stripe_account_id, establishments.cancellation_fee_fixed, establishments.no_show_fee_percent, establishments.deposit_percent, establishments.id, establishments.created_at, establishments.updated_at 
+FROM establishments 
+WHERE establishments.slug = $1::VARCHAR
+2026-02-05 15:51:43,989 INFO sqlalchemy.engine.Engine [cached since 0.06141s ago] ('advanced-barbershop-6',)
+[cached since 0.06141s ago] ('advanced-barbershop-6',)
+2026-02-05 15:51:43,990 INFO sqlalchemy.engine.Engine SELECT establishments.owner_id, establishments.name, establishments.slug, establishments.category, establishments.description, establishments.address, establishments.city, establishments.state, establishments.zip_code, establishments.latitude, establishments.longitude, establishments.phone, establishments.whatsapp, establishments.logo_url, establishments.cover_url, establishments.google_place_id, establishments.google_maps_url, establishments.business_hours, establishments.queue_mode_enabled, establishments.status, establishments.subscription_tier, establishments.stripe_account_id, establishments.cancellation_fee_fixed, establishments.no_show_fee_percent, establishments.deposit_percent, establishments.id, establishments.created_at, establishments.updated_at 
+FROM establishments 
+WHERE establishments.slug = $1::VARCHAR
+SELECT establishments.owner_id, establishments.name, establishments.slug, establishments.category, establishments.description, establishments.address, establishments.city, establishments.state, establishments.zip_code, establishments.latitude, establishments.longitude, establishments.phone, establishments.whatsapp, establishments.logo_url, establishments.cover_url, establishments.google_place_id, establishments.google_maps_url, establishments.business_hours, establishments.queue_mode_enabled, establishments.status, establishments.subscription_tier, establishments.stripe_account_id, establishments.cancellation_fee_fixed, establishments.no_show_fee_percent, establishments.deposit_percent, establishments.id, establishments.created_at, establishments.updated_at 
+FROM establishments 
+WHERE establishments.slug = $1::VARCHAR
+2026-02-05 15:51:43,990 INFO sqlalchemy.engine.Engine [cached since 0.063s ago] ('advanced-barbershop-7',)
+[cached since 0.063s ago] ('advanced-barbershop-7',)
+2026-02-05 15:51:43,992 INFO sqlalchemy.engine.Engine SELECT establishments.owner_id, establishments.name, establishments.slug, establishments.category, establishments.description, establishments.address, establishments.city, establishments.state, establishments.zip_code, establishments.latitude, establishments.longitude, establishments.phone, establishments.whatsapp, establishments.logo_url, establishments.cover_url, establishments.google_place_id, establishments.google_maps_url, establishments.business_hours, establishments.queue_mode_enabled, establishments.status, establishments.subscription_tier, establishments.stripe_account_id, establishments.cancellation_fee_fixed, establishments.no_show_fee_percent, establishments.deposit_percent, establishments.id, establishments.created_at, establishments.updated_at 
+FROM establishments 
+WHERE establishments.slug = $1::VARCHAR
+SELECT establishments.owner_id, establishments.name, establishments.slug, establishments.category, establishments.description, establishments.address, establishments.city, establishments.state, establishments.zip_code, establishments.latitude, establishments.longitude, establishments.phone, establishments.whatsapp, establishments.logo_url, establishments.cover_url, establishments.google_place_id, establishments.google_maps_url, establishments.business_hours, establishments.queue_mode_enabled, establishments.status, establishments.subscription_tier, establishments.stripe_account_id, establishments.cancellation_fee_fixed, establishments.no_show_fee_percent, establishments.deposit_percent, establishments.id, establishments.created_at, establishments.updated_at 
+FROM establishments 
+WHERE establishments.slug = $1::VARCHAR
+2026-02-05 15:51:43,992 INFO sqlalchemy.engine.Engine [cached since 0.06428s ago] ('advanced-barbershop-8',)
+[cached since 0.06428s ago] ('advanced-barbershop-8',)
+2026-02-05 15:51:43,993 INFO sqlalchemy.engine.Engine SELECT establishments.owner_id, establishments.name, establishments.slug, establishments.category, establishments.description, establishments.address, establishments.city, establishments.state, establishments.zip_code, establishments.latitude, establishments.longitude, establishments.phone, establishments.whatsapp, establishments.logo_url, establishments.cover_url, establishments.google_place_id, establishments.google_maps_url, establishments.business_hours, establishments.queue_mode_enabled, establishments.status, establishments.subscription_tier, establishments.stripe_account_id, establishments.cancellation_fee_fixed, establishments.no_show_fee_percent, establishments.deposit_percent, establishments.id, establishments.created_at, establishments.updated_at 
+FROM establishments 
+WHERE establishments.slug = $1::VARCHAR
+SELECT establishments.owner_id, establishments.name, establishments.slug, establishments.category, establishments.description, establishments.address, establishments.city, establishments.state, establishments.zip_code, establishments.latitude, establishments.longitude, establishments.phone, establishments.whatsapp, establishments.logo_url, establishments.cover_url, establishments.google_place_id, establishments.google_maps_url, establishments.business_hours, establishments.queue_mode_enabled, establishments.status, establishments.subscription_tier, establishments.stripe_account_id, establishments.cancellation_fee_fixed, establishments.no_show_fee_percent, establishments.deposit_percent, establishments.id, establishments.created_at, establishments.updated_at 
+FROM establishments 
+WHERE establishments.slug = $1::VARCHAR
+2026-02-05 15:51:43,993 INFO sqlalchemy.engine.Engine [cached since 0.06566s ago] ('advanced-barbershop-9',)
+[cached since 0.06566s ago] ('advanced-barbershop-9',)
+2026-02-05 15:51:43,998 INFO sqlalchemy.engine.Engine INSERT INTO establishments (owner_id, name, slug, category, description, address, city, state, zip_code, latitude, longitude, phone, whatsapp, logo_url, cover_url, google_place_id, google_maps_url, business_hours, queue_mode_enabled, status, subscription_tier, stripe_account_id, cancellation_fee_fixed, no_show_fee_percent, deposit_percent, id) VALUES ($1::UUID, $2::VARCHAR, $3::VARCHAR, $4::establishmentcategory, $5::VARCHAR, $6::VARCHAR, $7::VARCHAR, $8::VARCHAR, $9::VARCHAR, $10::NUMERIC(10, 8), $11::NUMERIC(11, 8), $12::VARCHAR, $13::VARCHAR, $14::VARCHAR, $15::VARCHAR, $16::VARCHAR, $17::VARCHAR, $18::JSON, $19::BOOLEAN, $20::establishmentstatus, $21::subscriptiontier, $22::VARCHAR, $23::NUMERIC(10, 2), $24::NUMERIC(5, 2), $25::NUMERIC(5, 2), $26::UUID) RETURNING establishments.created_at, establishments.updated_at
+INSERT INTO establishments (owner_id, name, slug, category, description, address, city, state, zip_code, latitude, longitude, phone, whatsapp, logo_url, cover_url, google_place_id, google_maps_url, business_hours, queue_mode_enabled, status, subscription_tier, stripe_account_id, cancellation_fee_fixed, no_show_fee_percent, deposit_percent, id) VALUES ($1::UUID, $2::VARCHAR, $3::VARCHAR, $4::establishmentcategory, $5::VARCHAR, $6::VARCHAR, $7::VARCHAR, $8::VARCHAR, $9::VARCHAR, $10::NUMERIC(10, 8), $11::NUMERIC(11, 8), $12::VARCHAR, $13::VARCHAR, $14::VARCHAR, $15::VARCHAR, $16::VARCHAR, $17::VARCHAR, $18::JSON, $19::BOOLEAN, $20::establishmentstatus, $21::subscriptiontier, $22::VARCHAR, $23::NUMERIC(10, 2), $24::NUMERIC(5, 2), $25::NUMERIC(5, 2), $26::UUID) RETURNING establishments.created_at, establishments.updated_at
+2026-02-05 15:51:43,999 INFO sqlalchemy.engine.Engine [generated in 0.00068s] (UUID('1bec427c-d8f4-47f8-963a-f2dcba2a6133'), 'Advanced Barbershop', 'advanced-barbershop-9', 'barbershop', None, 'Feature St', 'São Paulo', 'SP', None, None, None, '+551177777777', None, None, None, None, None, '{"mon": {"open": "00:00", "close": "23:59"}, "tue": {"open": "00:00", "close": "23:59"}, "wed": {"open": "00:00", "close": "23:59"}, "thu": {"open":  ... (10 characters truncated) ... close": "23:59"}, "fri": {"open": "00:00", "close": "23:59"}, "sat": {"open": "00:00", "close": "23:59"}, "sun": {"open": "00:00", "close": "23:59"}}', False, 'pending', 'trial', None, 0.0, 50.0, 0.0, UUID('17693d6e-8796-483a-a4f7-47982150f919'))
+[generated in 0.00068s] (UUID('1bec427c-d8f4-47f8-963a-f2dcba2a6133'), 'Advanced Barbershop', 'advanced-barbershop-9', 'barbershop', None, 'Feature St', 'São Paulo', 'SP', None, None, None, '+551177777777', None, None, None, None, None, '{"mon": {"open": "00:00", "close": "23:59"}, "tue": {"open": "00:00", "close": "23:59"}, "wed": {"open": "00:00", "close": "23:59"}, "thu": {"open":  ... (10 characters truncated) ... close": "23:59"}, "fri": {"open": "00:00", "close": "23:59"}, "sat": {"open": "00:00", "close": "23:59"}, "sun": {"open": "00:00", "close": "23:59"}}', False, 'pending', 'trial', None, 0.0, 50.0, 0.0, UUID('17693d6e-8796-483a-a4f7-47982150f919'))
+2026-02-05 15:51:44,006 INFO sqlalchemy.engine.Engine COMMIT
+COMMIT
+2026-02-05 15:51:44,014 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+BEGIN (implicit)
+2026-02-05 15:51:44,018 INFO sqlalchemy.engine.Engine SELECT establishments.owner_id, establishments.name, establishments.slug, establishments.category, establishments.description, establishments.address, establishments.city, establishments.state, establishments.zip_code, establishments.latitude, establishments.longitude, establishments.phone, establishments.whatsapp, establishments.logo_url, establishments.cover_url, establishments.google_place_id, establishments.google_maps_url, establishments.business_hours, establishments.queue_mode_enabled, establishments.status, establishments.subscription_tier, establishments.stripe_account_id, establishments.cancellation_fee_fixed, establishments.no_show_fee_percent, establishments.deposit_percent, establishments.id, establishments.created_at, establishments.updated_at 
+FROM establishments 
+WHERE establishments.id = $1::UUID
+SELECT establishments.owner_id, establishments.name, establishments.slug, establishments.category, establishments.description, establishments.address, establishments.city, establishments.state, establishments.zip_code, establishments.latitude, establishments.longitude, establishments.phone, establishments.whatsapp, establishments.logo_url, establishments.cover_url, establishments.google_place_id, establishments.google_maps_url, establishments.business_hours, establishments.queue_mode_enabled, establishments.status, establishments.subscription_tier, establishments.stripe_account_id, establishments.cancellation_fee_fixed, establishments.no_show_fee_percent, establishments.deposit_percent, establishments.id, establishments.created_at, establishments.updated_at 
+FROM establishments 
+WHERE establishments.id = $1::UUID
+2026-02-05 15:51:44,018 INFO sqlalchemy.engine.Engine [generated in 0.00057s] (UUID('17693d6e-8796-483a-a4f7-47982150f919'),)
+[generated in 0.00057s] (UUID('17693d6e-8796-483a-a4f7-47982150f919'),)
+2026-02-05 15:51:44,024 INFO sqlalchemy.engine.Engine ROLLBACK
+ROLLBACK
+[2m2026-02-05T14:51:44.025199Z[0m [[32m[1minfo     [0m] [1mRequest completed             [0m [[0m[1m[34mapp.core.middleware[0m][0m [36mapp[0m=[35m'Navaro API'[0m [36mduration_ms[0m=[35m118.74[0m [36menvironment[0m=[35mdevelopment[0m [36mmethod[0m=[35mPOST[0m [36mmode[0m=[35mdebug[0m [36mpath[0m=[35m/api/v1/establishments[0m [36mrequest_id[0m=[35m01017a75-2e53-4b47-b95a-81d678cd4ade[0m [36mstatus_code[0m=[35m201[0m [36mversion[0m=[35m1.0.0[0m
+2026-02-05 15:51:44,034 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+BEGIN (implicit)
+2026-02-05 15:51:44,035 INFO sqlalchemy.engine.Engine SELECT users.phone, users.name, users.email, users.avatar_url, users.role, users.referral_code, users.referred_by_id, users.id, users.created_at, users.updated_at 
+FROM users 
+WHERE users.id = $1::UUID
+SELECT users.phone, users.name, users.email, users.avatar_url, users.role, users.referral_code, users.referred_by_id, users.id, users.created_at, users.updated_at 
+FROM users 
+WHERE users.id = $1::UUID
+2026-02-05 15:51:44,035 INFO sqlalchemy.engine.Engine [cached since 0.1185s ago] (UUID('1bec427c-d8f4-47f8-963a-f2dcba2a6133'),)
+[cached since 0.1185s ago] (UUID('1bec427c-d8f4-47f8-963a-f2dcba2a6133'),)
+2026-02-05 15:51:44,047 INFO sqlalchemy.engine.Engine SELECT establishments.owner_id, establishments.name, establishments.slug, establishments.category, establishments.description, establishments.address, establishments.city, establishments.state, establishments.zip_code, establishments.latitude, establishments.longitude, establishments.phone, establishments.whatsapp, establishments.logo_url, establishments.cover_url, establishments.google_place_id, establishments.google_maps_url, establishments.business_hours, establishments.queue_mode_enabled, establishments.status, establishments.subscription_tier, establishments.stripe_account_id, establishments.cancellation_fee_fixed, establishments.no_show_fee_percent, establishments.deposit_percent, establishments.id, establishments.created_at, establishments.updated_at 
+FROM establishments 
+WHERE establishments.id = $1::UUID
+SELECT establishments.owner_id, establishments.name, establishments.slug, establishments.category, establishments.description, establishments.address, establishments.city, establishments.state, establishments.zip_code, establishments.latitude, establishments.longitude, establishments.phone, establishments.whatsapp, establishments.logo_url, establishments.cover_url, establishments.google_place_id, establishments.google_maps_url, establishments.business_hours, establishments.queue_mode_enabled, establishments.status, establishments.subscription_tier, establishments.stripe_account_id, establishments.cancellation_fee_fixed, establishments.no_show_fee_percent, establishments.deposit_percent, establishments.id, establishments.created_at, establishments.updated_at 
+FROM establishments 
+WHERE establishments.id = $1::UUID
+2026-02-05 15:51:44,048 INFO sqlalchemy.engine.Engine [generated in 0.00082s] (UUID('17693d6e-8796-483a-a4f7-47982150f919'),)
+[generated in 0.00082s] (UUID('17693d6e-8796-483a-a4f7-47982150f919'),)
+2026-02-05 15:51:44,053 INFO sqlalchemy.engine.Engine INSERT INTO staff_members (establishment_id, user_id, name, phone, role, avatar_url, work_schedule, commission_rate, active, id) VALUES ($1::UUID, $2::UUID, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR, $7::JSON, $8::NUMERIC(5, 2), $9::BOOLEAN, $10::UUID) RETURNING staff_members.created_at, staff_members.updated_at
+INSERT INTO staff_members (establishment_id, user_id, name, phone, role, avatar_url, work_schedule, commission_rate, active, id) VALUES ($1::UUID, $2::UUID, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR, $7::JSON, $8::NUMERIC(5, 2), $9::BOOLEAN, $10::UUID) RETURNING staff_members.created_at, staff_members.updated_at
+2026-02-05 15:51:44,053 INFO sqlalchemy.engine.Engine [generated in 0.00051s] (UUID('17693d6e-8796-483a-a4f7-47982150f919'), None, 'Expert Barber', None, 'barber', None, '{"mon": {"open": "00:00", "close": "23:59"}, "tue": {"open": "00:00", "close": "23:59"}, "wed": {"open": "00:00", "close": "23:59"}, "thu": {"open":  ... (10 characters truncated) ... close": "23:59"}, "fri": {"open": "00:00", "close": "23:59"}, "sat": {"open": "00:00", "close": "23:59"}, "sun": {"open": "00:00", "close": "23:59"}}', None, True, UUID('c427a24e-596d-47e7-9ad1-3df1416bae69'))
+[generated in 0.00051s] (UUID('17693d6e-8796-483a-a4f7-47982150f919'), None, 'Expert Barber', None, 'barber', None, '{"mon": {"open": "00:00", "close": "23:59"}, "tue": {"open": "00:00", "close": "23:59"}, "wed": {"open": "00:00", "close": "23:59"}, "thu": {"open":  ... (10 characters truncated) ... close": "23:59"}, "fri": {"open": "00:00", "close": "23:59"}, "sat": {"open": "00:00", "close": "23:59"}, "sun": {"open": "00:00", "close": "23:59"}}', None, True, UUID('c427a24e-596d-47e7-9ad1-3df1416bae69'))
+2026-02-05 15:51:44,060 INFO sqlalchemy.engine.Engine COMMIT
+COMMIT
+2026-02-05 15:51:44,068 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+BEGIN (implicit)
+2026-02-05 15:51:44,234 INFO sqlalchemy.engine.Engine SELECT staff_members.establishment_id, staff_members.user_id, staff_members.name, staff_members.phone, staff_members.role, staff_members.avatar_url, staff_members.work_schedule, staff_members.commission_rate, staff_members.active, staff_members.id, staff_members.created_at, staff_members.updated_at 
+FROM staff_members 
+WHERE staff_members.id = $1::UUID
+SELECT staff_members.establishment_id, staff_members.user_id, staff_members.name, staff_members.phone, staff_members.role, staff_members.avatar_url, staff_members.work_schedule, staff_members.commission_rate, staff_members.active, staff_members.id, staff_members.created_at, staff_members.updated_at 
+FROM staff_members 
+WHERE staff_members.id = $1::UUID
+2026-02-05 15:51:44,234 INFO sqlalchemy.engine.Engine [generated in 0.00060s] (UUID('c427a24e-596d-47e7-9ad1-3df1416bae69'),)
+[generated in 0.00060s] (UUID('c427a24e-596d-47e7-9ad1-3df1416bae69'),)
+2026-02-05 15:51:44,241 INFO sqlalchemy.engine.Engine ROLLBACK
+ROLLBACK
+[2m2026-02-05T14:51:44.242596Z[0m [[32m[1minfo     [0m] [1mRequest completed             [0m [[0m[1m[34mapp.core.middleware[0m][0m [36mapp[0m=[35m'Navaro API'[0m [36mduration_ms[0m=[35m214.15[0m [36menvironment[0m=[35mdevelopment[0m [36mmethod[0m=[35mPOST[0m [36mmode[0m=[35mdebug[0m [36mpath[0m=[35m/api/v1/establishments/17693d6e-8796-483a-a4f7-47982150f919/staff[0m [36mrequest_id[0m=[35m16c3aba6-865e-472c-84c7-20a0537055c8[0m [36mstatus_code[0m=[35m201[0m [36mversion[0m=[35m1.0.0[0m
+2026-02-05 15:51:44,254 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+BEGIN (implicit)
+2026-02-05 15:51:44,255 INFO sqlalchemy.engine.Engine SELECT users.phone, users.name, users.email, users.avatar_url, users.role, users.referral_code, users.referred_by_id, users.id, users.created_at, users.updated_at 
+FROM users 
+WHERE users.id = $1::UUID
+SELECT users.phone, users.name, users.email, users.avatar_url, users.role, users.referral_code, users.referred_by_id, users.id, users.created_at, users.updated_at 
+FROM users 
+WHERE users.id = $1::UUID
+2026-02-05 15:51:44,255 INFO sqlalchemy.engine.Engine [cached since 0.3381s ago] (UUID('1bec427c-d8f4-47f8-963a-f2dcba2a6133'),)
+[cached since 0.3381s ago] (UUID('1bec427c-d8f4-47f8-963a-f2dcba2a6133'),)
+2026-02-05 15:51:44,262 INFO sqlalchemy.engine.Engine SELECT establishments.owner_id, establishments.name, establishments.slug, establishments.category, establishments.description, establishments.address, establishments.city, establishments.state, establishments.zip_code, establishments.latitude, establishments.longitude, establishments.phone, establishments.whatsapp, establishments.logo_url, establishments.cover_url, establishments.google_place_id, establishments.google_maps_url, establishments.business_hours, establishments.queue_mode_enabled, establishments.status, establishments.subscription_tier, establishments.stripe_account_id, establishments.cancellation_fee_fixed, establishments.no_show_fee_percent, establishments.deposit_percent, establishments.id, establishments.created_at, establishments.updated_at 
+FROM establishments 
+WHERE establishments.id = $1::UUID
+SELECT establishments.owner_id, establishments.name, establishments.slug, establishments.category, establishments.description, establishments.address, establishments.city, establishments.state, establishments.zip_code, establishments.latitude, establishments.longitude, establishments.phone, establishments.whatsapp, establishments.logo_url, establishments.cover_url, establishments.google_place_id, establishments.google_maps_url, establishments.business_hours, establishments.queue_mode_enabled, establishments.status, establishments.subscription_tier, establishments.stripe_account_id, establishments.cancellation_fee_fixed, establishments.no_show_fee_percent, establishments.deposit_percent, establishments.id, establishments.created_at, establishments.updated_at 
+FROM establishments 
+WHERE establishments.id = $1::UUID
+2026-02-05 15:51:44,262 INFO sqlalchemy.engine.Engine [cached since 0.2156s ago] (UUID('17693d6e-8796-483a-a4f7-47982150f919'),)
+[cached since 0.2156s ago] (UUID('17693d6e-8796-483a-a4f7-47982150f919'),)
+2026-02-05 15:51:44,270 INFO sqlalchemy.engine.Engine INSERT INTO services (establishment_id, name, description, price, duration_minutes, active, sort_order, deposit_required, id) VALUES ($1::UUID, $2::VARCHAR, $3::VARCHAR, $4::NUMERIC(10, 2), $5::INTEGER, $6::BOOLEAN, $7::INTEGER, $8::BOOLEAN, $9::UUID) RETURNING services.created_at, services.updated_at
+INSERT INTO services (establishment_id, name, description, price, duration_minutes, active, sort_order, deposit_required, id) VALUES ($1::UUID, $2::VARCHAR, $3::VARCHAR, $4::NUMERIC(10, 2), $5::INTEGER, $6::BOOLEAN, $7::INTEGER, $8::BOOLEAN, $9::UUID) RETURNING services.created_at, services.updated_at
+2026-02-05 15:51:44,270 INFO sqlalchemy.engine.Engine [generated in 0.00118s] (UUID('17693d6e-8796-483a-a4f7-47982150f919'), 'Luxury Cut', None, 100.0, 60, True, 0, True, UUID('bc1bb90e-3d3f-4be4-8c83-3ab2831ffb04'))
+[generated in 0.00118s] (UUID('17693d6e-8796-483a-a4f7-47982150f919'), 'Luxury Cut', None, 100.0, 60, True, 0, True, UUID('bc1bb90e-3d3f-4be4-8c83-3ab2831ffb04'))
+2026-02-05 15:51:44,277 INFO sqlalchemy.engine.Engine COMMIT
+COMMIT
+2026-02-05 15:51:44,283 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+BEGIN (implicit)
+2026-02-05 15:51:44,285 INFO sqlalchemy.engine.Engine SELECT services.establishment_id, services.name, services.description, services.price, services.duration_minutes, services.active, services.sort_order, services.deposit_required, services.id, services.created_at, services.updated_at 
+FROM services 
+WHERE services.id = $1::UUID
+SELECT services.establishment_id, services.name, services.description, services.price, services.duration_minutes, services.active, services.sort_order, services.deposit_required, services.id, services.created_at, services.updated_at 
+FROM services 
+WHERE services.id = $1::UUID
+2026-02-05 15:51:44,285 INFO sqlalchemy.engine.Engine [generated in 0.00030s] (UUID('bc1bb90e-3d3f-4be4-8c83-3ab2831ffb04'),)
+[generated in 0.00030s] (UUID('bc1bb90e-3d3f-4be4-8c83-3ab2831ffb04'),)
+2026-02-05 15:51:44,289 INFO sqlalchemy.engine.Engine ROLLBACK
+ROLLBACK
+[2m2026-02-05T14:51:44.290189Z[0m [[32m[1minfo     [0m] [1mRequest completed             [0m [[0m[1m[34mapp.core.middleware[0m][0m [36mapp[0m=[35m'Navaro API'[0m [36mduration_ms[0m=[35m45.13[0m [36menvironment[0m=[35mdevelopment[0m [36mmethod[0m=[35mPOST[0m [36mmode[0m=[35mdebug[0m [36mpath[0m=[35m/api/v1/establishments/17693d6e-8796-483a-a4f7-47982150f919/services[0m [36mrequest_id[0m=[35ma53b331f-9ae4-480f-9d1d-d9978da73f1e[0m [36mstatus_code[0m=[35m201[0m [36mversion[0m=[35m1.0.0[0m
+2026-02-05 15:51:44,344 INFO sqlalchemy.engine.Engine select pg_catalog.version()
+select pg_catalog.version()
+2026-02-05 15:51:44,345 INFO sqlalchemy.engine.Engine [raw sql] ()
+[raw sql] ()
+2026-02-05 15:51:44,350 INFO sqlalchemy.engine.Engine select current_schema()
+select current_schema()
+2026-02-05 15:51:44,350 INFO sqlalchemy.engine.Engine [raw sql] ()
+[raw sql] ()
+2026-02-05 15:51:44,353 INFO sqlalchemy.engine.Engine show standard_conforming_strings
+show standard_conforming_strings
+2026-02-05 15:51:44,353 INFO sqlalchemy.engine.Engine [raw sql] ()
+[raw sql] ()
+2026-02-05 15:51:44,355 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+BEGIN (implicit)
+2026-02-05 15:51:44,358 INFO sqlalchemy.engine.Engine SELECT users.phone, users.name, users.email, users.avatar_url, users.role, users.referral_code, users.referred_by_id, users.id, users.created_at, users.updated_at 
+FROM users 
+WHERE users.id = $1::UUID
+SELECT users.phone, users.name, users.email, users.avatar_url, users.role, users.referral_code, users.referred_by_id, users.id, users.created_at, users.updated_at 
+FROM users 
+WHERE users.id = $1::UUID
+2026-02-05 15:51:44,359 INFO sqlalchemy.engine.Engine [generated in 0.00063s] (UUID('1bec427c-d8f4-47f8-963a-f2dcba2a6133'),)
+[generated in 0.00063s] (UUID('1bec427c-d8f4-47f8-963a-f2dcba2a6133'),)
+2026-02-05 15:51:44,406 INFO sqlalchemy.engine.Engine SELECT services.establishment_id, services.name, services.description, services.price, services.duration_minutes, services.active, services.sort_order, services.deposit_required, services.id, services.created_at, services.updated_at 
+FROM services 
+WHERE services.id = $1::UUID
+SELECT services.establishment_id, services.name, services.description, services.price, services.duration_minutes, services.active, services.sort_order, services.deposit_required, services.id, services.created_at, services.updated_at 
+FROM services 
+WHERE services.id = $1::UUID
+2026-02-05 15:51:44,407 INFO sqlalchemy.engine.Engine [generated in 0.00049s] (UUID('bc1bb90e-3d3f-4be4-8c83-3ab2831ffb04'),)
+[generated in 0.00049s] (UUID('bc1bb90e-3d3f-4be4-8c83-3ab2831ffb04'),)
+2026-02-05 15:51:44,415 INFO sqlalchemy.engine.Engine SELECT staff_members.establishment_id, staff_members.user_id, staff_members.name, staff_members.phone, staff_members.role, staff_members.avatar_url, staff_members.work_schedule, staff_members.commission_rate, staff_members.active, staff_members.id, staff_members.created_at, staff_members.updated_at 
+FROM staff_members 
+WHERE staff_members.id = $1::UUID
+SELECT staff_members.establishment_id, staff_members.user_id, staff_members.name, staff_members.phone, staff_members.role, staff_members.avatar_url, staff_members.work_schedule, staff_members.commission_rate, staff_members.active, staff_members.id, staff_members.created_at, staff_members.updated_at 
+FROM staff_members 
+WHERE staff_members.id = $1::UUID
+2026-02-05 15:51:44,415 INFO sqlalchemy.engine.Engine [generated in 0.00049s] (UUID('c427a24e-596d-47e7-9ad1-3df1416bae69'),)
+[generated in 0.00049s] (UUID('c427a24e-596d-47e7-9ad1-3df1416bae69'),)
+2026-02-05 15:51:44,424 INFO sqlalchemy.engine.Engine SELECT establishments.owner_id, establishments.name, establishments.slug, establishments.category, establishments.description, establishments.address, establishments.city, establishments.state, establishments.zip_code, establishments.latitude, establishments.longitude, establishments.phone, establishments.whatsapp, establishments.logo_url, establishments.cover_url, establishments.google_place_id, establishments.google_maps_url, establishments.business_hours, establishments.queue_mode_enabled, establishments.status, establishments.subscription_tier, establishments.stripe_account_id, establishments.cancellation_fee_fixed, establishments.no_show_fee_percent, establishments.deposit_percent, establishments.id, establishments.created_at, establishments.updated_at 
+FROM establishments 
+WHERE establishments.id = $1::UUID
+SELECT establishments.owner_id, establishments.name, establishments.slug, establishments.category, establishments.description, establishments.address, establishments.city, establishments.state, establishments.zip_code, establishments.latitude, establishments.longitude, establishments.phone, establishments.whatsapp, establishments.logo_url, establishments.cover_url, establishments.google_place_id, establishments.google_maps_url, establishments.business_hours, establishments.queue_mode_enabled, establishments.status, establishments.subscription_tier, establishments.stripe_account_id, establishments.cancellation_fee_fixed, establishments.no_show_fee_percent, establishments.deposit_percent, establishments.id, establishments.created_at, establishments.updated_at 
+FROM establishments 
+WHERE establishments.id = $1::UUID
+2026-02-05 15:51:44,424 INFO sqlalchemy.engine.Engine [generated in 0.00056s] (UUID('17693d6e-8796-483a-a4f7-47982150f919'),)
+[generated in 0.00056s] (UUID('17693d6e-8796-483a-a4f7-47982150f919'),)
+2026-02-05 15:51:44,451 INFO sqlalchemy.engine.Engine SELECT staff_blocks.staff_id, staff_blocks.start_at, staff_blocks.end_at, staff_blocks.reason, staff_blocks.id, staff_blocks.created_at, staff_blocks.updated_at 
+FROM staff_blocks 
+WHERE staff_blocks.staff_id = $1::UUID AND staff_blocks.start_at < $2::TIMESTAMP WITH TIME ZONE AND staff_blocks.end_at > $3::TIMESTAMP WITH TIME ZONE
+SELECT staff_blocks.staff_id, staff_blocks.start_at, staff_blocks.end_at, staff_blocks.reason, staff_blocks.id, staff_blocks.created_at, staff_blocks.updated_at 
+FROM staff_blocks 
+WHERE staff_blocks.staff_id = $1::UUID AND staff_blocks.start_at < $2::TIMESTAMP WITH TIME ZONE AND staff_blocks.end_at > $3::TIMESTAMP WITH TIME ZONE
+2026-02-05 15:51:44,452 INFO sqlalchemy.engine.Engine [generated in 0.00110s] (UUID('c427a24e-596d-47e7-9ad1-3df1416bae69'), datetime.datetime(2026, 2, 7, 16, 51, 44, 292176, tzinfo=datetime.timezone.utc), datetime.datetime(2026, 2, 7, 15, 51, 44, 292176, tzinfo=datetime.timezone.utc))
+[generated in 0.00110s] (UUID('c427a24e-596d-47e7-9ad1-3df1416bae69'), datetime.datetime(2026, 2, 7, 16, 51, 44, 292176, tzinfo=datetime.timezone.utc), datetime.datetime(2026, 2, 7, 15, 51, 44, 292176, tzinfo=datetime.timezone.utc))
+2026-02-05 15:51:44,463 INFO sqlalchemy.engine.Engine SELECT appointments.user_id, appointments.establishment_id, appointments.staff_id, appointments.service_id, appointments.bundle_id, appointments.subscription_id, appointments.scheduled_at, appointments.duration_minutes, appointments.status, appointments.payment_type, appointments.notes, appointments.cancel_reason, appointments.total_price, appointments.id, appointments.created_at, appointments.updated_at 
+FROM appointments 
+WHERE appointments.staff_id = $1::UUID AND appointments.status != $2::appointmentstatus AND appointments.scheduled_at < $3::TIMESTAMP WITH TIME ZONE
+SELECT appointments.user_id, appointments.establishment_id, appointments.staff_id, appointments.service_id, appointments.bundle_id, appointments.subscription_id, appointments.scheduled_at, appointments.duration_minutes, appointments.status, appointments.payment_type, appointments.notes, appointments.cancel_reason, appointments.total_price, appointments.id, appointments.created_at, appointments.updated_at 
+FROM appointments 
+WHERE appointments.staff_id = $1::UUID AND appointments.status != $2::appointmentstatus AND appointments.scheduled_at < $3::TIMESTAMP WITH TIME ZONE
+2026-02-05 15:51:44,463 INFO sqlalchemy.engine.Engine [generated in 0.00062s] (UUID('c427a24e-596d-47e7-9ad1-3df1416bae69'), 'cancelled', datetime.datetime(2026, 2, 7, 16, 51, 44, 292176, tzinfo=datetime.timezone.utc))
+[generated in 0.00062s] (UUID('c427a24e-596d-47e7-9ad1-3df1416bae69'), 'cancelled', datetime.datetime(2026, 2, 7, 16, 51, 44, 292176, tzinfo=datetime.timezone.utc))
+2026-02-05 15:51:44,486 INFO sqlalchemy.engine.Engine INSERT INTO appointments (user_id, establishment_id, staff_id, service_id, bundle_id, subscription_id, scheduled_at, duration_minutes, status, payment_type, notes, cancel_reason, total_price, id) VALUES ($1::UUID, $2::UUID, $3::UUID, $4::UUID, $5::UUID, $6::UUID, $7::TIMESTAMP WITH TIME ZONE, $8::INTEGER, $9::appointmentstatus, $10::paymenttype, $11::VARCHAR, $12::VARCHAR, $13::NUMERIC(10, 2), $14::UUID) RETURNING appointments.created_at, appointments.updated_at
+INSERT INTO appointments (user_id, establishment_id, staff_id, service_id, bundle_id, subscription_id, scheduled_at, duration_minutes, status, payment_type, notes, cancel_reason, total_price, id) VALUES ($1::UUID, $2::UUID, $3::UUID, $4::UUID, $5::UUID, $6::UUID, $7::TIMESTAMP WITH TIME ZONE, $8::INTEGER, $9::appointmentstatus, $10::paymenttype, $11::VARCHAR, $12::VARCHAR, $13::NUMERIC(10, 2), $14::UUID) RETURNING appointments.created_at, appointments.updated_at
+2026-02-05 15:51:44,486 INFO sqlalchemy.engine.Engine [generated in 0.00047s] (UUID('1bec427c-d8f4-47f8-963a-f2dcba2a6133'), UUID('17693d6e-8796-483a-a4f7-47982150f919'), UUID('c427a24e-596d-47e7-9ad1-3df1416bae69'), UUID('bc1bb90e-3d3f-4be4-8c83-3ab2831ffb04'), None, None, datetime.datetime(2026, 2, 7, 15, 51, 44, 292176), 60, 'awaiting_deposit', 'single', None, None, 100.0, UUID('88940b70-99e0-4b2a-b3db-96995e5af0e7'))
+[generated in 0.00047s] (UUID('1bec427c-d8f4-47f8-963a-f2dcba2a6133'), UUID('17693d6e-8796-483a-a4f7-47982150f919'), UUID('c427a24e-596d-47e7-9ad1-3df1416bae69'), UUID('bc1bb90e-3d3f-4be4-8c83-3ab2831ffb04'), None, None, datetime.datetime(2026, 2, 7, 15, 51, 44, 292176), 60, 'awaiting_deposit', 'single', None, None, 100.0, UUID('88940b70-99e0-4b2a-b3db-96995e5af0e7'))
+2026-02-05 15:51:44,491 INFO sqlalchemy.engine.Engine COMMIT
+COMMIT
+2026-02-05 15:51:44,496 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+BEGIN (implicit)
+2026-02-05 15:51:44,498 INFO sqlalchemy.engine.Engine SELECT appointments.user_id, appointments.establishment_id, appointments.staff_id, appointments.service_id, appointments.bundle_id, appointments.subscription_id, appointments.scheduled_at, appointments.duration_minutes, appointments.status, appointments.payment_type, appointments.notes, appointments.cancel_reason, appointments.total_price, appointments.id, appointments.created_at, appointments.updated_at 
+FROM appointments 
+WHERE appointments.id = $1::UUID
+SELECT appointments.user_id, appointments.establishment_id, appointments.staff_id, appointments.service_id, appointments.bundle_id, appointments.subscription_id, appointments.scheduled_at, appointments.duration_minutes, appointments.status, appointments.payment_type, appointments.notes, appointments.cancel_reason, appointments.total_price, appointments.id, appointments.created_at, appointments.updated_at 
+FROM appointments 
+WHERE appointments.id = $1::UUID
+2026-02-05 15:51:44,498 INFO sqlalchemy.engine.Engine [generated in 0.00035s] (UUID('88940b70-99e0-4b2a-b3db-96995e5af0e7'),)
+[generated in 0.00035s] (UUID('88940b70-99e0-4b2a-b3db-96995e5af0e7'),)
+2026-02-05 15:51:44,530 INFO sqlalchemy.engine.Engine SELECT appointment_products.appointment_id AS appointment_products_appointment_id, appointment_products.product_id AS appointment_products_product_id, appointment_products.quantity AS appointment_products_quantity, appointment_products.unit_price AS appointment_products_unit_price, appointment_products.id AS appointment_products_id, appointment_products.created_at AS appointment_products_created_at, appointment_products.updated_at AS appointment_products_updated_at 
+FROM appointment_products 
+WHERE appointment_products.appointment_id IN ($1::UUID)
+SELECT appointment_products.appointment_id AS appointment_products_appointment_id, appointment_products.product_id AS appointment_products_product_id, appointment_products.quantity AS appointment_products_quantity, appointment_products.unit_price AS appointment_products_unit_price, appointment_products.id AS appointment_products_id, appointment_products.created_at AS appointment_products_created_at, appointment_products.updated_at AS appointment_products_updated_at 
+FROM appointment_products 
+WHERE appointment_products.appointment_id IN ($1::UUID)
+2026-02-05 15:51:44,531 INFO sqlalchemy.engine.Engine [generated in 0.00095s] (UUID('88940b70-99e0-4b2a-b3db-96995e5af0e7'),)
+[generated in 0.00095s] (UUID('88940b70-99e0-4b2a-b3db-96995e5af0e7'),)
+2026-02-05 15:51:44,539 INFO sqlalchemy.engine.Engine COMMIT
+COMMIT
+[2m2026-02-05T14:51:44.540348Z[0m [[32m[1minfo     [0m] [1mRequest completed             [0m [[0m[1m[34mapp.core.middleware[0m][0m [36mapp[0m=[35m'Navaro API'[0m [36mduration_ms[0m=[35m247.35[0m [36menvironment[0m=[35mdevelopment[0m [36mmethod[0m=[35mPOST[0m [36mmode[0m=[35mdebug[0m [36mpath[0m=[35m/api/v1/appointments[0m [36mrequest_id[0m=[35me8ece045-ce09-4fac-9ccf-29473a0422ac[0m [36mstatus_code[0m=[35m201[0m [36mversion[0m=[35m1.0.0[0m
+2026-02-05 15:51:44,550 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+BEGIN (implicit)
+2026-02-05 15:51:44,552 INFO sqlalchemy.engine.Engine SELECT users.phone, users.name, users.email, users.avatar_url, users.role, users.referral_code, users.referred_by_id, users.id, users.created_at, users.updated_at 
+FROM users 
+WHERE users.id = $1::UUID
+SELECT users.phone, users.name, users.email, users.avatar_url, users.role, users.referral_code, users.referred_by_id, users.id, users.created_at, users.updated_at 
+FROM users 
+WHERE users.id = $1::UUID
+2026-02-05 15:51:44,553 INFO sqlalchemy.engine.Engine [cached since 0.1948s ago] (UUID('1bec427c-d8f4-47f8-963a-f2dcba2a6133'),)
+[cached since 0.1948s ago] (UUID('1bec427c-d8f4-47f8-963a-f2dcba2a6133'),)
+2026-02-05 15:51:44,560 INFO sqlalchemy.engine.Engine SELECT appointments.user_id, appointments.establishment_id, appointments.staff_id, appointments.service_id, appointments.bundle_id, appointments.subscription_id, appointments.scheduled_at, appointments.duration_minutes, appointments.status, appointments.payment_type, appointments.notes, appointments.cancel_reason, appointments.total_price, appointments.id, appointments.created_at, appointments.updated_at 
+FROM appointments 
+WHERE appointments.id = $1::UUID
+SELECT appointments.user_id, appointments.establishment_id, appointments.staff_id, appointments.service_id, appointments.bundle_id, appointments.subscription_id, appointments.scheduled_at, appointments.duration_minutes, appointments.status, appointments.payment_type, appointments.notes, appointments.cancel_reason, appointments.total_price, appointments.id, appointments.created_at, appointments.updated_at 
+FROM appointments 
+WHERE appointments.id = $1::UUID
+2026-02-05 15:51:44,560 INFO sqlalchemy.engine.Engine [generated in 0.00060s] (UUID('88940b70-99e0-4b2a-b3db-96995e5af0e7'),)
+[generated in 0.00060s] (UUID('88940b70-99e0-4b2a-b3db-96995e5af0e7'),)
+2026-02-05 15:51:44,565 INFO sqlalchemy.engine.Engine SELECT establishments.id AS establishments_id, establishments.owner_id AS establishments_owner_id, establishments.name AS establishments_name, establishments.slug AS establishments_slug, establishments.category AS establishments_category, establishments.description AS establishments_description, establishments.address AS establishments_address, establishments.city AS establishments_city, establishments.state AS establishments_state, establishments.zip_code AS establishments_zip_code, establishments.latitude AS establishments_latitude, establishments.longitude AS establishments_longitude, establishments.phone AS establishments_phone, establishments.whatsapp AS establishments_whatsapp, establishments.logo_url AS establishments_logo_url, establishments.cover_url AS establishments_cover_url, establishments.google_place_id AS establishments_google_place_id, establishments.google_maps_url AS establishments_google_maps_url, establishments.business_hours AS establishments_business_hours, establishments.queue_mode_enabled AS establishments_queue_mode_enabled, establishments.status AS establishments_status, establishments.subscription_tier AS establishments_subscription_tier, establishments.stripe_account_id AS establishments_stripe_account_id, establishments.cancellation_fee_fixed AS establishments_cancellation_fee_fixed, establishments.no_show_fee_percent AS establishments_no_show_fee_percent, establishments.deposit_percent AS establishments_deposit_percent, establishments.created_at AS establishments_created_at, establishments.updated_at AS establishments_updated_at 
+FROM establishments 
+WHERE establishments.id IN ($1::UUID)
+SELECT establishments.id AS establishments_id, establishments.owner_id AS establishments_owner_id, establishments.name AS establishments_name, establishments.slug AS establishments_slug, establishments.category AS establishments_category, establishments.description AS establishments_description, establishments.address AS establishments_address, establishments.city AS establishments_city, establishments.state AS establishments_state, establishments.zip_code AS establishments_zip_code, establishments.latitude AS establishments_latitude, establishments.longitude AS establishments_longitude, establishments.phone AS establishments_phone, establishments.whatsapp AS establishments_whatsapp, establishments.logo_url AS establishments_logo_url, establishments.cover_url AS establishments_cover_url, establishments.google_place_id AS establishments_google_place_id, establishments.google_maps_url AS establishments_google_maps_url, establishments.business_hours AS establishments_business_hours, establishments.queue_mode_enabled AS establishments_queue_mode_enabled, establishments.status AS establishments_status, establishments.subscription_tier AS establishments_subscription_tier, establishments.stripe_account_id AS establishments_stripe_account_id, establishments.cancellation_fee_fixed AS establishments_cancellation_fee_fixed, establishments.no_show_fee_percent AS establishments_no_show_fee_percent, establishments.deposit_percent AS establishments_deposit_percent, establishments.created_at AS establishments_created_at, establishments.updated_at AS establishments_updated_at 
+FROM establishments 
+WHERE establishments.id IN ($1::UUID)
+2026-02-05 15:51:44,565 INFO sqlalchemy.engine.Engine [generated in 0.00052s] (UUID('17693d6e-8796-483a-a4f7-47982150f919'),)
+[generated in 0.00052s] (UUID('17693d6e-8796-483a-a4f7-47982150f919'),)
+2026-02-05 15:51:44,574 INFO sqlalchemy.engine.Engine UPDATE appointments SET status=$1::appointmentstatus, updated_at=now() WHERE appointments.id = $2::UUID
+UPDATE appointments SET status=$1::appointmentstatus, updated_at=now() WHERE appointments.id = $2::UUID
+2026-02-05 15:51:44,575 INFO sqlalchemy.engine.Engine [generated in 0.00048s] ('no_show', UUID('88940b70-99e0-4b2a-b3db-96995e5af0e7'))
+[generated in 0.00048s] ('no_show', UUID('88940b70-99e0-4b2a-b3db-96995e5af0e7'))
+2026-02-05 15:51:44,583 INFO sqlalchemy.engine.Engine INSERT INTO user_debts (user_id, establishment_id, appointment_id, amount, status, id) VALUES ($1::UUID, $2::UUID, $3::UUID, $4::NUMERIC(10, 2), $5::debtstatus, $6::UUID) RETURNING user_debts.created_at, user_debts.updated_at
+INSERT INTO user_debts (user_id, establishment_id, appointment_id, amount, status, id) VALUES ($1::UUID, $2::UUID, $3::UUID, $4::NUMERIC(10, 2), $5::debtstatus, $6::UUID) RETURNING user_debts.created_at, user_debts.updated_at
+2026-02-05 15:51:44,584 INFO sqlalchemy.engine.Engine [generated in 0.00070s] (UUID('1bec427c-d8f4-47f8-963a-f2dcba2a6133'), UUID('17693d6e-8796-483a-a4f7-47982150f919'), UUID('88940b70-99e0-4b2a-b3db-96995e5af0e7'), 50.0, 'pending', UUID('69d3f102-5a95-4ac2-8474-3fc85f361e79'))
+[generated in 0.00070s] (UUID('1bec427c-d8f4-47f8-963a-f2dcba2a6133'), UUID('17693d6e-8796-483a-a4f7-47982150f919'), UUID('88940b70-99e0-4b2a-b3db-96995e5af0e7'), 50.0, 'pending', UUID('69d3f102-5a95-4ac2-8474-3fc85f361e79'))
+2026-02-05 15:51:44,605 INFO sqlalchemy.engine.Engine COMMIT
+COMMIT
+[2m2026-02-05T14:51:44.608081Z[0m [[32m[1minfo     [0m] [1mRequest completed             [0m [[0m[1m[34mapp.core.middleware[0m][0m [36mapp[0m=[35m'Navaro API'[0m [36mduration_ms[0m=[35m64.19[0m [36menvironment[0m=[35mdevelopment[0m [36mmethod[0m=[35mPOST[0m [36mmode[0m=[35mdebug[0m [36mpath[0m=[35m/api/v1/appointments/88940b70-99e0-4b2a-b3db-96995e5af0e7/no-show[0m [36mrequest_id[0m=[35med42eaf9-d473-49e0-8200-639d1ec434a7[0m [36mstatus_code[0m=[35m200[0m [36mversion[0m=[35m1.0.0[0m
+2026-02-05 15:51:44,614 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+BEGIN (implicit)
+2026-02-05 15:51:44,614 INFO sqlalchemy.engine.Engine SELECT users.phone, users.name, users.email, users.avatar_url, users.role, users.referral_code, users.referred_by_id, users.id, users.created_at, users.updated_at 
+FROM users 
+WHERE users.id = $1::UUID
+SELECT users.phone, users.name, users.email, users.avatar_url, users.role, users.referral_code, users.referred_by_id, users.id, users.created_at, users.updated_at 
+FROM users 
+WHERE users.id = $1::UUID
+2026-02-05 15:51:44,615 INFO sqlalchemy.engine.Engine [cached since 0.2566s ago] (UUID('1bec427c-d8f4-47f8-963a-f2dcba2a6133'),)
+[cached since 0.2566s ago] (UUID('1bec427c-d8f4-47f8-963a-f2dcba2a6133'),)
+2026-02-05 15:51:44,617 INFO sqlalchemy.engine.Engine SELECT services.establishment_id, services.name, services.description, services.price, services.duration_minutes, services.active, services.sort_order, services.deposit_required, services.id, services.created_at, services.updated_at 
+FROM services 
+WHERE services.id = $1::UUID
+SELECT services.establishment_id, services.name, services.description, services.price, services.duration_minutes, services.active, services.sort_order, services.deposit_required, services.id, services.created_at, services.updated_at 
+FROM services 
+WHERE services.id = $1::UUID
+2026-02-05 15:51:44,617 INFO sqlalchemy.engine.Engine [cached since 0.2107s ago] (UUID('bc1bb90e-3d3f-4be4-8c83-3ab2831ffb04'),)
+[cached since 0.2107s ago] (UUID('bc1bb90e-3d3f-4be4-8c83-3ab2831ffb04'),)
+2026-02-05 15:51:44,619 INFO sqlalchemy.engine.Engine SELECT staff_members.establishment_id, staff_members.user_id, staff_members.name, staff_members.phone, staff_members.role, staff_members.avatar_url, staff_members.work_schedule, staff_members.commission_rate, staff_members.active, staff_members.id, staff_members.created_at, staff_members.updated_at 
+FROM staff_members 
+WHERE staff_members.id = $1::UUID
+SELECT staff_members.establishment_id, staff_members.user_id, staff_members.name, staff_members.phone, staff_members.role, staff_members.avatar_url, staff_members.work_schedule, staff_members.commission_rate, staff_members.active, staff_members.id, staff_members.created_at, staff_members.updated_at 
+FROM staff_members 
+WHERE staff_members.id = $1::UUID
+2026-02-05 15:51:44,619 INFO sqlalchemy.engine.Engine [cached since 0.2047s ago] (UUID('c427a24e-596d-47e7-9ad1-3df1416bae69'),)
+[cached since 0.2047s ago] (UUID('c427a24e-596d-47e7-9ad1-3df1416bae69'),)
+2026-02-05 15:51:44,621 INFO sqlalchemy.engine.Engine SELECT establishments.owner_id, establishments.name, establishments.slug, establishments.category, establishments.description, establishments.address, establishments.city, establishments.state, establishments.zip_code, establishments.latitude, establishments.longitude, establishments.phone, establishments.whatsapp, establishments.logo_url, establishments.cover_url, establishments.google_place_id, establishments.google_maps_url, establishments.business_hours, establishments.queue_mode_enabled, establishments.status, establishments.subscription_tier, establishments.stripe_account_id, establishments.cancellation_fee_fixed, establishments.no_show_fee_percent, establishments.deposit_percent, establishments.id, establishments.created_at, establishments.updated_at 
+FROM establishments 
+WHERE establishments.id = $1::UUID
+SELECT establishments.owner_id, establishments.name, establishments.slug, establishments.category, establishments.description, establishments.address, establishments.city, establishments.state, establishments.zip_code, establishments.latitude, establishments.longitude, establishments.phone, establishments.whatsapp, establishments.logo_url, establishments.cover_url, establishments.google_place_id, establishments.google_maps_url, establishments.business_hours, establishments.queue_mode_enabled, establishments.status, establishments.subscription_tier, establishments.stripe_account_id, establishments.cancellation_fee_fixed, establishments.no_show_fee_percent, establishments.deposit_percent, establishments.id, establishments.created_at, establishments.updated_at 
+FROM establishments 
+WHERE establishments.id = $1::UUID
+2026-02-05 15:51:44,622 INFO sqlalchemy.engine.Engine [cached since 0.1978s ago] (UUID('17693d6e-8796-483a-a4f7-47982150f919'),)
+[cached since 0.1978s ago] (UUID('17693d6e-8796-483a-a4f7-47982150f919'),)
+2026-02-05 15:51:44,624 INFO sqlalchemy.engine.Engine SELECT staff_blocks.staff_id, staff_blocks.start_at, staff_blocks.end_at, staff_blocks.reason, staff_blocks.id, staff_blocks.created_at, staff_blocks.updated_at 
+FROM staff_blocks 
+WHERE staff_blocks.staff_id = $1::UUID AND staff_blocks.start_at < $2::TIMESTAMP WITH TIME ZONE AND staff_blocks.end_at > $3::TIMESTAMP WITH TIME ZONE
+SELECT staff_blocks.staff_id, staff_blocks.start_at, staff_blocks.end_at, staff_blocks.reason, staff_blocks.id, staff_blocks.created_at, staff_blocks.updated_at 
+FROM staff_blocks 
+WHERE staff_blocks.staff_id = $1::UUID AND staff_blocks.start_at < $2::TIMESTAMP WITH TIME ZONE AND staff_blocks.end_at > $3::TIMESTAMP WITH TIME ZONE
+2026-02-05 15:51:44,624 INFO sqlalchemy.engine.Engine [cached since 0.1734s ago] (UUID('c427a24e-596d-47e7-9ad1-3df1416bae69'), datetime.datetime(2026, 2, 8, 16, 51, 44, 609537, tzinfo=datetime.timezone.utc), datetime.datetime(2026, 2, 8, 15, 51, 44, 609537, tzinfo=datetime.timezone.utc))
+[cached since 0.1734s ago] (UUID('c427a24e-596d-47e7-9ad1-3df1416bae69'), datetime.datetime(2026, 2, 8, 16, 51, 44, 609537, tzinfo=datetime.timezone.utc), datetime.datetime(2026, 2, 8, 15, 51, 44, 609537, tzinfo=datetime.timezone.utc))
+2026-02-05 15:51:44,626 INFO sqlalchemy.engine.Engine SELECT appointments.user_id, appointments.establishment_id, appointments.staff_id, appointments.service_id, appointments.bundle_id, appointments.subscription_id, appointments.scheduled_at, appointments.duration_minutes, appointments.status, appointments.payment_type, appointments.notes, appointments.cancel_reason, appointments.total_price, appointments.id, appointments.created_at, appointments.updated_at 
+FROM appointments 
+WHERE appointments.staff_id = $1::UUID AND appointments.status != $2::appointmentstatus AND appointments.scheduled_at < $3::TIMESTAMP WITH TIME ZONE
+SELECT appointments.user_id, appointments.establishment_id, appointments.staff_id, appointments.service_id, appointments.bundle_id, appointments.subscription_id, appointments.scheduled_at, appointments.duration_minutes, appointments.status, appointments.payment_type, appointments.notes, appointments.cancel_reason, appointments.total_price, appointments.id, appointments.created_at, appointments.updated_at 
+FROM appointments 
+WHERE appointments.staff_id = $1::UUID AND appointments.status != $2::appointmentstatus AND appointments.scheduled_at < $3::TIMESTAMP WITH TIME ZONE
+2026-02-05 15:51:44,626 INFO sqlalchemy.engine.Engine [cached since 0.1636s ago] (UUID('c427a24e-596d-47e7-9ad1-3df1416bae69'), 'cancelled', datetime.datetime(2026, 2, 8, 16, 51, 44, 609537, tzinfo=datetime.timezone.utc))
+[cached since 0.1636s ago] (UUID('c427a24e-596d-47e7-9ad1-3df1416bae69'), 'cancelled', datetime.datetime(2026, 2, 8, 16, 51, 44, 609537, tzinfo=datetime.timezone.utc))
+2026-02-05 15:51:44,629 INFO sqlalchemy.engine.Engine INSERT INTO appointments (user_id, establishment_id, staff_id, service_id, bundle_id, subscription_id, scheduled_at, duration_minutes, status, payment_type, notes, cancel_reason, total_price, id) VALUES ($1::UUID, $2::UUID, $3::UUID, $4::UUID, $5::UUID, $6::UUID, $7::TIMESTAMP WITH TIME ZONE, $8::INTEGER, $9::appointmentstatus, $10::paymenttype, $11::VARCHAR, $12::VARCHAR, $13::NUMERIC(10, 2), $14::UUID) RETURNING appointments.created_at, appointments.updated_at
+INSERT INTO appointments (user_id, establishment_id, staff_id, service_id, bundle_id, subscription_id, scheduled_at, duration_minutes, status, payment_type, notes, cancel_reason, total_price, id) VALUES ($1::UUID, $2::UUID, $3::UUID, $4::UUID, $5::UUID, $6::UUID, $7::TIMESTAMP WITH TIME ZONE, $8::INTEGER, $9::appointmentstatus, $10::paymenttype, $11::VARCHAR, $12::VARCHAR, $13::NUMERIC(10, 2), $14::UUID) RETURNING appointments.created_at, appointments.updated_at
+2026-02-05 15:51:44,630 INFO sqlalchemy.engine.Engine [cached since 0.1441s ago] (UUID('1bec427c-d8f4-47f8-963a-f2dcba2a6133'), UUID('17693d6e-8796-483a-a4f7-47982150f919'), UUID('c427a24e-596d-47e7-9ad1-3df1416bae69'), UUID('bc1bb90e-3d3f-4be4-8c83-3ab2831ffb04'), None, None, datetime.datetime(2026, 2, 8, 15, 51, 44, 609537), 60, 'awaiting_deposit', 'single', None, None, 100.0, UUID('2cd401aa-3314-4d5a-ba9b-84162db7f269'))
+[cached since 0.1441s ago] (UUID('1bec427c-d8f4-47f8-963a-f2dcba2a6133'), UUID('17693d6e-8796-483a-a4f7-47982150f919'), UUID('c427a24e-596d-47e7-9ad1-3df1416bae69'), UUID('bc1bb90e-3d3f-4be4-8c83-3ab2831ffb04'), None, None, datetime.datetime(2026, 2, 8, 15, 51, 44, 609537), 60, 'awaiting_deposit', 'single', None, None, 100.0, UUID('2cd401aa-3314-4d5a-ba9b-84162db7f269'))
+2026-02-05 15:51:44,633 INFO sqlalchemy.engine.Engine COMMIT
+COMMIT
+2026-02-05 15:51:44,640 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+BEGIN (implicit)
+2026-02-05 15:51:44,641 INFO sqlalchemy.engine.Engine SELECT appointments.user_id, appointments.establishment_id, appointments.staff_id, appointments.service_id, appointments.bundle_id, appointments.subscription_id, appointments.scheduled_at, appointments.duration_minutes, appointments.status, appointments.payment_type, appointments.notes, appointments.cancel_reason, appointments.total_price, appointments.id, appointments.created_at, appointments.updated_at 
+FROM appointments 
+WHERE appointments.id = $1::UUID
+SELECT appointments.user_id, appointments.establishment_id, appointments.staff_id, appointments.service_id, appointments.bundle_id, appointments.subscription_id, appointments.scheduled_at, appointments.duration_minutes, appointments.status, appointments.payment_type, appointments.notes, appointments.cancel_reason, appointments.total_price, appointments.id, appointments.created_at, appointments.updated_at 
+FROM appointments 
+WHERE appointments.id = $1::UUID
+2026-02-05 15:51:44,641 INFO sqlalchemy.engine.Engine [cached since 0.1429s ago] (UUID('2cd401aa-3314-4d5a-ba9b-84162db7f269'),)
+[cached since 0.1429s ago] (UUID('2cd401aa-3314-4d5a-ba9b-84162db7f269'),)
+2026-02-05 15:51:44,645 INFO sqlalchemy.engine.Engine SELECT appointment_products.appointment_id AS appointment_products_appointment_id, appointment_products.product_id AS appointment_products_product_id, appointment_products.quantity AS appointment_products_quantity, appointment_products.unit_price AS appointment_products_unit_price, appointment_products.id AS appointment_products_id, appointment_products.created_at AS appointment_products_created_at, appointment_products.updated_at AS appointment_products_updated_at 
+FROM appointment_products 
+WHERE appointment_products.appointment_id IN ($1::UUID)
+SELECT appointment_products.appointment_id AS appointment_products_appointment_id, appointment_products.product_id AS appointment_products_product_id, appointment_products.quantity AS appointment_products_quantity, appointment_products.unit_price AS appointment_products_unit_price, appointment_products.id AS appointment_products_id, appointment_products.created_at AS appointment_products_created_at, appointment_products.updated_at AS appointment_products_updated_at 
+FROM appointment_products 
+WHERE appointment_products.appointment_id IN ($1::UUID)
+2026-02-05 15:51:44,646 INFO sqlalchemy.engine.Engine [cached since 0.116s ago] (UUID('2cd401aa-3314-4d5a-ba9b-84162db7f269'),)
+[cached since 0.116s ago] (UUID('2cd401aa-3314-4d5a-ba9b-84162db7f269'),)
+2026-02-05 15:51:44,650 INFO sqlalchemy.engine.Engine COMMIT
+COMMIT
+[2m2026-02-05T14:51:44.651356Z[0m [[32m[1minfo     [0m] [1mRequest completed             [0m [[0m[1m[34mapp.core.middleware[0m][0m [36mapp[0m=[35m'Navaro API'[0m [36mduration_ms[0m=[35m41.24[0m [36menvironment[0m=[35mdevelopment[0m [36mmethod[0m=[35mPOST[0m [36mmode[0m=[35mdebug[0m [36mpath[0m=[35m/api/v1/appointments[0m [36mrequest_id[0m=[35m1cc242b6-3844-48d5-afe4-b2df67593e85[0m [36mstatus_code[0m=[35m201[0m [36mversion[0m=[35m1.0.0[0m
+2026-02-05 15:51:44,682 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+BEGIN (implicit)
+2026-02-05 15:51:44,683 INFO sqlalchemy.engine.Engine SELECT users.phone, users.name, users.email, users.avatar_url, users.role, users.referral_code, users.referred_by_id, users.id, users.created_at, users.updated_at 
+FROM users 
+WHERE users.id = $1::UUID
+SELECT users.phone, users.name, users.email, users.avatar_url, users.role, users.referral_code, users.referred_by_id, users.id, users.created_at, users.updated_at 
+FROM users 
+WHERE users.id = $1::UUID
+2026-02-05 15:51:44,683 INFO sqlalchemy.engine.Engine [cached since 0.3254s ago] (UUID('1bec427c-d8f4-47f8-963a-f2dcba2a6133'),)
+[cached since 0.3254s ago] (UUID('1bec427c-d8f4-47f8-963a-f2dcba2a6133'),)
+2026-02-05 15:51:44,689 INFO sqlalchemy.engine.Engine SELECT appointments.user_id, appointments.establishment_id, appointments.staff_id, appointments.service_id, appointments.bundle_id, appointments.subscription_id, appointments.scheduled_at, appointments.duration_minutes, appointments.status, appointments.payment_type, appointments.notes, appointments.cancel_reason, appointments.total_price, appointments.id, appointments.created_at, appointments.updated_at 
+FROM appointments 
+WHERE appointments.id = $1::UUID
+SELECT appointments.user_id, appointments.establishment_id, appointments.staff_id, appointments.service_id, appointments.bundle_id, appointments.subscription_id, appointments.scheduled_at, appointments.duration_minutes, appointments.status, appointments.payment_type, appointments.notes, appointments.cancel_reason, appointments.total_price, appointments.id, appointments.created_at, appointments.updated_at 
+FROM appointments 
+WHERE appointments.id = $1::UUID
+2026-02-05 15:51:44,689 INFO sqlalchemy.engine.Engine [generated in 0.00046s] (UUID('2cd401aa-3314-4d5a-ba9b-84162db7f269'),)
+[generated in 0.00046s] (UUID('2cd401aa-3314-4d5a-ba9b-84162db7f269'),)
+2026-02-05 15:51:44,694 INFO sqlalchemy.engine.Engine SELECT establishments.id AS establishments_id, establishments.owner_id AS establishments_owner_id, establishments.name AS establishments_name, establishments.slug AS establishments_slug, establishments.category AS establishments_category, establishments.description AS establishments_description, establishments.address AS establishments_address, establishments.city AS establishments_city, establishments.state AS establishments_state, establishments.zip_code AS establishments_zip_code, establishments.latitude AS establishments_latitude, establishments.longitude AS establishments_longitude, establishments.phone AS establishments_phone, establishments.whatsapp AS establishments_whatsapp, establishments.logo_url AS establishments_logo_url, establishments.cover_url AS establishments_cover_url, establishments.google_place_id AS establishments_google_place_id, establishments.google_maps_url AS establishments_google_maps_url, establishments.business_hours AS establishments_business_hours, establishments.queue_mode_enabled AS establishments_queue_mode_enabled, establishments.status AS establishments_status, establishments.subscription_tier AS establishments_subscription_tier, establishments.stripe_account_id AS establishments_stripe_account_id, establishments.cancellation_fee_fixed AS establishments_cancellation_fee_fixed, establishments.no_show_fee_percent AS establishments_no_show_fee_percent, establishments.deposit_percent AS establishments_deposit_percent, establishments.created_at AS establishments_created_at, establishments.updated_at AS establishments_updated_at 
+FROM establishments 
+WHERE establishments.id IN ($1::UUID)
+SELECT establishments.id AS establishments_id, establishments.owner_id AS establishments_owner_id, establishments.name AS establishments_name, establishments.slug AS establishments_slug, establishments.category AS establishments_category, establishments.description AS establishments_description, establishments.address AS establishments_address, establishments.city AS establishments_city, establishments.state AS establishments_state, establishments.zip_code AS establishments_zip_code, establishments.latitude AS establishments_latitude, establishments.longitude AS establishments_longitude, establishments.phone AS establishments_phone, establishments.whatsapp AS establishments_whatsapp, establishments.logo_url AS establishments_logo_url, establishments.cover_url AS establishments_cover_url, establishments.google_place_id AS establishments_google_place_id, establishments.google_maps_url AS establishments_google_maps_url, establishments.business_hours AS establishments_business_hours, establishments.queue_mode_enabled AS establishments_queue_mode_enabled, establishments.status AS establishments_status, establishments.subscription_tier AS establishments_subscription_tier, establishments.stripe_account_id AS establishments_stripe_account_id, establishments.cancellation_fee_fixed AS establishments_cancellation_fee_fixed, establishments.no_show_fee_percent AS establishments_no_show_fee_percent, establishments.deposit_percent AS establishments_deposit_percent, establishments.created_at AS establishments_created_at, establishments.updated_at AS establishments_updated_at 
+FROM establishments 
+WHERE establishments.id IN ($1::UUID)
+2026-02-05 15:51:44,694 INFO sqlalchemy.engine.Engine [generated in 0.00049s] (UUID('17693d6e-8796-483a-a4f7-47982150f919'),)
+[generated in 0.00049s] (UUID('17693d6e-8796-483a-a4f7-47982150f919'),)
+2026-02-05 15:51:44,698 INFO sqlalchemy.engine.Engine SELECT services.id AS services_id, services.establishment_id AS services_establishment_id, services.name AS services_name, services.description AS services_description, services.price AS services_price, services.duration_minutes AS services_duration_minutes, services.active AS services_active, services.sort_order AS services_sort_order, services.deposit_required AS services_deposit_required, services.created_at AS services_created_at, services.updated_at AS services_updated_at 
+FROM services 
+WHERE services.id IN ($1::UUID)
+SELECT services.id AS services_id, services.establishment_id AS services_establishment_id, services.name AS services_name, services.description AS services_description, services.price AS services_price, services.duration_minutes AS services_duration_minutes, services.active AS services_active, services.sort_order AS services_sort_order, services.deposit_required AS services_deposit_required, services.created_at AS services_created_at, services.updated_at AS services_updated_at 
+FROM services 
+WHERE services.id IN ($1::UUID)
+2026-02-05 15:51:44,698 INFO sqlalchemy.engine.Engine [generated in 0.00046s] (UUID('bc1bb90e-3d3f-4be4-8c83-3ab2831ffb04'),)
+[generated in 0.00046s] (UUID('bc1bb90e-3d3f-4be4-8c83-3ab2831ffb04'),)
+2026-02-05 15:51:44,703 INFO sqlalchemy.engine.Engine SELECT user_debts.user_id, user_debts.establishment_id, user_debts.appointment_id, user_debts.amount, user_debts.status, user_debts.id, user_debts.created_at, user_debts.updated_at 
+FROM user_debts 
+WHERE user_debts.user_id = $1::UUID AND user_debts.establishment_id = $2::UUID AND user_debts.status = $3::debtstatus
+SELECT user_debts.user_id, user_debts.establishment_id, user_debts.appointment_id, user_debts.amount, user_debts.status, user_debts.id, user_debts.created_at, user_debts.updated_at 
+FROM user_debts 
+WHERE user_debts.user_id = $1::UUID AND user_debts.establishment_id = $2::UUID AND user_debts.status = $3::debtstatus
+2026-02-05 15:51:44,703 INFO sqlalchemy.engine.Engine [generated in 0.00034s] (UUID('1bec427c-d8f4-47f8-963a-f2dcba2a6133'), UUID('17693d6e-8796-483a-a4f7-47982150f919'), 'pending')
+[generated in 0.00034s] (UUID('1bec427c-d8f4-47f8-963a-f2dcba2a6133'), UUID('17693d6e-8796-483a-a4f7-47982150f919'), 'pending')
+2026-02-05 15:51:44,711 INFO sqlalchemy.engine.Engine INSERT INTO payments (user_id, establishment_id, appointment_id, subscription_id, purpose, amount, platform_fee, gateway_fee, net_amount, status, stripe_payment_id, stripe_payment_method, id) VALUES ($1::UUID, $2::UUID, $3::UUID, $4::UUID, $5::paymentpurpose, $6::NUMERIC(10, 2), $7::NUMERIC(10, 2), $8::NUMERIC(10, 2), $9::NUMERIC(10, 2), $10::paymentstatus, $11::VARCHAR, $12::VARCHAR, $13::UUID) RETURNING payments.created_at, payments.updated_at
+INSERT INTO payments (user_id, establishment_id, appointment_id, subscription_id, purpose, amount, platform_fee, gateway_fee, net_amount, status, stripe_payment_id, stripe_payment_method, id) VALUES ($1::UUID, $2::UUID, $3::UUID, $4::UUID, $5::paymentpurpose, $6::NUMERIC(10, 2), $7::NUMERIC(10, 2), $8::NUMERIC(10, 2), $9::NUMERIC(10, 2), $10::paymentstatus, $11::VARCHAR, $12::VARCHAR, $13::UUID) RETURNING payments.created_at, payments.updated_at
+2026-02-05 15:51:44,711 INFO sqlalchemy.engine.Engine [generated in 0.00054s] (UUID('1bec427c-d8f4-47f8-963a-f2dcba2a6133'), UUID('17693d6e-8796-483a-a4f7-47982150f919'), UUID('2cd401aa-3314-4d5a-ba9b-84162db7f269'), None, 'single', 70.0, 3.5, 2.1, 64.39999999999999, 'pending', 'pi_debt', None, UUID('2b4d0154-246c-4bc5-9573-763b1e05209c'))
+[generated in 0.00054s] (UUID('1bec427c-d8f4-47f8-963a-f2dcba2a6133'), UUID('17693d6e-8796-483a-a4f7-47982150f919'), UUID('2cd401aa-3314-4d5a-ba9b-84162db7f269'), None, 'single', 70.0, 3.5, 2.1, 64.39999999999999, 'pending', 'pi_debt', None, UUID('2b4d0154-246c-4bc5-9573-763b1e05209c'))
+2026-02-05 15:51:44,731 INFO sqlalchemy.engine.Engine COMMIT
+COMMIT
+[2m2026-02-05T14:51:44.735082Z[0m [[32m[1minfo     [0m] [1mRequest completed             [0m [[0m[1m[34mapp.core.middleware[0m][0m [36mapp[0m=[35m'Navaro API'[0m [36mduration_ms[0m=[35m58.34[0m [36menvironment[0m=[35mdevelopment[0m [36mmethod[0m=[35mPOST[0m [36mmode[0m=[35mdebug[0m [36mpath[0m=[35m/api/v1/payments/create-intent[0m [36mrequest_id[0m=[35md6de8371-afdd-4116-a26f-ac00dbcd6007[0m [36mstatus_code[0m=[35m200[0m [36mversion[0m=[35m1.0.0[0m
+2026-02-05 15:51:44,740 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+BEGIN (implicit)
+2026-02-05 15:51:44,741 INFO sqlalchemy.engine.Engine SELECT users.phone, users.name, users.email, users.avatar_url, users.role, users.referral_code, users.referred_by_id, users.id, users.created_at, users.updated_at 
+FROM users 
+WHERE users.id = $1::UUID
+SELECT users.phone, users.name, users.email, users.avatar_url, users.role, users.referral_code, users.referred_by_id, users.id, users.created_at, users.updated_at 
+FROM users 
+WHERE users.id = $1::UUID
+2026-02-05 15:51:44,741 INFO sqlalchemy.engine.Engine [cached since 0.3834s ago] (UUID('1bec427c-d8f4-47f8-963a-f2dcba2a6133'),)
+[cached since 0.3834s ago] (UUID('1bec427c-d8f4-47f8-963a-f2dcba2a6133'),)
+2026-02-05 15:51:44,748 INFO sqlalchemy.engine.Engine SELECT user_wallets.user_id, user_wallets.balance, user_wallets.id, user_wallets.created_at, user_wallets.updated_at 
+FROM user_wallets 
+WHERE user_wallets.user_id = $1::UUID
+SELECT user_wallets.user_id, user_wallets.balance, user_wallets.id, user_wallets.created_at, user_wallets.updated_at 
+FROM user_wallets 
+WHERE user_wallets.user_id = $1::UUID
+2026-02-05 15:51:44,748 INFO sqlalchemy.engine.Engine [generated in 0.00048s] (UUID('1bec427c-d8f4-47f8-963a-f2dcba2a6133'),)
+[generated in 0.00048s] (UUID('1bec427c-d8f4-47f8-963a-f2dcba2a6133'),)
+2026-02-05 15:51:44,757 INFO sqlalchemy.engine.Engine INSERT INTO user_wallets (user_id, balance, id) VALUES ($1::UUID, $2::NUMERIC(12, 2), $3::UUID) RETURNING user_wallets.created_at, user_wallets.updated_at
+INSERT INTO user_wallets (user_id, balance, id) VALUES ($1::UUID, $2::NUMERIC(12, 2), $3::UUID) RETURNING user_wallets.created_at, user_wallets.updated_at
+2026-02-05 15:51:44,758 INFO sqlalchemy.engine.Engine [generated in 0.00044s] (UUID('1bec427c-d8f4-47f8-963a-f2dcba2a6133'), 0.0, UUID('b4a97616-9b4e-4f52-b116-146beef6fba3'))
+[generated in 0.00044s] (UUID('1bec427c-d8f4-47f8-963a-f2dcba2a6133'), 0.0, UUID('b4a97616-9b4e-4f52-b116-146beef6fba3'))
+2026-02-05 15:51:44,763 INFO sqlalchemy.engine.Engine COMMIT
+COMMIT
+[2m2026-02-05T14:51:44.763717Z[0m [[32m[1minfo     [0m] [1mRequest completed             [0m [[0m[1m[34mapp.core.middleware[0m][0m [36mapp[0m=[35m'Navaro API'[0m [36mduration_ms[0m=[35m26.48[0m [36menvironment[0m=[35mdevelopment[0m [36mmethod[0m=[35mGET[0m [36mmode[0m=[35mdebug[0m [36mpath[0m=[35m/api/v1/payments/wallet[0m [36mrequest_id[0m=[35m43adaf53-25b9-43b6-b69b-152526c1e517[0m [36mstatus_code[0m=[35m200[0m [36mversion[0m=[35m1.0.0[0m
+2026-02-05 15:51:44,769 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+BEGIN (implicit)
+2026-02-05 15:51:44,770 INFO sqlalchemy.engine.Engine SELECT users.phone, users.name, users.email, users.avatar_url, users.role, users.referral_code, users.referred_by_id, users.id, users.created_at, users.updated_at 
+FROM users 
+WHERE users.id = $1::UUID
+SELECT users.phone, users.name, users.email, users.avatar_url, users.role, users.referral_code, users.referred_by_id, users.id, users.created_at, users.updated_at 
+FROM users 
+WHERE users.id = $1::UUID
+2026-02-05 15:51:44,770 INFO sqlalchemy.engine.Engine [cached since 0.412s ago] (UUID('1bec427c-d8f4-47f8-963a-f2dcba2a6133'),)
+[cached since 0.412s ago] (UUID('1bec427c-d8f4-47f8-963a-f2dcba2a6133'),)
+2026-02-05 15:51:44,772 INFO sqlalchemy.engine.Engine SELECT user_wallets.user_id, user_wallets.balance, user_wallets.id, user_wallets.created_at, user_wallets.updated_at 
+FROM user_wallets 
+WHERE user_wallets.user_id = $1::UUID
+SELECT user_wallets.user_id, user_wallets.balance, user_wallets.id, user_wallets.created_at, user_wallets.updated_at 
+FROM user_wallets 
+WHERE user_wallets.user_id = $1::UUID
+2026-02-05 15:51:44,772 INFO sqlalchemy.engine.Engine [cached since 0.02487s ago] (UUID('1bec427c-d8f4-47f8-963a-f2dcba2a6133'),)
+[cached since 0.02487s ago] (UUID('1bec427c-d8f4-47f8-963a-f2dcba2a6133'),)
+2026-02-05 15:51:44,776 INFO sqlalchemy.engine.Engine SELECT wallet_transactions.wallet_id AS wallet_transactions_wallet_id, wallet_transactions.type AS wallet_transactions_type, wallet_transactions.amount AS wallet_transactions_amount, wallet_transactions.status AS wallet_transactions_status, wallet_transactions.description AS wallet_transactions_description, wallet_transactions.reference_id AS wallet_transactions_reference_id, wallet_transactions.id AS wallet_transactions_id, wallet_transactions.created_at AS wallet_transactions_created_at, wallet_transactions.updated_at AS wallet_transactions_updated_at 
+FROM wallet_transactions 
+WHERE wallet_transactions.wallet_id IN ($1::UUID) ORDER BY wallet_transactions.created_at DESC
+SELECT wallet_transactions.wallet_id AS wallet_transactions_wallet_id, wallet_transactions.type AS wallet_transactions_type, wallet_transactions.amount AS wallet_transactions_amount, wallet_transactions.status AS wallet_transactions_status, wallet_transactions.description AS wallet_transactions_description, wallet_transactions.reference_id AS wallet_transactions_reference_id, wallet_transactions.id AS wallet_transactions_id, wallet_transactions.created_at AS wallet_transactions_created_at, wallet_transactions.updated_at AS wallet_transactions_updated_at 
+FROM wallet_transactions 
+WHERE wallet_transactions.wallet_id IN ($1::UUID) ORDER BY wallet_transactions.created_at DESC
+2026-02-05 15:51:44,776 INFO sqlalchemy.engine.Engine [generated in 0.00033s] (UUID('b4a97616-9b4e-4f52-b116-146beef6fba3'),)
+[generated in 0.00033s] (UUID('b4a97616-9b4e-4f52-b116-146beef6fba3'),)
+2026-02-05 15:51:44,800 INFO sqlalchemy.engine.Engine SELECT wallet_transactions.wallet_id, wallet_transactions.type, wallet_transactions.amount, wallet_transactions.status, wallet_transactions.description, wallet_transactions.reference_id, wallet_transactions.id, wallet_transactions.created_at, wallet_transactions.updated_at 
+FROM wallet_transactions 
+WHERE wallet_transactions.wallet_id = $1::UUID ORDER BY wallet_transactions.created_at DESC
+SELECT wallet_transactions.wallet_id, wallet_transactions.type, wallet_transactions.amount, wallet_transactions.status, wallet_transactions.description, wallet_transactions.reference_id, wallet_transactions.id, wallet_transactions.created_at, wallet_transactions.updated_at 
+FROM wallet_transactions 
+WHERE wallet_transactions.wallet_id = $1::UUID ORDER BY wallet_transactions.created_at DESC
+2026-02-05 15:51:44,800 INFO sqlalchemy.engine.Engine [generated in 0.00038s] (UUID('b4a97616-9b4e-4f52-b116-146beef6fba3'),)
+[generated in 0.00038s] (UUID('b4a97616-9b4e-4f52-b116-146beef6fba3'),)
+2026-02-05 15:51:44,803 INFO sqlalchemy.engine.Engine COMMIT
+COMMIT
+[2m2026-02-05T14:51:44.803772Z[0m [[32m[1minfo     [0m] [1mRequest completed             [0m [[0m[1m[34mapp.core.middleware[0m][0m [36mapp[0m=[35m'Navaro API'[0m [36mduration_ms[0m=[35m37.5[0m [36menvironment[0m=[35mdevelopment[0m [36mmethod[0m=[35mGET[0m [36mmode[0m=[35mdebug[0m [36mpath[0m=[35m/api/v1/payments/wallet/transactions[0m [36mrequest_id[0m=[35m708a0479-83e2-40e0-bf21-60fc281b4801[0m [36mstatus_code[0m=[35m200[0m [36mversion[0m=[35m1.0.0[0m
+.[2m2026-02-05T14:51:44.806241Z[0m [[32m[1minfo     [0m] [1mShutting down application     [0m [[0m[1m[34mapp.main[0m][0m [36mapp[0m=[35m'Navaro API'[0m [36menvironment[0m=[35mdevelopment[0m [36mmode[0m=[35mdebug[0m [36mversion[0m=[35m1.0.0[0m
+[2m2026-02-05T14:51:44.814810Z[0m [[32m[1minfo     [0m] [1mDatabase connections closed   [0m [[0m[1m[34mapp.main[0m][0m [36mapp[0m=[35m'Navaro API'[0m [36menvironment[0m=[35mdevelopment[0m [36mmode[0m=[35mdebug[0m [36mversion[0m=[35m1.0.0[0m
+
+=============================== warnings summary ===============================
+venv/lib/python3.12/site-packages/passlib/utils/__init__.py:854
+  /root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/passlib/utils/__init__.py:854: DeprecationWarning: 'crypt' is deprecated and slated for removal in Python 3.13
+    from crypt import crypt as _crypt
+
+app/api/v1/users.py:16
+  /root/projetos/navaro/packages/api/app/api/v1/users.py:16: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class UserResponse(BaseModel):
+
+app/api/v1/establishments.py:65
+  /root/projetos/navaro/packages/api/app/api/v1/establishments.py:65: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class EstablishmentResponse(BaseModel):
+
+app/api/v1/services.py:40
+  /root/projetos/navaro/packages/api/app/api/v1/services.py:40: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class ServiceResponse(BaseModel):
+
+app/api/v1/staff.py:41
+  /root/projetos/navaro/packages/api/app/api/v1/staff.py:41: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class StaffResponse(BaseModel):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+1 passed, 5 warnings in 1.44s

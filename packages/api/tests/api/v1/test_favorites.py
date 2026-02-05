@@ -3,6 +3,7 @@
 import pytest
 from httpx import AsyncClient
 
+
 @pytest.mark.asyncio
 async def test_favorites_flow(
     client: AsyncClient,
@@ -11,13 +12,13 @@ async def test_favorites_flow(
     staff_id: str,
 ):
     """Test full favorites flow (Establishment and Staff)."""
-    
+
     # 1. Favorite Establishment
     # ----------------------------------------------------------------------------------
     resp = await client.post(
         "/api/v1/favorites/establishments",
         headers=auth_headers,
-        json={"establishment_id": establishment_id}
+        json={"establishment_id": establishment_id},
     )
     assert resp.status_code == 200
     assert resp.json()["added"] is True
@@ -27,10 +28,7 @@ async def test_favorites_flow(
     resp = await client.post(
         "/api/v1/favorites/staff",
         headers=auth_headers,
-        json={
-            "staff_id": staff_id,
-            "establishment_id": establishment_id
-        }
+        json={"staff_id": staff_id, "establishment_id": establishment_id},
     )
     assert resp.status_code == 200
     assert resp.json()["added"] is True
@@ -50,7 +48,7 @@ async def test_favorites_flow(
     resp = await client.post(
         "/api/v1/favorites/establishments",
         headers=auth_headers,
-        json={"establishment_id": establishment_id}
+        json={"establishment_id": establishment_id},
     )
     assert resp.status_code == 200
     assert resp.json()["added"] is False

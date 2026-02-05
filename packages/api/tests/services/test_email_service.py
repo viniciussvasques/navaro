@@ -1,7 +1,8 @@
 """Unit tests for EmailService (SMTP)."""
 
+from unittest.mock import AsyncMock, patch
+
 import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
 
 from app.services.email_service import EmailService, get_email_service
 
@@ -32,17 +33,17 @@ class TestEmailService:
             "smtp_from_email": "noreply@test.com",
             "smtp_from_name": "Test App",
         }
-        
+
         def mock_bool(key, default):
             if key == "email_enabled":
                 return True
             if key == "smtp_use_tls":
                 return True
             return default
-        
+
         def mock_setting(key, default):
             return settings.get(key, default)
-        
+
         with patch("app.services.email_service.get_cached_bool", side_effect=mock_bool):
             with patch("app.services.email_service.get_cached_setting", side_effect=mock_setting):
                 yield
@@ -76,9 +77,7 @@ class TestEmailService:
     async def test_send_returns_true_when_disabled(self, email_service, mock_settings_disabled):
         """Test send returns True (simulated success) when disabled."""
         result = await email_service.send(
-            to_email="test@test.com",
-            subject="Test",
-            body_html="<p>Test</p>"
+            to_email="test@test.com", subject="Test", body_html="<p>Test</p>"
         )
         assert result is True
 
@@ -88,9 +87,7 @@ class TestEmailService:
         with patch("app.services.email_service.get_cached_bool", return_value=True):
             with patch("app.services.email_service.get_cached_setting", return_value=""):
                 result = await email_service.send(
-                    to_email="test@test.com",
-                    subject="Test",
-                    body_html="<p>Test</p>"
+                    to_email="test@test.com", subject="Test", body_html="<p>Test</p>"
                 )
                 assert result is False
 
@@ -100,14 +97,14 @@ class TestEmailService:
         with patch.object(email_service, "_send_smtp") as mock_smtp:
             with patch("asyncio.to_thread", new_callable=AsyncMock) as mock_thread:
                 mock_thread.return_value = None
-                
+
                 result = await email_service.send(
                     to_email="test@test.com",
                     subject="Test Subject",
                     body_html="<p>Hello</p>",
-                    body_text="Hello"
+                    body_text="Hello",
                 )
-                
+
                 assert result is True
                 mock_thread.assert_called_once()
 
@@ -122,7 +119,7 @@ class TestEmailService:
             establishment_name="Barbearia Top",
             service_name="Corte",
             date="15/02/2026",
-            time="14:00"
+            time="14:00",
         )
         assert result is True
 
@@ -133,7 +130,7 @@ class TestEmailService:
             to_email="cliente@test.com",
             customer_name="Maria",
             establishment_name="Salão Beauty",
-            time="10:00"
+            time="10:00",
         )
         assert result is True
 
@@ -144,7 +141,7 @@ class TestEmailService:
             to_email="cliente@test.com",
             customer_name="Pedro",
             establishment_name="Barbearia Legal",
-            reason="Funcionário indisponível"
+            reason="Funcionário indisponível",
         )
         assert result is True
 

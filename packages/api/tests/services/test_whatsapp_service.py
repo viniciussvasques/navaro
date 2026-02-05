@@ -1,7 +1,8 @@
 """Unit tests for WhatsAppService (Meta Cloud API)."""
 
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
 
 from app.services.whatsapp_service import WhatsAppService, get_whatsapp_service
 
@@ -29,17 +30,19 @@ class TestWhatsAppService:
             "whatsapp_access_token": "test_access_token",
             "whatsapp_phone_number_id": "123456789",
         }
-        
+
         def mock_bool(key, default):
             if key == "whatsapp_enabled":
                 return True
             return default
-        
+
         def mock_setting(key, default):
             return settings.get(key, default)
-        
+
         with patch("app.services.whatsapp_service.get_cached_bool", side_effect=mock_bool):
-            with patch("app.services.whatsapp_service.get_cached_setting", side_effect=mock_setting):
+            with patch(
+                "app.services.whatsapp_service.get_cached_setting", side_effect=mock_setting
+            ):
                 yield
 
     # ─── Property Tests ─────────────────────────────────────────────────────────
@@ -67,12 +70,11 @@ class TestWhatsAppService:
     # ─── Send Text Tests ────────────────────────────────────────────────────────
 
     @pytest.mark.asyncio
-    async def test_send_text_returns_true_when_disabled(self, whatsapp_service, mock_settings_disabled):
+    async def test_send_text_returns_true_when_disabled(
+        self, whatsapp_service, mock_settings_disabled
+    ):
         """Test send_text returns True (simulated success) when disabled."""
-        result = await whatsapp_service.send_text(
-            to_phone="+5511999999999",
-            message="Test message"
-        )
+        result = await whatsapp_service.send_text(to_phone="+5511999999999", message="Test message")
         assert result is True
 
     @pytest.mark.asyncio
@@ -80,10 +82,7 @@ class TestWhatsAppService:
         """Test send_text returns False when not configured."""
         with patch("app.services.whatsapp_service.get_cached_bool", return_value=True):
             with patch("app.services.whatsapp_service.get_cached_setting", return_value=""):
-                result = await whatsapp_service.send_text(
-                    to_phone="+5511999999999",
-                    message="Test"
-                )
+                result = await whatsapp_service.send_text(to_phone="+5511999999999", message="Test")
                 assert result is False
 
     @pytest.mark.asyncio
@@ -99,10 +98,7 @@ class TestWhatsAppService:
             mock_instance.__aexit__.return_value = None
             mock_client.return_value = mock_instance
 
-            await whatsapp_service.send_text(
-                to_phone="+55 11 99999-9999",
-                message="Test"
-            )
+            await whatsapp_service.send_text(to_phone="+55 11 99999-9999", message="Test")
 
             call_args = mock_instance.post.call_args
             # Phone should be normalized (no +, spaces, or dashes)
@@ -122,8 +118,7 @@ class TestWhatsAppService:
             mock_client.return_value = mock_instance
 
             result = await whatsapp_service.send_text(
-                to_phone="5511999999999",
-                message="Hello World"
+                to_phone="5511999999999", message="Hello World"
             )
 
             assert result is True
@@ -142,7 +137,7 @@ class TestWhatsAppService:
             to_phone="5511999999999",
             establishment_name="Barbearia Top",
             date="15/02/2026",
-            time="14:00"
+            time="14:00",
         )
         assert result is True
 
@@ -150,9 +145,7 @@ class TestWhatsAppService:
     async def test_send_appointment_reminder(self, whatsapp_service, mock_settings_disabled):
         """Test appointment reminder message."""
         result = await whatsapp_service.send_appointment_reminder(
-            to_phone="5511999999999",
-            establishment_name="Salão Beauty",
-            time="10:00"
+            to_phone="5511999999999", establishment_name="Salão Beauty", time="10:00"
         )
         assert result is True
 
@@ -160,8 +153,7 @@ class TestWhatsAppService:
     async def test_send_verification_code(self, whatsapp_service, mock_settings_disabled):
         """Test verification code message."""
         result = await whatsapp_service.send_verification_code(
-            to_phone="5511999999999",
-            code="123456"
+            to_phone="5511999999999", code="123456"
         )
         assert result is True
 

@@ -1,8 +1,8 @@
 """Tests for double-booking prevention."""
 
+from datetime import UTC, datetime, timedelta
+
 import pytest
-from datetime import datetime, timedelta, timezone
-from uuid import uuid4
 
 
 class TestDoubleBookingPrevention:
@@ -11,15 +11,15 @@ class TestDoubleBookingPrevention:
     @pytest.fixture
     def base_time(self):
         """Base time for testing."""
-        return datetime.now(timezone.utc).replace(
-            hour=14, minute=0, second=0, microsecond=0
-        ) + timedelta(days=1)
+        return datetime.now(UTC).replace(hour=14, minute=0, second=0, microsecond=0) + timedelta(
+            days=1
+        )
 
     def _check_overlap(self, existing_start, existing_duration, new_start, new_duration):
         """Check if two time slots overlap."""
         existing_end = existing_start + timedelta(minutes=existing_duration)
         new_end = new_start + timedelta(minutes=new_duration)
-        
+
         # Overlap if: new starts before existing ends AND new ends after existing starts
         return new_start < existing_end and new_end > existing_start
 
@@ -28,10 +28,7 @@ class TestDoubleBookingPrevention:
     def test_same_slot_overlaps(self, base_time):
         """Test that the same time slot is detected as overlap."""
         is_overlap = self._check_overlap(
-            existing_start=base_time,
-            existing_duration=30,
-            new_start=base_time,
-            new_duration=30
+            existing_start=base_time, existing_duration=30, new_start=base_time, new_duration=30
         )
         assert is_overlap is True
 
@@ -43,7 +40,7 @@ class TestDoubleBookingPrevention:
             existing_start=base_time,
             existing_duration=30,
             new_start=base_time + timedelta(minutes=15),
-            new_duration=30
+            new_duration=30,
         )
         assert is_overlap is True
 
@@ -55,7 +52,7 @@ class TestDoubleBookingPrevention:
             existing_start=base_time,
             existing_duration=30,
             new_start=base_time + timedelta(minutes=30),
-            new_duration=30
+            new_duration=30,
         )
         assert is_overlap is False
 
@@ -67,7 +64,7 @@ class TestDoubleBookingPrevention:
             existing_start=base_time,
             existing_duration=30,
             new_start=base_time - timedelta(minutes=60),
-            new_duration=30
+            new_duration=30,
         )
         assert is_overlap is False
 
@@ -79,7 +76,7 @@ class TestDoubleBookingPrevention:
             existing_start=base_time,
             existing_duration=30,
             new_start=base_time - timedelta(minutes=15),
-            new_duration=60
+            new_duration=60,
         )
         assert is_overlap is True
 
@@ -91,7 +88,7 @@ class TestDoubleBookingPrevention:
             existing_start=base_time,
             existing_duration=60,
             new_start=base_time + timedelta(minutes=15),
-            new_duration=15
+            new_duration=15,
         )
         assert is_overlap is True
 
@@ -108,7 +105,7 @@ class TestDoubleBookingPrevention:
         """Test that different staff can have same time slots."""
         staff_1_appointments = [{"staff_id": "staff_1", "time": "14:00"}]
         staff_2_appointments = []  # No appointments for staff_2
-        
+
         # Staff 2 should be able to book same time
         staff_2_available = len(staff_2_appointments) == 0
         assert staff_2_available is True
@@ -120,7 +117,7 @@ class TestDoubleBookingPrevention:
             (base_time + timedelta(hours=1), 30),  # 15:00 - 15:30
             (base_time + timedelta(hours=2), 30),  # 16:00 - 16:30
         ]
-        
+
         # Check no overlaps between any pairs
         has_overlap = False
         for i, (start1, dur1) in enumerate(slots):
@@ -128,5 +125,5 @@ class TestDoubleBookingPrevention:
                 if i != j and self._check_overlap(start1, dur1, start2, dur2):
                     has_overlap = True
                     break
-        
+
         assert has_overlap is False

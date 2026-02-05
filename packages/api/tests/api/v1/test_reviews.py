@@ -3,6 +3,7 @@
 import pytest
 from httpx import AsyncClient
 
+
 @pytest.mark.asyncio
 async def test_review_flow(
     client: AsyncClient,
@@ -13,20 +14,16 @@ async def test_review_flow(
     staff_id: str,
 ):
     """Test full review flow."""
-    
+
     # 1. Customer Creates Review
     # ----------------------------------------------------------------------------------
     review_data = {
         "establishment_id": establishment_id,
         "rating": 5,
         "comment": "Ótimo serviço!",
-        "staff_id": staff_id
+        "staff_id": staff_id,
     }
-    resp = await client.post(
-        "/api/v1/reviews",
-        headers=auth_headers_second_user,
-        json=review_data
-    )
+    resp = await client.post("/api/v1/reviews", headers=auth_headers_second_user, json=review_data)
     assert resp.status_code == 201
     review = resp.json()
     assert review["rating"] == 5
@@ -44,14 +41,9 @@ async def test_review_flow(
 
     # 3. Customer Updates Review
     # ----------------------------------------------------------------------------------
-    update_data = {
-        "rating": 4,
-        "comment": "Serviço bom, mas demorou um pouco."
-    }
+    update_data = {"rating": 4, "comment": "Serviço bom, mas demorou um pouco."}
     resp = await client.patch(
-        f"/api/v1/reviews/{review_id}",
-        headers=auth_headers_second_user,
-        json=update_data
+        f"/api/v1/reviews/{review_id}", headers=auth_headers_second_user, json=update_data
     )
     assert resp.status_code == 200
     updated = resp.json()
@@ -61,50 +53,37 @@ async def test_review_flow(
     # 4. Owner Responds
     # ----------------------------------------------------------------------------------
     # auth_headers is owner of establishment_id (from conftest fixtures)
-    response_data = {
-        "response": "Obrigado pelo feedback, vamos melhorar!"
-    }
+    response_data = {"response": "Obrigado pelo feedback, vamos melhorar!"}
     resp = await client.patch(
-        f"/api/v1/reviews/{review_id}/respond",
-        headers=auth_headers,
-        json=response_data
+        f"/api/v1/reviews/{review_id}/respond", headers=auth_headers, json=response_data
     )
     assert resp.status_code == 200
     responded = resp.json()
     assert responded["owner_response"] == "Obrigado pelo feedback, vamos melhorar!"
-    
+
     # 5. Verify Response in Public List
     # ----------------------------------------------------------------------------------
     resp = await client.get(f"/api/v1/reviews/establishments/{establishment_id}")
     data = resp.json()
     assert data["items"][0]["owner_response"] == "Obrigado pelo feedback, vamos melhorar!"
 
+
 @pytest.mark.asyncio
-async def test_review_validation(
-    client: AsyncClient,
-    auth_headers: dict,
-    establishment_id: str
-):
+async def test_review_validation(client: AsyncClient, auth_headers: dict, establishment_id: str):
     """Test review validation."""
-    
+
     # Invalid Rating (0)
     resp = await client.post(
         "/api/v1/reviews",
         headers=auth_headers,
-        json={
-            "establishment_id": establishment_id,
-            "rating": 0
-        }
+        json={"establishment_id": establishment_id, "rating": 0},
     )
     assert resp.status_code == 422
-    
+
     # Invalid Rating (6)
     resp = await client.post(
         "/api/v1/reviews",
         headers=auth_headers,
-        json={
-            "establishment_id": establishment_id,
-            "rating": 6
-        }
+        json={"establishment_id": establishment_id, "rating": 6},
     )
     assert resp.status_code == 422

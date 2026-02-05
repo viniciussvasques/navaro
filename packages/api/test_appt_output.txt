@@ -1,0 +1,1290 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.0.2, pluggy-1.6.0
+rootdir: /root/projetos/navaro/packages/api
+configfile: pyproject.toml
+plugins: asyncio-1.3.0, anyio-4.12.1
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 1 item
+
+tests/api/v1/test_appointments.py F                                      [100%]
+
+=================================== FAILURES ===================================
+____________________________ test_appointment_flow _____________________________
+
+client = <httpx.AsyncClient object at 0x7b65c6a6d610>
+
+    @pytest.mark.asyncio
+    async def test_appointment_flow(client: AsyncClient):
+        """
+        Test appointment flow:
+        1. Authenticate (User A)
+        2. Create Establishment (User A becomes Owner)
+        3. Create Service
+        4. Create Staff
+        5. Create Appointment
+        """
+        # 1. Authenticate
+        phone = "+5511988888888"
+    
+        # Send code
+        resp = await client.post("/api/v1/auth/send-code", json={"phone": phone})
+        assert resp.status_code == 200
+        msg = resp.json()["message"]
+        code = msg.split(": ")[1].strip()
+    
+        # Verify code
+        resp = await client.post("/api/v1/auth/verify", json={"phone": phone, "code": code})
+        assert resp.status_code == 200
+        token = resp.json()["tokens"]["access_token"]
+        headers = {"Authorization": f"Bearer {token}"}
+    
+        # 2. Create Establishment
+        est_data = {
+            "name": "Barbearia Teste",
+            "category": "barbershop",  # Use value string
+            "address": "Rua Teste, 123",
+            "city": "São Paulo",
+            "state": "SP",
+            "phone": "+551133333333"
+        }
+        resp = await client.post("/api/v1/establishments", json=est_data, headers=headers)
+>       assert resp.status_code == 201
+E       assert 500 == 201
+E        +  where 500 = <Response [500 Internal Server Error]>.status_code
+
+tests/api/v1/test_appointments.py:43: AssertionError
+---------------------------- Captured stdout setup -----------------------------
+Using selector: EpollSelector
+Using selector: EpollSelector
+[2m2026-02-05T03:37:46.935265Z[0m [[32m[1minfo     [0m] [1mStarting application          [0m [[0m[1m[34mapp.main[0m][0m [36mapp[0m=[35m'Navaro API'[0m [36menvironment[0m=[35mdevelopment[0m [36mmode[0m=[35mdebug[0m [36mname[0m=[35m'Navaro API'[0m [36mversion[0m=[35m1.0.0[0m
+2026-02-05 04:37:46,986 INFO sqlalchemy.engine.Engine select pg_catalog.version()
+select pg_catalog.version()
+2026-02-05 04:37:46,986 INFO sqlalchemy.engine.Engine [raw sql] ()
+[raw sql] ()
+2026-02-05 04:37:46,991 INFO sqlalchemy.engine.Engine select current_schema()
+select current_schema()
+2026-02-05 04:37:46,991 INFO sqlalchemy.engine.Engine [raw sql] ()
+[raw sql] ()
+2026-02-05 04:37:46,994 INFO sqlalchemy.engine.Engine show standard_conforming_strings
+show standard_conforming_strings
+2026-02-05 04:37:46,994 INFO sqlalchemy.engine.Engine [raw sql] ()
+[raw sql] ()
+2026-02-05 04:37:46,996 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+BEGIN (implicit)
+2026-02-05 04:37:47,004 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-05 04:37:47,004 INFO sqlalchemy.engine.Engine [generated in 0.00062s] ('users', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+[generated in 0.00062s] ('users', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-05 04:37:47,022 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-05 04:37:47,023 INFO sqlalchemy.engine.Engine [cached since 0.019s ago] ('establishments', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+[cached since 0.019s ago] ('establishments', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-05 04:37:47,025 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-05 04:37:47,026 INFO sqlalchemy.engine.Engine [cached since 0.02187s ago] ('service_staff', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+[cached since 0.02187s ago] ('service_staff', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-05 04:37:47,028 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-05 04:37:47,028 INFO sqlalchemy.engine.Engine [cached since 0.02473s ago] ('services', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+[cached since 0.02473s ago] ('services', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-05 04:37:47,030 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-05 04:37:47,030 INFO sqlalchemy.engine.Engine [cached since 0.02676s ago] ('service_bundles', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+[cached since 0.02676s ago] ('service_bundles', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-05 04:37:47,032 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-05 04:37:47,032 INFO sqlalchemy.engine.Engine [cached since 0.0283s ago] ('service_bundle_items', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+[cached since 0.0283s ago] ('service_bundle_items', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-05 04:37:47,034 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-05 04:37:47,034 INFO sqlalchemy.engine.Engine [cached since 0.03004s ago] ('staff_members', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+[cached since 0.03004s ago] ('staff_members', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-05 04:37:47,035 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-05 04:37:47,035 INFO sqlalchemy.engine.Engine [cached since 0.03117s ago] ('subscription_plans', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+[cached since 0.03117s ago] ('subscription_plans', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-05 04:37:47,036 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-05 04:37:47,036 INFO sqlalchemy.engine.Engine [cached since 0.03247s ago] ('subscription_plan_items', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+[cached since 0.03247s ago] ('subscription_plan_items', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-05 04:37:47,037 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-05 04:37:47,037 INFO sqlalchemy.engine.Engine [cached since 0.03342s ago] ('subscriptions', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+[cached since 0.03342s ago] ('subscriptions', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-05 04:37:47,038 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-05 04:37:47,038 INFO sqlalchemy.engine.Engine [cached since 0.03436s ago] ('subscription_usage', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+[cached since 0.03436s ago] ('subscription_usage', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-05 04:37:47,039 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-05 04:37:47,039 INFO sqlalchemy.engine.Engine [cached since 0.03515s ago] ('appointments', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+[cached since 0.03515s ago] ('appointments', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-05 04:37:47,040 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-05 04:37:47,040 INFO sqlalchemy.engine.Engine [cached since 0.03603s ago] ('checkins', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+[cached since 0.03603s ago] ('checkins', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-05 04:37:47,041 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-05 04:37:47,041 INFO sqlalchemy.engine.Engine [cached since 0.03754s ago] ('queue_entries', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+[cached since 0.03754s ago] ('queue_entries', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-05 04:37:47,042 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-05 04:37:47,042 INFO sqlalchemy.engine.Engine [cached since 0.03858s ago] ('reviews', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+[cached since 0.03858s ago] ('reviews', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-05 04:37:47,043 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-05 04:37:47,043 INFO sqlalchemy.engine.Engine [cached since 0.03958s ago] ('favorites', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+[cached since 0.03958s ago] ('favorites', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-05 04:37:47,044 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-05 04:37:47,044 INFO sqlalchemy.engine.Engine [cached since 0.04059s ago] ('favorite_staff', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+[cached since 0.04059s ago] ('favorite_staff', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-05 04:37:47,045 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-05 04:37:47,045 INFO sqlalchemy.engine.Engine [cached since 0.04161s ago] ('payments', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+[cached since 0.04161s ago] ('payments', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-05 04:37:47,046 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-05 04:37:47,046 INFO sqlalchemy.engine.Engine [cached since 0.04236s ago] ('tips', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+[cached since 0.04236s ago] ('tips', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-05 04:37:47,047 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-05 04:37:47,047 INFO sqlalchemy.engine.Engine [cached since 0.04314s ago] ('payouts', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+[cached since 0.04314s ago] ('payouts', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-05 04:37:47,048 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-05 04:37:47,048 INFO sqlalchemy.engine.Engine [cached since 0.04397s ago] ('portfolio_images', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+[cached since 0.04397s ago] ('portfolio_images', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-05 04:37:47,048 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-05 04:37:47,049 INFO sqlalchemy.engine.Engine [cached since 0.04483s ago] ('search_history', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+[cached since 0.04483s ago] ('search_history', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-05 04:37:47,049 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-05 04:37:47,049 INFO sqlalchemy.engine.Engine [cached since 0.04558s ago] ('establishment_plugins', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+[cached since 0.04558s ago] ('establishment_plugins', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-05 04:37:47,050 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-05 04:37:47,050 INFO sqlalchemy.engine.Engine [cached since 0.04641s ago] ('ad_campaigns', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+[cached since 0.04641s ago] ('ad_campaigns', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-05 04:37:47,053 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+2026-02-05 04:37:47,053 INFO sqlalchemy.engine.Engine [generated in 0.00019s] ('userrole', 'pg_catalog')
+[generated in 0.00019s] ('userrole', 'pg_catalog')
+2026-02-05 04:37:47,055 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+2026-02-05 04:37:47,056 INFO sqlalchemy.engine.Engine [cached since 0.003122s ago] ('establishmentcategory', 'pg_catalog')
+[cached since 0.003122s ago] ('establishmentcategory', 'pg_catalog')
+2026-02-05 04:37:47,057 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+2026-02-05 04:37:47,057 INFO sqlalchemy.engine.Engine [cached since 0.004925s ago] ('establishmentstatus', 'pg_catalog')
+[cached since 0.004925s ago] ('establishmentstatus', 'pg_catalog')
+2026-02-05 04:37:47,059 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+2026-02-05 04:37:47,059 INFO sqlalchemy.engine.Engine [cached since 0.006813s ago] ('subscriptiontier', 'pg_catalog')
+[cached since 0.006813s ago] ('subscriptiontier', 'pg_catalog')
+2026-02-05 04:37:47,061 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+2026-02-05 04:37:47,061 INFO sqlalchemy.engine.Engine [cached since 0.008602s ago] ('subscriptionstatus', 'pg_catalog')
+[cached since 0.008602s ago] ('subscriptionstatus', 'pg_catalog')
+2026-02-05 04:37:47,063 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+2026-02-05 04:37:47,063 INFO sqlalchemy.engine.Engine [cached since 0.01057s ago] ('appointmentstatus', 'pg_catalog')
+[cached since 0.01057s ago] ('appointmentstatus', 'pg_catalog')
+2026-02-05 04:37:47,065 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+2026-02-05 04:37:47,065 INFO sqlalchemy.engine.Engine [cached since 0.01221s ago] ('paymenttype', 'pg_catalog')
+[cached since 0.01221s ago] ('paymenttype', 'pg_catalog')
+2026-02-05 04:37:47,066 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+2026-02-05 04:37:47,066 INFO sqlalchemy.engine.Engine [cached since 0.01361s ago] ('queuestatus', 'pg_catalog')
+[cached since 0.01361s ago] ('queuestatus', 'pg_catalog')
+2026-02-05 04:37:47,068 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+2026-02-05 04:37:47,068 INFO sqlalchemy.engine.Engine [cached since 0.01524s ago] ('paymentpurpose', 'pg_catalog')
+[cached since 0.01524s ago] ('paymentpurpose', 'pg_catalog')
+2026-02-05 04:37:47,069 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+2026-02-05 04:37:47,069 INFO sqlalchemy.engine.Engine [cached since 0.01697s ago] ('paymentstatus', 'pg_catalog')
+[cached since 0.01697s ago] ('paymentstatus', 'pg_catalog')
+2026-02-05 04:37:47,070 INFO sqlalchemy.engine.Engine COMMIT
+COMMIT
+[2m2026-02-05T03:37:47.071545Z[0m [[32m[1minfo     [0m] [1mDatabase initialized          [0m [[0m[1m[34mapp.main[0m][0m [36mapp[0m=[35m'Navaro API'[0m [36menvironment[0m=[35mdevelopment[0m [36mmode[0m=[35mdebug[0m [36mversion[0m=[35m1.0.0[0m
+------------------------------ Captured log setup ------------------------------
+DEBUG    asyncio:selector_events.py:64 Using selector: EpollSelector
+DEBUG    asyncio:selector_events.py:64 Using selector: EpollSelector
+INFO     app.main:main.py:28 [2m2026-02-05T03:37:46.935265Z[0m [[32m[1minfo     [0m] [1mStarting application          [0m [[0m[1m[34mapp.main[0m][0m [36mapp[0m=[35m'Navaro API'[0m [36menvironment[0m=[35mdevelopment[0m [36mmode[0m=[35mdebug[0m [36mname[0m=[35m'Navaro API'[0m [36mversion[0m=[35m1.0.0[0m
+INFO     sqlalchemy.engine.Engine:base.py:1846 select pg_catalog.version()
+INFO     sqlalchemy.engine.Engine:base.py:1846 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 select current_schema()
+INFO     sqlalchemy.engine.Engine:base.py:1846 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 show standard_conforming_strings
+INFO     sqlalchemy.engine.Engine:base.py:1846 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:2710 BEGIN (implicit)
+INFO     sqlalchemy.engine.Engine:base.py:1846 SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00062s] ('users', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+INFO     sqlalchemy.engine.Engine:base.py:1846 SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+INFO     sqlalchemy.engine.Engine:base.py:1846 [cached since 0.019s ago] ('establishments', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+INFO     sqlalchemy.engine.Engine:base.py:1846 SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+INFO     sqlalchemy.engine.Engine:base.py:1846 [cached since 0.02187s ago] ('service_staff', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+INFO     sqlalchemy.engine.Engine:base.py:1846 SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+INFO     sqlalchemy.engine.Engine:base.py:1846 [cached since 0.02473s ago] ('services', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+INFO     sqlalchemy.engine.Engine:base.py:1846 SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+INFO     sqlalchemy.engine.Engine:base.py:1846 [cached since 0.02676s ago] ('service_bundles', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+INFO     sqlalchemy.engine.Engine:base.py:1846 SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+INFO     sqlalchemy.engine.Engine:base.py:1846 [cached since 0.0283s ago] ('service_bundle_items', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+INFO     sqlalchemy.engine.Engine:base.py:1846 SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+INFO     sqlalchemy.engine.Engine:base.py:1846 [cached since 0.03004s ago] ('staff_members', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+INFO     sqlalchemy.engine.Engine:base.py:1846 SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+INFO     sqlalchemy.engine.Engine:base.py:1846 [cached since 0.03117s ago] ('subscription_plans', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+INFO     sqlalchemy.engine.Engine:base.py:1846 SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+INFO     sqlalchemy.engine.Engine:base.py:1846 [cached since 0.03247s ago] ('subscription_plan_items', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+INFO     sqlalchemy.engine.Engine:base.py:1846 SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+INFO     sqlalchemy.engine.Engine:base.py:1846 [cached since 0.03342s ago] ('subscriptions', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+INFO     sqlalchemy.engine.Engine:base.py:1846 SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+INFO     sqlalchemy.engine.Engine:base.py:1846 [cached since 0.03436s ago] ('subscription_usage', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+INFO     sqlalchemy.engine.Engine:base.py:1846 SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+INFO     sqlalchemy.engine.Engine:base.py:1846 [cached since 0.03515s ago] ('appointments', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+INFO     sqlalchemy.engine.Engine:base.py:1846 SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+INFO     sqlalchemy.engine.Engine:base.py:1846 [cached since 0.03603s ago] ('checkins', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+INFO     sqlalchemy.engine.Engine:base.py:1846 SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+INFO     sqlalchemy.engine.Engine:base.py:1846 [cached since 0.03754s ago] ('queue_entries', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+INFO     sqlalchemy.engine.Engine:base.py:1846 SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+INFO     sqlalchemy.engine.Engine:base.py:1846 [cached since 0.03858s ago] ('reviews', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+INFO     sqlalchemy.engine.Engine:base.py:1846 SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+INFO     sqlalchemy.engine.Engine:base.py:1846 [cached since 0.03958s ago] ('favorites', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+INFO     sqlalchemy.engine.Engine:base.py:1846 SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+INFO     sqlalchemy.engine.Engine:base.py:1846 [cached since 0.04059s ago] ('favorite_staff', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+INFO     sqlalchemy.engine.Engine:base.py:1846 SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+INFO     sqlalchemy.engine.Engine:base.py:1846 [cached since 0.04161s ago] ('payments', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+INFO     sqlalchemy.engine.Engine:base.py:1846 SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+INFO     sqlalchemy.engine.Engine:base.py:1846 [cached since 0.04236s ago] ('tips', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+INFO     sqlalchemy.engine.Engine:base.py:1846 SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+INFO     sqlalchemy.engine.Engine:base.py:1846 [cached since 0.04314s ago] ('payouts', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+INFO     sqlalchemy.engine.Engine:base.py:1846 SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+INFO     sqlalchemy.engine.Engine:base.py:1846 [cached since 0.04397s ago] ('portfolio_images', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+INFO     sqlalchemy.engine.Engine:base.py:1846 SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+INFO     sqlalchemy.engine.Engine:base.py:1846 [cached since 0.04483s ago] ('search_history', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+INFO     sqlalchemy.engine.Engine:base.py:1846 SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+INFO     sqlalchemy.engine.Engine:base.py:1846 [cached since 0.04558s ago] ('establishment_plugins', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+INFO     sqlalchemy.engine.Engine:base.py:1846 SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+INFO     sqlalchemy.engine.Engine:base.py:1846 [cached since 0.04641s ago] ('ad_campaigns', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+INFO     sqlalchemy.engine.Engine:base.py:1846 SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00019s] ('userrole', 'pg_catalog')
+INFO     sqlalchemy.engine.Engine:base.py:1846 SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+INFO     sqlalchemy.engine.Engine:base.py:1846 [cached since 0.003122s ago] ('establishmentcategory', 'pg_catalog')
+INFO     sqlalchemy.engine.Engine:base.py:1846 SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+INFO     sqlalchemy.engine.Engine:base.py:1846 [cached since 0.004925s ago] ('establishmentstatus', 'pg_catalog')
+INFO     sqlalchemy.engine.Engine:base.py:1846 SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+INFO     sqlalchemy.engine.Engine:base.py:1846 [cached since 0.006813s ago] ('subscriptiontier', 'pg_catalog')
+INFO     sqlalchemy.engine.Engine:base.py:1846 SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+INFO     sqlalchemy.engine.Engine:base.py:1846 [cached since 0.008602s ago] ('subscriptionstatus', 'pg_catalog')
+INFO     sqlalchemy.engine.Engine:base.py:1846 SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+INFO     sqlalchemy.engine.Engine:base.py:1846 [cached since 0.01057s ago] ('appointmentstatus', 'pg_catalog')
+INFO     sqlalchemy.engine.Engine:base.py:1846 SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+INFO     sqlalchemy.engine.Engine:base.py:1846 [cached since 0.01221s ago] ('paymenttype', 'pg_catalog')
+INFO     sqlalchemy.engine.Engine:base.py:1846 SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+INFO     sqlalchemy.engine.Engine:base.py:1846 [cached since 0.01361s ago] ('queuestatus', 'pg_catalog')
+INFO     sqlalchemy.engine.Engine:base.py:1846 SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+INFO     sqlalchemy.engine.Engine:base.py:1846 [cached since 0.01524s ago] ('paymentpurpose', 'pg_catalog')
+INFO     sqlalchemy.engine.Engine:base.py:1846 SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+INFO     sqlalchemy.engine.Engine:base.py:1846 [cached since 0.01697s ago] ('paymentstatus', 'pg_catalog')
+INFO     sqlalchemy.engine.Engine:base.py:2716 COMMIT
+INFO     app.main:main.py:37 [2m2026-02-05T03:37:47.071545Z[0m [[32m[1minfo     [0m] [1mDatabase initialized          [0m [[0m[1m[34mapp.main[0m][0m [36mapp[0m=[35m'Navaro API'[0m [36menvironment[0m=[35mdevelopment[0m [36mmode[0m=[35mdebug[0m [36mversion[0m=[35m1.0.0[0m
+----------------------------- Captured stdout call -----------------------------
+[2m2026-02-05T03:37:47.076688Z[0m [[32m[1minfo     [0m] [1mVerification code sent        [0m [[0m[1m[34mapp.api.v1.auth[0m][0m [36mapp[0m=[35m'Navaro API'[0m [36menvironment[0m=[35mdevelopment[0m [36mmethod[0m=[35mPOST[0m [36mmode[0m=[35mdebug[0m [36mpath[0m=[35m/api/v1/auth/send-code[0m [36mphone[0m=[35m+5511988888888[0m [36mrequest_id[0m=[35mfdebd6bc-55b3-4b05-917a-b27924e1aff8[0m [36mversion[0m=[35m1.0.0[0m
+[2m2026-02-05T03:37:47.077443Z[0m [[32m[1minfo     [0m] [1mRequest completed             [0m [[0m[1m[34mapp.core.middleware[0m][0m [36mapp[0m=[35m'Navaro API'[0m [36mduration_ms[0m=[35m3.73[0m [36menvironment[0m=[35mdevelopment[0m [36mmethod[0m=[35mPOST[0m [36mmode[0m=[35mdebug[0m [36mpath[0m=[35m/api/v1/auth/send-code[0m [36mrequest_id[0m=[35mfdebd6bc-55b3-4b05-917a-b27924e1aff8[0m [36mstatus_code[0m=[35m200[0m [36mversion[0m=[35m1.0.0[0m
+2026-02-05 04:37:47,083 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+BEGIN (implicit)
+2026-02-05 04:37:47,184 INFO sqlalchemy.engine.Engine SELECT users.phone, users.name, users.email, users.avatar_url, users.role, users.referral_code, users.referred_by_id, users.id, users.created_at, users.updated_at 
+FROM users 
+WHERE users.phone = $1::VARCHAR
+SELECT users.phone, users.name, users.email, users.avatar_url, users.role, users.referral_code, users.referred_by_id, users.id, users.created_at, users.updated_at 
+FROM users 
+WHERE users.phone = $1::VARCHAR
+2026-02-05 04:37:47,184 INFO sqlalchemy.engine.Engine [generated in 0.00057s] ('+5511988888888',)
+[generated in 0.00057s] ('+5511988888888',)
+[2m2026-02-05T03:37:47.228221Z[0m [[32m[1minfo     [0m] [1mUser authenticated            [0m [[0m[1m[34mapp.api.v1.auth[0m][0m [36mapp[0m=[35m'Navaro API'[0m [36menvironment[0m=[35mdevelopment[0m [36mmethod[0m=[35mPOST[0m [36mmode[0m=[35mdebug[0m [36mpath[0m=[35m/api/v1/auth/verify[0m [36mrequest_id[0m=[35m229be57b-a627-461b-bd76-d1991f60fb52[0m [36muser_id[0m=[35md6eb8ffe-a778-406a-8687-40332023db73[0m [36mversion[0m=[35m1.0.0[0m
+2026-02-05 04:37:47,229 INFO sqlalchemy.engine.Engine ROLLBACK
+ROLLBACK
+[2m2026-02-05T03:37:47.230038Z[0m [[32m[1minfo     [0m] [1mRequest completed             [0m [[0m[1m[34mapp.core.middleware[0m][0m [36mapp[0m=[35m'Navaro API'[0m [36mduration_ms[0m=[35m151.17[0m [36menvironment[0m=[35mdevelopment[0m [36mmethod[0m=[35mPOST[0m [36mmode[0m=[35mdebug[0m [36mpath[0m=[35m/api/v1/auth/verify[0m [36mrequest_id[0m=[35m229be57b-a627-461b-bd76-d1991f60fb52[0m [36mstatus_code[0m=[35m200[0m [36mversion[0m=[35m1.0.0[0m
+2026-02-05 04:37:47,237 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+BEGIN (implicit)
+2026-02-05 04:37:47,240 INFO sqlalchemy.engine.Engine SELECT users.phone, users.name, users.email, users.avatar_url, users.role, users.referral_code, users.referred_by_id, users.id, users.created_at, users.updated_at 
+FROM users 
+WHERE users.id = $1::UUID
+SELECT users.phone, users.name, users.email, users.avatar_url, users.role, users.referral_code, users.referred_by_id, users.id, users.created_at, users.updated_at 
+FROM users 
+WHERE users.id = $1::UUID
+2026-02-05 04:37:47,240 INFO sqlalchemy.engine.Engine [generated in 0.00037s] (UUID('d6eb8ffe-a778-406a-8687-40332023db73'),)
+[generated in 0.00037s] (UUID('d6eb8ffe-a778-406a-8687-40332023db73'),)
+2026-02-05 04:37:47,248 INFO sqlalchemy.engine.Engine SELECT establishments.owner_id, establishments.name, establishments.slug, establishments.category, establishments.description, establishments.address, establishments.city, establishments.state, establishments.zip_code, establishments.latitude, establishments.longitude, establishments.phone, establishments.whatsapp, establishments.logo_url, establishments.cover_url, establishments.google_place_id, establishments.google_maps_url, establishments.business_hours, establishments.queue_mode_enabled, establishments.status, establishments.subscription_tier, establishments.stripe_account_id, establishments.id, establishments.created_at, establishments.updated_at 
+FROM establishments 
+WHERE establishments.slug = $1::VARCHAR
+SELECT establishments.owner_id, establishments.name, establishments.slug, establishments.category, establishments.description, establishments.address, establishments.city, establishments.state, establishments.zip_code, establishments.latitude, establishments.longitude, establishments.phone, establishments.whatsapp, establishments.logo_url, establishments.cover_url, establishments.google_place_id, establishments.google_maps_url, establishments.business_hours, establishments.queue_mode_enabled, establishments.status, establishments.subscription_tier, establishments.stripe_account_id, establishments.id, establishments.created_at, establishments.updated_at 
+FROM establishments 
+WHERE establishments.slug = $1::VARCHAR
+2026-02-05 04:37:47,248 INFO sqlalchemy.engine.Engine [generated in 0.00044s] ('barbearia-teste',)
+[generated in 0.00044s] ('barbearia-teste',)
+2026-02-05 04:37:47,267 INFO sqlalchemy.engine.Engine UPDATE users SET role=$1::userrole, updated_at=now() WHERE users.id = $2::UUID
+UPDATE users SET role=$1::userrole, updated_at=now() WHERE users.id = $2::UUID
+2026-02-05 04:37:47,267 INFO sqlalchemy.engine.Engine [generated in 0.00048s] ('owner', UUID('d6eb8ffe-a778-406a-8687-40332023db73'))
+[generated in 0.00048s] ('owner', UUID('d6eb8ffe-a778-406a-8687-40332023db73'))
+2026-02-05 04:37:47,273 INFO sqlalchemy.engine.Engine INSERT INTO establishments (owner_id, name, slug, category, description, address, city, state, zip_code, latitude, longitude, phone, whatsapp, logo_url, cover_url, google_place_id, google_maps_url, business_hours, queue_mode_enabled, status, subscription_tier, stripe_account_id, id) VALUES ($1::UUID, $2::VARCHAR, $3::VARCHAR, $4::establishmentcategory, $5::VARCHAR, $6::VARCHAR, $7::VARCHAR, $8::VARCHAR, $9::VARCHAR, $10::NUMERIC(10, 8), $11::NUMERIC(11, 8), $12::VARCHAR, $13::VARCHAR, $14::VARCHAR, $15::VARCHAR, $16::VARCHAR, $17::VARCHAR, $18::JSON, $19::BOOLEAN, $20::establishmentstatus, $21::subscriptiontier, $22::VARCHAR, $23::UUID) RETURNING establishments.created_at, establishments.updated_at
+INSERT INTO establishments (owner_id, name, slug, category, description, address, city, state, zip_code, latitude, longitude, phone, whatsapp, logo_url, cover_url, google_place_id, google_maps_url, business_hours, queue_mode_enabled, status, subscription_tier, stripe_account_id, id) VALUES ($1::UUID, $2::VARCHAR, $3::VARCHAR, $4::establishmentcategory, $5::VARCHAR, $6::VARCHAR, $7::VARCHAR, $8::VARCHAR, $9::VARCHAR, $10::NUMERIC(10, 8), $11::NUMERIC(11, 8), $12::VARCHAR, $13::VARCHAR, $14::VARCHAR, $15::VARCHAR, $16::VARCHAR, $17::VARCHAR, $18::JSON, $19::BOOLEAN, $20::establishmentstatus, $21::subscriptiontier, $22::VARCHAR, $23::UUID) RETURNING establishments.created_at, establishments.updated_at
+2026-02-05 04:37:47,273 INFO sqlalchemy.engine.Engine [generated in 0.00061s] (UUID('d6eb8ffe-a778-406a-8687-40332023db73'), 'Barbearia Teste', 'barbearia-teste', 'BARBERSHOP', None, 'Rua Teste, 123', 'São Paulo', 'SP', None, None, None, '+551133333333', None, None, None, None, None, '{}', False, 'PENDING', 'TRIAL', None, UUID('cab4da48-d677-43f9-9481-ca041d55579c'))
+[generated in 0.00061s] (UUID('d6eb8ffe-a778-406a-8687-40332023db73'), 'Barbearia Teste', 'barbearia-teste', 'BARBERSHOP', None, 'Rua Teste, 123', 'São Paulo', 'SP', None, None, None, '+551133333333', None, None, None, None, None, '{}', False, 'PENDING', 'TRIAL', None, UUID('cab4da48-d677-43f9-9481-ca041d55579c'))
+2026-02-05 04:37:47,277 INFO sqlalchemy.engine.Engine ROLLBACK
+ROLLBACK
+[2m2026-02-05T03:37:47.278623Z[0m [[31m[1merror    [0m] [1mUnhandled exception           [0m [[0m[1m[34mapp.core.middleware[0m][0m [36mapp[0m=[35m'Navaro API'[0m [36menvironment[0m=[35mdevelopment[0m [36merror[0m=[35m'(sqlalchemy.dialects.postgresql.asyncpg.Error) <class \'asyncpg.exceptions.InvalidTextRepresentationError\'>: invalid input value for enum establishmentcategory: "BARBERSHOP"\n[SQL: INSERT INTO establishments (owner_id, name, slug, category, description, address, city, state, zip_code, latitude, longitude, phone, whatsapp, logo_url, cover_url, google_place_id, google_maps_url, business_hours, queue_mode_enabled, status, subscription_tier, stripe_account_id, id) VALUES ($1::UUID, $2::VARCHAR, $3::VARCHAR, $4::establishmentcategory, $5::VARCHAR, $6::VARCHAR, $7::VARCHAR, $8::VARCHAR, $9::VARCHAR, $10::NUMERIC(10, 8), $11::NUMERIC(11, 8), $12::VARCHAR, $13::VARCHAR, $14::VARCHAR, $15::VARCHAR, $16::VARCHAR, $17::VARCHAR, $18::JSON, $19::BOOLEAN, $20::establishmentstatus, $21::subscriptiontier, $22::VARCHAR, $23::UUID) RETURNING establishments.created_at, establishments.updated_at]\n[parameters: (UUID(\'d6eb8ffe-a778-406a-8687-40332023db73\'), \'Barbearia Teste\', \'barbearia-teste\', \'BARBERSHOP\', None, \'Rua Teste, 123\', \'São Paulo\', \'SP\', None, None, None, \'+551133333333\', None, None, None, None, None, \'{}\', False, \'PENDING\', \'TRIAL\', None, UUID(\'cab4da48-d677-43f9-9481-ca041d55579c\'))]\n(Background on this error at: https://sqlalche.me/e/20/dbapi)'[0m [36mmethod[0m=[35mPOST[0m [36mmode[0m=[35mdebug[0m [36mpath[0m=[35m/api/v1/establishments[0m [36mrequest_id[0m=[35mc493bffd-2147-4ff6-8e50-06bc8f912b46[0m [36mversion[0m=[35m1.0.0[0m
+Traceback (most recent call last):
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 550, in _prepare_and_execute
+    self._rows = deque(await prepared_stmt.fetch(*parameters))
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/asyncpg/prepared_stmt.py", line 177, in fetch
+    data = await self.__bind_execute(args, 0, timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/asyncpg/prepared_stmt.py", line 268, in __bind_execute
+    data, status, _ = await self.__do_execute(
+                      ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/asyncpg/prepared_stmt.py", line 257, in __do_execute
+    return await executor(protocol)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "asyncpg/protocol/protocol.pyx", line 205, in bind_execute
+asyncpg.exceptions.InvalidTextRepresentationError: invalid input value for enum establishmentcategory: "BARBERSHOP"
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 585, in execute
+    self._adapt_connection.await_(
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 563, in _prepare_and_execute
+    self._handle_exception(error)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 513, in _handle_exception
+    self._adapt_connection._handle_exception(error)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 797, in _handle_exception
+    raise translated_error from error
+sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_dbapi.Error: <class 'asyncpg.exceptions.InvalidTextRepresentationError'>: invalid input value for enum establishmentcategory: "BARBERSHOP"
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/root/projetos/navaro/packages/api/app/core/middleware.py", line 78, in dispatch
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 191, in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+  File "/usr/lib/python3.12/contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/_utils.py", line 85, in collapse_excgroups
+    raise exc
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 193, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/app/core/middleware.py", line 164, in dispatch
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/middleware/cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/fastapi/routing.py", line 115, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/fastapi/routing.py", line 101, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/fastapi/routing.py", line 355, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/fastapi/routing.py", line 243, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/app/api/v1/establishments.py", line 163, in create_establishment
+    await db.commit()
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/ext/asyncio/session.py", line 1000, in commit
+    await greenlet_spawn(self.sync_session.commit)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 203, in greenlet_spawn
+    result = context.switch(value)
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 2030, in commit
+    trans.commit(_to_root=True)
+  File "<string>", line 2, in commit
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/orm/state_changes.py", line 137, in _go
+    ret_value = fn(self, *arg, **kw)
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 1311, in commit
+    self._prepare_impl()
+  File "<string>", line 2, in _prepare_impl
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/orm/state_changes.py", line 137, in _go
+    ret_value = fn(self, *arg, **kw)
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 1286, in _prepare_impl
+    self.session.flush()
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 4331, in flush
+    self._flush(objects)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 4466, in _flush
+    with util.safe_reraise():
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/util/langhelpers.py", line 224, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 4427, in _flush
+    flush_context.execute()
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/orm/unitofwork.py", line 466, in execute
+    rec.execute(self)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/orm/unitofwork.py", line 642, in execute
+    util.preloaded.orm_persistence.save_obj(
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/orm/persistence.py", line 93, in save_obj
+    _emit_insert_statements(
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/orm/persistence.py", line 1233, in _emit_insert_statements
+    result = connection.execute(
+             ^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1419, in execute
+    return meth(
+           ^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/sql/elements.py", line 527, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 2363, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 585, in execute
+    self._adapt_connection.await_(
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 563, in _prepare_and_execute
+    self._handle_exception(error)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 513, in _handle_exception
+    self._adapt_connection._handle_exception(error)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 797, in _handle_exception
+    raise translated_error from error
+sqlalchemy.exc.DBAPIError: (sqlalchemy.dialects.postgresql.asyncpg.Error) <class 'asyncpg.exceptions.InvalidTextRepresentationError'>: invalid input value for enum establishmentcategory: "BARBERSHOP"
+[SQL: INSERT INTO establishments (owner_id, name, slug, category, description, address, city, state, zip_code, latitude, longitude, phone, whatsapp, logo_url, cover_url, google_place_id, google_maps_url, business_hours, queue_mode_enabled, status, subscription_tier, stripe_account_id, id) VALUES ($1::UUID, $2::VARCHAR, $3::VARCHAR, $4::establishmentcategory, $5::VARCHAR, $6::VARCHAR, $7::VARCHAR, $8::VARCHAR, $9::VARCHAR, $10::NUMERIC(10, 8), $11::NUMERIC(11, 8), $12::VARCHAR, $13::VARCHAR, $14::VARCHAR, $15::VARCHAR, $16::VARCHAR, $17::VARCHAR, $18::JSON, $19::BOOLEAN, $20::establishmentstatus, $21::subscriptiontier, $22::VARCHAR, $23::UUID) RETURNING establishments.created_at, establishments.updated_at]
+[parameters: (UUID('d6eb8ffe-a778-406a-8687-40332023db73'), 'Barbearia Teste', 'barbearia-teste', 'BARBERSHOP', None, 'Rua Teste, 123', 'São Paulo', 'SP', None, None, None, '+551133333333', None, None, None, None, None, '{}', False, 'PENDING', 'TRIAL', None, UUID('cab4da48-d677-43f9-9481-ca041d55579c'))]
+(Background on this error at: https://sqlalche.me/e/20/dbapi)
+Traceback (most recent call last):
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 550, in _prepare_and_execute
+    self._rows = deque(await prepared_stmt.fetch(*parameters))
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/asyncpg/prepared_stmt.py", line 177, in fetch
+    data = await self.__bind_execute(args, 0, timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/asyncpg/prepared_stmt.py", line 268, in __bind_execute
+    data, status, _ = await self.__do_execute(
+                      ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/asyncpg/prepared_stmt.py", line 257, in __do_execute
+    return await executor(protocol)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "asyncpg/protocol/protocol.pyx", line 205, in bind_execute
+asyncpg.exceptions.InvalidTextRepresentationError: invalid input value for enum establishmentcategory: "BARBERSHOP"
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 585, in execute
+    self._adapt_connection.await_(
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 563, in _prepare_and_execute
+    self._handle_exception(error)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 513, in _handle_exception
+    self._adapt_connection._handle_exception(error)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 797, in _handle_exception
+    raise translated_error from error
+sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_dbapi.Error: <class 'asyncpg.exceptions.InvalidTextRepresentationError'>: invalid input value for enum establishmentcategory: "BARBERSHOP"
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/root/projetos/navaro/packages/api/app/core/middleware.py", line 78, in dispatch
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 191, in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+  File "/usr/lib/python3.12/contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/_utils.py", line 85, in collapse_excgroups
+    raise exc
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 193, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/app/core/middleware.py", line 164, in dispatch
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/middleware/cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/fastapi/routing.py", line 115, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/fastapi/routing.py", line 101, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/fastapi/routing.py", line 355, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/fastapi/routing.py", line 243, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/app/api/v1/establishments.py", line 163, in create_establishment
+    await db.commit()
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/ext/asyncio/session.py", line 1000, in commit
+    await greenlet_spawn(self.sync_session.commit)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 203, in greenlet_spawn
+    result = context.switch(value)
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 2030, in commit
+    trans.commit(_to_root=True)
+  File "<string>", line 2, in commit
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/orm/state_changes.py", line 137, in _go
+    ret_value = fn(self, *arg, **kw)
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 1311, in commit
+    self._prepare_impl()
+  File "<string>", line 2, in _prepare_impl
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/orm/state_changes.py", line 137, in _go
+    ret_value = fn(self, *arg, **kw)
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 1286, in _prepare_impl
+    self.session.flush()
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 4331, in flush
+    self._flush(objects)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 4466, in _flush
+    with util.safe_reraise():
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/util/langhelpers.py", line 224, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 4427, in _flush
+    flush_context.execute()
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/orm/unitofwork.py", line 466, in execute
+    rec.execute(self)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/orm/unitofwork.py", line 642, in execute
+    util.preloaded.orm_persistence.save_obj(
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/orm/persistence.py", line 93, in save_obj
+    _emit_insert_statements(
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/orm/persistence.py", line 1233, in _emit_insert_statements
+    result = connection.execute(
+             ^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1419, in execute
+    return meth(
+           ^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/sql/elements.py", line 527, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 2363, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 585, in execute
+    self._adapt_connection.await_(
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 563, in _prepare_and_execute
+    self._handle_exception(error)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 513, in _handle_exception
+    self._adapt_connection._handle_exception(error)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 797, in _handle_exception
+    raise translated_error from error
+sqlalchemy.exc.DBAPIError: (sqlalchemy.dialects.postgresql.asyncpg.Error) <class 'asyncpg.exceptions.InvalidTextRepresentationError'>: invalid input value for enum establishmentcategory: "BARBERSHOP"
+[SQL: INSERT INTO establishments (owner_id, name, slug, category, description, address, city, state, zip_code, latitude, longitude, phone, whatsapp, logo_url, cover_url, google_place_id, google_maps_url, business_hours, queue_mode_enabled, status, subscription_tier, stripe_account_id, id) VALUES ($1::UUID, $2::VARCHAR, $3::VARCHAR, $4::establishmentcategory, $5::VARCHAR, $6::VARCHAR, $7::VARCHAR, $8::VARCHAR, $9::VARCHAR, $10::NUMERIC(10, 8), $11::NUMERIC(11, 8), $12::VARCHAR, $13::VARCHAR, $14::VARCHAR, $15::VARCHAR, $16::VARCHAR, $17::VARCHAR, $18::JSON, $19::BOOLEAN, $20::establishmentstatus, $21::subscriptiontier, $22::VARCHAR, $23::UUID) RETURNING establishments.created_at, establishments.updated_at]
+[parameters: (UUID('d6eb8ffe-a778-406a-8687-40332023db73'), 'Barbearia Teste', 'barbearia-teste', 'BARBERSHOP', None, 'Rua Teste, 123', 'São Paulo', 'SP', None, None, None, '+551133333333', None, None, None, None, None, '{}', False, 'PENDING', 'TRIAL', None, UUID('cab4da48-d677-43f9-9481-ca041d55579c'))]
+(Background on this error at: https://sqlalche.me/e/20/dbapi)
+[2m2026-02-05T03:37:47.296696Z[0m [[31m[1merror    [0m] [1mRequest completed             [0m [[0m[1m[34mapp.core.middleware[0m][0m [36mapp[0m=[35m'Navaro API'[0m [36mduration_ms[0m=[35m64.69[0m [36menvironment[0m=[35mdevelopment[0m [36mmethod[0m=[35mPOST[0m [36mmode[0m=[35mdebug[0m [36mpath[0m=[35m/api/v1/establishments[0m [36mrequest_id[0m=[35mc493bffd-2147-4ff6-8e50-06bc8f912b46[0m [36mstatus_code[0m=[35m500[0m [36mversion[0m=[35m1.0.0[0m
+------------------------------ Captured log call -------------------------------
+INFO     app.api.v1.auth:auth.py:93 [2m2026-02-05T03:37:47.076688Z[0m [[32m[1minfo     [0m] [1mVerification code sent        [0m [[0m[1m[34mapp.api.v1.auth[0m][0m [36mapp[0m=[35m'Navaro API'[0m [36menvironment[0m=[35mdevelopment[0m [36mmethod[0m=[35mPOST[0m [36mmode[0m=[35mdebug[0m [36mpath[0m=[35m/api/v1/auth/send-code[0m [36mphone[0m=[35m+5511988888888[0m [36mrequest_id[0m=[35mfdebd6bc-55b3-4b05-917a-b27924e1aff8[0m [36mversion[0m=[35m1.0.0[0m
+INFO     app.core.middleware:middleware.py:56 [2m2026-02-05T03:37:47.077443Z[0m [[32m[1minfo     [0m] [1mRequest completed             [0m [[0m[1m[34mapp.core.middleware[0m][0m [36mapp[0m=[35m'Navaro API'[0m [36mduration_ms[0m=[35m3.73[0m [36menvironment[0m=[35mdevelopment[0m [36mmethod[0m=[35mPOST[0m [36mmode[0m=[35mdebug[0m [36mpath[0m=[35m/api/v1/auth/send-code[0m [36mrequest_id[0m=[35mfdebd6bc-55b3-4b05-917a-b27924e1aff8[0m [36mstatus_code[0m=[35m200[0m [36mversion[0m=[35m1.0.0[0m
+INFO     sqlalchemy.engine.Engine:base.py:2710 BEGIN (implicit)
+INFO     sqlalchemy.engine.Engine:base.py:1846 SELECT users.phone, users.name, users.email, users.avatar_url, users.role, users.referral_code, users.referred_by_id, users.id, users.created_at, users.updated_at 
+FROM users 
+WHERE users.phone = $1::VARCHAR
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00057s] ('+5511988888888',)
+INFO     app.api.v1.auth:auth.py:150 [2m2026-02-05T03:37:47.228221Z[0m [[32m[1minfo     [0m] [1mUser authenticated            [0m [[0m[1m[34mapp.api.v1.auth[0m][0m [36mapp[0m=[35m'Navaro API'[0m [36menvironment[0m=[35mdevelopment[0m [36mmethod[0m=[35mPOST[0m [36mmode[0m=[35mdebug[0m [36mpath[0m=[35m/api/v1/auth/verify[0m [36mrequest_id[0m=[35m229be57b-a627-461b-bd76-d1991f60fb52[0m [36muser_id[0m=[35md6eb8ffe-a778-406a-8687-40332023db73[0m [36mversion[0m=[35m1.0.0[0m
+INFO     sqlalchemy.engine.Engine:base.py:2713 ROLLBACK
+INFO     app.core.middleware:middleware.py:56 [2m2026-02-05T03:37:47.230038Z[0m [[32m[1minfo     [0m] [1mRequest completed             [0m [[0m[1m[34mapp.core.middleware[0m][0m [36mapp[0m=[35m'Navaro API'[0m [36mduration_ms[0m=[35m151.17[0m [36menvironment[0m=[35mdevelopment[0m [36mmethod[0m=[35mPOST[0m [36mmode[0m=[35mdebug[0m [36mpath[0m=[35m/api/v1/auth/verify[0m [36mrequest_id[0m=[35m229be57b-a627-461b-bd76-d1991f60fb52[0m [36mstatus_code[0m=[35m200[0m [36mversion[0m=[35m1.0.0[0m
+INFO     sqlalchemy.engine.Engine:base.py:2710 BEGIN (implicit)
+INFO     sqlalchemy.engine.Engine:base.py:1846 SELECT users.phone, users.name, users.email, users.avatar_url, users.role, users.referral_code, users.referred_by_id, users.id, users.created_at, users.updated_at 
+FROM users 
+WHERE users.id = $1::UUID
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00037s] (UUID('d6eb8ffe-a778-406a-8687-40332023db73'),)
+INFO     sqlalchemy.engine.Engine:base.py:1846 SELECT establishments.owner_id, establishments.name, establishments.slug, establishments.category, establishments.description, establishments.address, establishments.city, establishments.state, establishments.zip_code, establishments.latitude, establishments.longitude, establishments.phone, establishments.whatsapp, establishments.logo_url, establishments.cover_url, establishments.google_place_id, establishments.google_maps_url, establishments.business_hours, establishments.queue_mode_enabled, establishments.status, establishments.subscription_tier, establishments.stripe_account_id, establishments.id, establishments.created_at, establishments.updated_at 
+FROM establishments 
+WHERE establishments.slug = $1::VARCHAR
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00044s] ('barbearia-teste',)
+INFO     sqlalchemy.engine.Engine:base.py:1846 UPDATE users SET role=$1::userrole, updated_at=now() WHERE users.id = $2::UUID
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00048s] ('owner', UUID('d6eb8ffe-a778-406a-8687-40332023db73'))
+INFO     sqlalchemy.engine.Engine:base.py:1846 INSERT INTO establishments (owner_id, name, slug, category, description, address, city, state, zip_code, latitude, longitude, phone, whatsapp, logo_url, cover_url, google_place_id, google_maps_url, business_hours, queue_mode_enabled, status, subscription_tier, stripe_account_id, id) VALUES ($1::UUID, $2::VARCHAR, $3::VARCHAR, $4::establishmentcategory, $5::VARCHAR, $6::VARCHAR, $7::VARCHAR, $8::VARCHAR, $9::VARCHAR, $10::NUMERIC(10, 8), $11::NUMERIC(11, 8), $12::VARCHAR, $13::VARCHAR, $14::VARCHAR, $15::VARCHAR, $16::VARCHAR, $17::VARCHAR, $18::JSON, $19::BOOLEAN, $20::establishmentstatus, $21::subscriptiontier, $22::VARCHAR, $23::UUID) RETURNING establishments.created_at, establishments.updated_at
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00061s] (UUID('d6eb8ffe-a778-406a-8687-40332023db73'), 'Barbearia Teste', 'barbearia-teste', 'BARBERSHOP', None, 'Rua Teste, 123', 'São Paulo', 'SP', None, None, None, '+551133333333', None, None, None, None, None, '{}', False, 'PENDING', 'TRIAL', None, UUID('cab4da48-d677-43f9-9481-ca041d55579c'))
+INFO     sqlalchemy.engine.Engine:base.py:2713 ROLLBACK
+ERROR    app.core.middleware:middleware.py:93 [2m2026-02-05T03:37:47.278623Z[0m [[31m[1merror    [0m] [1mUnhandled exception           [0m [[0m[1m[34mapp.core.middleware[0m][0m [36mapp[0m=[35m'Navaro API'[0m [36menvironment[0m=[35mdevelopment[0m [36merror[0m=[35m'(sqlalchemy.dialects.postgresql.asyncpg.Error) <class \'asyncpg.exceptions.InvalidTextRepresentationError\'>: invalid input value for enum establishmentcategory: "BARBERSHOP"\n[SQL: INSERT INTO establishments (owner_id, name, slug, category, description, address, city, state, zip_code, latitude, longitude, phone, whatsapp, logo_url, cover_url, google_place_id, google_maps_url, business_hours, queue_mode_enabled, status, subscription_tier, stripe_account_id, id) VALUES ($1::UUID, $2::VARCHAR, $3::VARCHAR, $4::establishmentcategory, $5::VARCHAR, $6::VARCHAR, $7::VARCHAR, $8::VARCHAR, $9::VARCHAR, $10::NUMERIC(10, 8), $11::NUMERIC(11, 8), $12::VARCHAR, $13::VARCHAR, $14::VARCHAR, $15::VARCHAR, $16::VARCHAR, $17::VARCHAR, $18::JSON, $19::BOOLEAN, $20::establishmentstatus, $21::subscriptiontier, $22::VARCHAR, $23::UUID) RETURNING establishments.created_at, establishments.updated_at]\n[parameters: (UUID(\'d6eb8ffe-a778-406a-8687-40332023db73\'), \'Barbearia Teste\', \'barbearia-teste\', \'BARBERSHOP\', None, \'Rua Teste, 123\', \'São Paulo\', \'SP\', None, None, None, \'+551133333333\', None, None, None, None, None, \'{}\', False, \'PENDING\', \'TRIAL\', None, UUID(\'cab4da48-d677-43f9-9481-ca041d55579c\'))]\n(Background on this error at: https://sqlalche.me/e/20/dbapi)'[0m [36mmethod[0m=[35mPOST[0m [36mmode[0m=[35mdebug[0m [36mpath[0m=[35m/api/v1/establishments[0m [36mrequest_id[0m=[35mc493bffd-2147-4ff6-8e50-06bc8f912b46[0m [36mversion[0m=[35m1.0.0[0m
+Traceback (most recent call last):
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 550, in _prepare_and_execute
+    self._rows = deque(await prepared_stmt.fetch(*parameters))
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/asyncpg/prepared_stmt.py", line 177, in fetch
+    data = await self.__bind_execute(args, 0, timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/asyncpg/prepared_stmt.py", line 268, in __bind_execute
+    data, status, _ = await self.__do_execute(
+                      ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/asyncpg/prepared_stmt.py", line 257, in __do_execute
+    return await executor(protocol)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "asyncpg/protocol/protocol.pyx", line 205, in bind_execute
+asyncpg.exceptions.InvalidTextRepresentationError: invalid input value for enum establishmentcategory: "BARBERSHOP"
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 585, in execute
+    self._adapt_connection.await_(
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 563, in _prepare_and_execute
+    self._handle_exception(error)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 513, in _handle_exception
+    self._adapt_connection._handle_exception(error)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 797, in _handle_exception
+    raise translated_error from error
+sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_dbapi.Error: <class 'asyncpg.exceptions.InvalidTextRepresentationError'>: invalid input value for enum establishmentcategory: "BARBERSHOP"
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/root/projetos/navaro/packages/api/app/core/middleware.py", line 78, in dispatch
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 191, in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+  File "/usr/lib/python3.12/contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/_utils.py", line 85, in collapse_excgroups
+    raise exc
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 193, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/app/core/middleware.py", line 164, in dispatch
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/middleware/cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/fastapi/routing.py", line 115, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/fastapi/routing.py", line 101, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/fastapi/routing.py", line 355, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/fastapi/routing.py", line 243, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/app/api/v1/establishments.py", line 163, in create_establishment
+    await db.commit()
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/ext/asyncio/session.py", line 1000, in commit
+    await greenlet_spawn(self.sync_session.commit)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 203, in greenlet_spawn
+    result = context.switch(value)
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 2030, in commit
+    trans.commit(_to_root=True)
+  File "<string>", line 2, in commit
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/orm/state_changes.py", line 137, in _go
+    ret_value = fn(self, *arg, **kw)
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 1311, in commit
+    self._prepare_impl()
+  File "<string>", line 2, in _prepare_impl
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/orm/state_changes.py", line 137, in _go
+    ret_value = fn(self, *arg, **kw)
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 1286, in _prepare_impl
+    self.session.flush()
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 4331, in flush
+    self._flush(objects)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 4466, in _flush
+    with util.safe_reraise():
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/util/langhelpers.py", line 224, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 4427, in _flush
+    flush_context.execute()
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/orm/unitofwork.py", line 466, in execute
+    rec.execute(self)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/orm/unitofwork.py", line 642, in execute
+    util.preloaded.orm_persistence.save_obj(
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/orm/persistence.py", line 93, in save_obj
+    _emit_insert_statements(
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/orm/persistence.py", line 1233, in _emit_insert_statements
+    result = connection.execute(
+             ^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1419, in execute
+    return meth(
+           ^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/sql/elements.py", line 527, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 2363, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 585, in execute
+    self._adapt_connection.await_(
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 563, in _prepare_and_execute
+    self._handle_exception(error)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 513, in _handle_exception
+    self._adapt_connection._handle_exception(error)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 797, in _handle_exception
+    raise translated_error from error
+sqlalchemy.exc.DBAPIError: (sqlalchemy.dialects.postgresql.asyncpg.Error) <class 'asyncpg.exceptions.InvalidTextRepresentationError'>: invalid input value for enum establishmentcategory: "BARBERSHOP"
+[SQL: INSERT INTO establishments (owner_id, name, slug, category, description, address, city, state, zip_code, latitude, longitude, phone, whatsapp, logo_url, cover_url, google_place_id, google_maps_url, business_hours, queue_mode_enabled, status, subscription_tier, stripe_account_id, id) VALUES ($1::UUID, $2::VARCHAR, $3::VARCHAR, $4::establishmentcategory, $5::VARCHAR, $6::VARCHAR, $7::VARCHAR, $8::VARCHAR, $9::VARCHAR, $10::NUMERIC(10, 8), $11::NUMERIC(11, 8), $12::VARCHAR, $13::VARCHAR, $14::VARCHAR, $15::VARCHAR, $16::VARCHAR, $17::VARCHAR, $18::JSON, $19::BOOLEAN, $20::establishmentstatus, $21::subscriptiontier, $22::VARCHAR, $23::UUID) RETURNING establishments.created_at, establishments.updated_at]
+[parameters: (UUID('d6eb8ffe-a778-406a-8687-40332023db73'), 'Barbearia Teste', 'barbearia-teste', 'BARBERSHOP', None, 'Rua Teste, 123', 'São Paulo', 'SP', None, None, None, '+551133333333', None, None, None, None, None, '{}', False, 'PENDING', 'TRIAL', None, UUID('cab4da48-d677-43f9-9481-ca041d55579c'))]
+(Background on this error at: https://sqlalche.me/e/20/dbapi)
+Traceback (most recent call last):
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 550, in _prepare_and_execute
+    self._rows = deque(await prepared_stmt.fetch(*parameters))
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/asyncpg/prepared_stmt.py", line 177, in fetch
+    data = await self.__bind_execute(args, 0, timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/asyncpg/prepared_stmt.py", line 268, in __bind_execute
+    data, status, _ = await self.__do_execute(
+                      ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/asyncpg/prepared_stmt.py", line 257, in __do_execute
+    return await executor(protocol)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "asyncpg/protocol/protocol.pyx", line 205, in bind_execute
+asyncpg.exceptions.InvalidTextRepresentationError: invalid input value for enum establishmentcategory: "BARBERSHOP"
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 585, in execute
+    self._adapt_connection.await_(
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 563, in _prepare_and_execute
+    self._handle_exception(error)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 513, in _handle_exception
+    self._adapt_connection._handle_exception(error)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 797, in _handle_exception
+    raise translated_error from error
+sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_dbapi.Error: <class 'asyncpg.exceptions.InvalidTextRepresentationError'>: invalid input value for enum establishmentcategory: "BARBERSHOP"
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/root/projetos/navaro/packages/api/app/core/middleware.py", line 78, in dispatch
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 191, in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+  File "/usr/lib/python3.12/contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/_utils.py", line 85, in collapse_excgroups
+    raise exc
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 193, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/app/core/middleware.py", line 164, in dispatch
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/middleware/cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/fastapi/routing.py", line 115, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/fastapi/routing.py", line 101, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/fastapi/routing.py", line 355, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/fastapi/routing.py", line 243, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/app/api/v1/establishments.py", line 163, in create_establishment
+    await db.commit()
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/ext/asyncio/session.py", line 1000, in commit
+    await greenlet_spawn(self.sync_session.commit)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 203, in greenlet_spawn
+    result = context.switch(value)
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 2030, in commit
+    trans.commit(_to_root=True)
+  File "<string>", line 2, in commit
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/orm/state_changes.py", line 137, in _go
+    ret_value = fn(self, *arg, **kw)
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 1311, in commit
+    self._prepare_impl()
+  File "<string>", line 2, in _prepare_impl
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/orm/state_changes.py", line 137, in _go
+    ret_value = fn(self, *arg, **kw)
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 1286, in _prepare_impl
+    self.session.flush()
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 4331, in flush
+    self._flush(objects)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 4466, in _flush
+    with util.safe_reraise():
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/util/langhelpers.py", line 224, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 4427, in _flush
+    flush_context.execute()
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/orm/unitofwork.py", line 466, in execute
+    rec.execute(self)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/orm/unitofwork.py", line 642, in execute
+    util.preloaded.orm_persistence.save_obj(
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/orm/persistence.py", line 93, in save_obj
+    _emit_insert_statements(
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/orm/persistence.py", line 1233, in _emit_insert_statements
+    result = connection.execute(
+             ^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1419, in execute
+    return meth(
+           ^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/sql/elements.py", line 527, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 2363, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 585, in execute
+    self._adapt_connection.await_(
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 563, in _prepare_and_execute
+    self._handle_exception(error)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 513, in _handle_exception
+    self._adapt_connection._handle_exception(error)
+  File "/root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 797, in _handle_exception
+    raise translated_error from error
+sqlalchemy.exc.DBAPIError: (sqlalchemy.dialects.postgresql.asyncpg.Error) <class 'asyncpg.exceptions.InvalidTextRepresentationError'>: invalid input value for enum establishmentcategory: "BARBERSHOP"
+[SQL: INSERT INTO establishments (owner_id, name, slug, category, description, address, city, state, zip_code, latitude, longitude, phone, whatsapp, logo_url, cover_url, google_place_id, google_maps_url, business_hours, queue_mode_enabled, status, subscription_tier, stripe_account_id, id) VALUES ($1::UUID, $2::VARCHAR, $3::VARCHAR, $4::establishmentcategory, $5::VARCHAR, $6::VARCHAR, $7::VARCHAR, $8::VARCHAR, $9::VARCHAR, $10::NUMERIC(10, 8), $11::NUMERIC(11, 8), $12::VARCHAR, $13::VARCHAR, $14::VARCHAR, $15::VARCHAR, $16::VARCHAR, $17::VARCHAR, $18::JSON, $19::BOOLEAN, $20::establishmentstatus, $21::subscriptiontier, $22::VARCHAR, $23::UUID) RETURNING establishments.created_at, establishments.updated_at]
+[parameters: (UUID('d6eb8ffe-a778-406a-8687-40332023db73'), 'Barbearia Teste', 'barbearia-teste', 'BARBERSHOP', None, 'Rua Teste, 123', 'São Paulo', 'SP', None, None, None, '+551133333333', None, None, None, None, None, '{}', False, 'PENDING', 'TRIAL', None, UUID('cab4da48-d677-43f9-9481-ca041d55579c'))]
+(Background on this error at: https://sqlalche.me/e/20/dbapi)
+ERROR    app.core.middleware:middleware.py:56 [2m2026-02-05T03:37:47.296696Z[0m [[31m[1merror    [0m] [1mRequest completed             [0m [[0m[1m[34mapp.core.middleware[0m][0m [36mapp[0m=[35m'Navaro API'[0m [36mduration_ms[0m=[35m64.69[0m [36menvironment[0m=[35mdevelopment[0m [36mmethod[0m=[35mPOST[0m [36mmode[0m=[35mdebug[0m [36mpath[0m=[35m/api/v1/establishments[0m [36mrequest_id[0m=[35mc493bffd-2147-4ff6-8e50-06bc8f912b46[0m [36mstatus_code[0m=[35m500[0m [36mversion[0m=[35m1.0.0[0m
+--------------------------- Captured stdout teardown ---------------------------
+[2m2026-02-05T03:37:47.361847Z[0m [[32m[1minfo     [0m] [1mShutting down application     [0m [[0m[1m[34mapp.main[0m][0m [36mapp[0m=[35m'Navaro API'[0m [36menvironment[0m=[35mdevelopment[0m [36mmode[0m=[35mdebug[0m [36mversion[0m=[35m1.0.0[0m
+[2m2026-02-05T03:37:47.373556Z[0m [[32m[1minfo     [0m] [1mDatabase connections closed   [0m [[0m[1m[34mapp.main[0m][0m [36mapp[0m=[35m'Navaro API'[0m [36menvironment[0m=[35mdevelopment[0m [36mmode[0m=[35mdebug[0m [36mversion[0m=[35m1.0.0[0m
+---------------------------- Captured log teardown -----------------------------
+INFO     app.main:main.py:42 [2m2026-02-05T03:37:47.361847Z[0m [[32m[1minfo     [0m] [1mShutting down application     [0m [[0m[1m[34mapp.main[0m][0m [36mapp[0m=[35m'Navaro API'[0m [36menvironment[0m=[35mdevelopment[0m [36mmode[0m=[35mdebug[0m [36mversion[0m=[35m1.0.0[0m
+INFO     app.main:main.py:44 [2m2026-02-05T03:37:47.373556Z[0m [[32m[1minfo     [0m] [1mDatabase connections closed   [0m [[0m[1m[34mapp.main[0m][0m [36mapp[0m=[35m'Navaro API'[0m [36menvironment[0m=[35mdevelopment[0m [36mmode[0m=[35mdebug[0m [36mversion[0m=[35m1.0.0[0m
+=============================== warnings summary ===============================
+venv/lib/python3.12/site-packages/passlib/utils/__init__.py:854
+  /root/projetos/navaro/packages/api/venv/lib/python3.12/site-packages/passlib/utils/__init__.py:854: DeprecationWarning: 'crypt' is deprecated and slated for removal in Python 3.13
+    from crypt import crypt as _crypt
+
+app/api/v1/users.py:16
+  /root/projetos/navaro/packages/api/app/api/v1/users.py:16: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class UserResponse(BaseModel):
+
+app/api/v1/establishments.py:55
+  /root/projetos/navaro/packages/api/app/api/v1/establishments.py:55: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class EstablishmentResponse(BaseModel):
+
+app/api/v1/services.py:38
+  /root/projetos/navaro/packages/api/app/api/v1/services.py:38: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class ServiceResponse(BaseModel):
+
+app/api/v1/staff.py:39
+  /root/projetos/navaro/packages/api/app/api/v1/staff.py:39: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class StaffResponse(BaseModel):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/api/v1/test_appointments.py::test_appointment_flow - assert 500 ...
+======================== 1 failed, 5 warnings in 0.46s =========================

@@ -1,13 +1,14 @@
 """Unit tests for Scheduler (Background Jobs)."""
 
-import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
+from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import uuid4
 
+import pytest
+
 from app.services.scheduler import (
-    send_appointment_reminders,
     cleanup_expired_queue_entries,
+    send_appointment_reminders,
     start_scheduler,
     stop_scheduler,
 )
@@ -26,19 +27,19 @@ class TestSchedulerJobs:
                         sms_instance = MagicMock()
                         sms_instance.send_appointment_reminder = AsyncMock(return_value=True)
                         mock_sms.return_value = sms_instance
-                        
+
                         email_instance = MagicMock()
                         email_instance.send_appointment_reminder = AsyncMock(return_value=True)
                         mock_email.return_value = email_instance
-                        
+
                         whatsapp_instance = MagicMock()
                         whatsapp_instance.send_appointment_reminder = AsyncMock(return_value=True)
                         mock_whatsapp.return_value = whatsapp_instance
-                        
+
                         push_instance = MagicMock()
                         push_instance.send = AsyncMock(return_value=True)
                         mock_push.return_value = push_instance
-                        
+
                         yield {
                             "sms": sms_instance,
                             "email": email_instance,
@@ -71,7 +72,7 @@ class TestSchedulerJobs:
         mock_appointment.id = uuid4()
         mock_appointment.user_id = uuid4()
         mock_appointment.establishment_id = uuid4()
-        mock_appointment.scheduled_at = datetime.now(timezone.utc) + timedelta(hours=24)
+        mock_appointment.scheduled_at = datetime.now(UTC) + timedelta(hours=24)
         mock_appointment.reminder_sent = False
 
         # Create mock user
@@ -91,9 +92,14 @@ class TestSchedulerJobs:
         mock_result = MagicMock()
         mock_result.scalars.return_value.all.return_value = [mock_appointment]
         mock_db.execute.return_value = mock_result
-        mock_db.get = AsyncMock(side_effect=lambda model, id: 
-            mock_user if id == mock_user.id else 
-            mock_establishment if id == mock_establishment.id else None
+        mock_db.get = AsyncMock(
+            side_effect=lambda model, id: (
+                mock_user
+                if id == mock_user.id
+                else mock_establishment
+                if id == mock_establishment.id
+                else None
+            )
         )
         mock_db.commit = AsyncMock()
         mock_db.__aenter__.return_value = mock_db
@@ -101,12 +107,12 @@ class TestSchedulerJobs:
 
         with patch("app.services.scheduler.async_session_factory", return_value=mock_db):
             count = await send_appointment_reminders()
-            
+
             # Should have sent reminders
             mock_services["sms"].send_appointment_reminder.assert_called()
             mock_services["email"].send_appointment_reminder.assert_called()
             mock_services["whatsapp"].send_appointment_reminder.assert_called()
-            
+
             # Appointment should be marked as reminder_sent
             assert mock_appointment.reminder_sent is True
 
@@ -115,7 +121,7 @@ class TestSchedulerJobs:
         """Test reminder job handles database errors gracefully."""
         with patch("app.services.scheduler.async_session_factory") as mock_factory:
             mock_factory.side_effect = Exception("Database error")
-            
+
             # Should not raise, just return 0
             count = await send_appointment_reminders()
             assert count == 0
@@ -142,7 +148,7 @@ class TestSchedulerJobs:
         """Test cleanup handles database errors gracefully."""
         with patch("app.services.scheduler.async_session_factory") as mock_factory:
             mock_factory.side_effect = Exception("Database error")
-            
+
             count = await cleanup_expired_queue_entries()
             assert count == 0
 
@@ -152,27 +158,28 @@ class TestSchedulerJobs:
         """Test start_scheduler creates background task."""
         with patch("asyncio.create_task") as mock_create:
             mock_create.return_value = MagicMock()
-            
+
             # Reset global state
             import app.services.scheduler as scheduler
+
             scheduler._scheduler_task = None
             scheduler._running = False
-            
+
             start_scheduler()
-            
+
             assert scheduler._running is True
             mock_create.assert_called_once()
 
     def test_stop_scheduler_cancels_task(self):
         """Test stop_scheduler cancels background task."""
         import app.services.scheduler as scheduler
-        
+
         mock_task = MagicMock()
         scheduler._scheduler_task = mock_task
         scheduler._running = True
-        
+
         stop_scheduler()
-        
+
         assert scheduler._running is False
         mock_task.cancel.assert_called_once()
         assert scheduler._scheduler_task is None
