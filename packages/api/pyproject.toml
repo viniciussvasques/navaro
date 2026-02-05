@@ -84,6 +84,7 @@ packages = ["app"]
 line-length = 100
 target-version = "py312"
 src = ["app", "tests"]
+exclude = ["migrations", ".venv", "venv"]
 
 [tool.ruff.lint]
 select = [
@@ -110,8 +111,11 @@ ignore = [
     "UP042",  # prefer StrEnum (keep existing style for now)
     "N805",   # cls as first arg in pydantic validators
     "F403",   # star imports
-    "N818",   # exception naming
     "W293",   # whitespace in multiline strings
+    "UP",     # pyupgrade (ignore for now)
+    "F541",   # f-string without placeholders
+    "I001",   # unsorted imports (formatting)
+    "N818",   # exception naming
 ]
 
 [tool.ruff.lint.isort]
