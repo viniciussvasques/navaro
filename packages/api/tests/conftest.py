@@ -1,4 +1,9 @@
 import os
+
+# Set environment variables BEFORE importing app to ensure settings are loaded correctly
+os.environ["ENVIRONMENT"] = "development"
+os.environ["APP_MODE"] = "debug"
+
 from collections.abc import AsyncGenerator
 
 import pytest
@@ -6,8 +11,6 @@ from asgi_lifespan import LifespanManager
 from httpx import ASGITransport, AsyncClient
 
 from app.main import app
-
-os.environ["ENVIRONMENT"] = "development"
 
 
 @pytest.fixture(scope="session")
