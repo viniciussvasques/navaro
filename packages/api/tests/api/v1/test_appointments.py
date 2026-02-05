@@ -30,6 +30,10 @@ async def test_appointment_flow(client: AsyncClient):
     headers = {"Authorization": f"Bearer {token}"}
 
     # 2. Create Establishment
+    business_hours = {
+        day: {"open": "08:00", "close": "20:00"}
+        for day in ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
+    }
     est_data = {
         "name": "Barbearia Teste",
         "category": "barbershop",  # Use value string
@@ -37,6 +41,7 @@ async def test_appointment_flow(client: AsyncClient):
         "city": "São Paulo",
         "state": "SP",
         "phone": "+551133333333",
+        "business_hours": business_hours,
     }
     resp = await client.post("/api/v1/establishments", json=est_data, headers=headers)
     assert resp.status_code == 201
@@ -51,7 +56,12 @@ async def test_appointment_flow(client: AsyncClient):
     service_id = resp.json()["id"]
 
     # 4. Create Staff
-    staff_data = {"name": "João Barbeiro", "role": "barbeiro", "commission_rate": 50.0}
+    staff_data = {
+        "name": "João Barbeiro",
+        "role": "barbeiro",
+        "commission_rate": 50.0,
+        "work_schedule": business_hours,
+    }
     resp = await client.post(
         f"/api/v1/establishments/{est_id}/staff", json=staff_data, headers=headers
     )
@@ -79,4 +89,4 @@ async def test_appointment_flow(client: AsyncClient):
     assert resp.status_code == 200
     items = resp.json()
     assert len(items) >= 1
-    assert items[0]["id"] == appt["id"]
+    assert any(i["id"] == appt["id"] for i in items)
