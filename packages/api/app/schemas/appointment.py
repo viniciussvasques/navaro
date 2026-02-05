@@ -1,16 +1,16 @@
 """Appointment schemas."""
 
 from datetime import datetime
-from typing import Optional
 from uuid import UUID
 
 from pydantic import BaseModel, Field
 
-from app.models.appointment import AppointmentStatus, PaymentType, PaymentMethod
+from app.models.appointment import AppointmentStatus, PaymentMethod, PaymentType
 
 
 class AppointmentProductCreate(BaseModel):
     """Product added to appointment."""
+
     product_id: UUID
     quantity: int = Field(1, ge=1)
 
@@ -24,19 +24,20 @@ class AppointmentCreate(BaseModel):
     scheduled_at: datetime
     payment_type: PaymentType = PaymentType.single  # Default: pagamento único
     payment_method: PaymentMethod = PaymentMethod.card
-    products: Optional[list[AppointmentProductCreate]] = None
+    products: list[AppointmentProductCreate] | None = None
 
 
 class AppointmentUpdate(BaseModel):
     """Update appointment schema."""
 
-    status: Optional[AppointmentStatus] = None
-    products: Optional[list[AppointmentProductCreate]] = None
-    cancel_reason: Optional[str] = Field(None, max_length=500)
+    status: AppointmentStatus | None = None
+    products: list[AppointmentProductCreate] | None = None
+    cancel_reason: str | None = Field(None, max_length=500)
 
 
 class AppointmentProductResponse(BaseModel):
     """Product in appointment response."""
+
     product_id: UUID
     name: str
     quantity: int
@@ -53,13 +54,13 @@ class AppointmentResponse(BaseModel):
     establishment_id: UUID
     service_id: UUID
     staff_id: UUID
-    subscription_id: Optional[UUID]
+    subscription_id: UUID | None
     scheduled_at: datetime
     duration_minutes: int
     status: AppointmentStatus
     payment_type: PaymentType
     payment_method: PaymentMethod
-    total_price: Optional[float]
+    total_price: float | None
     products: list[AppointmentProductResponse] = []
     created_at: datetime
 

@@ -14,7 +14,6 @@ from sqlalchemy.ext.asyncio import (
 from app.core.config import settings
 from app.core.maintenance import get_maintenance
 
-
 # ─── Engine & Session ──────────────────────────────────────────────────────────
 
 engine = create_async_engine(
@@ -40,15 +39,11 @@ if settings.is_maintenance:
     import time
 
     @event.listens_for(engine.sync_engine, "before_cursor_execute")
-    def _before_cursor_execute(
-        conn, cursor, statement, parameters, context, executemany
-    ):
+    def _before_cursor_execute(conn, cursor, statement, parameters, context, executemany):
         context._query_start_time = time.perf_counter()
 
     @event.listens_for(engine.sync_engine, "after_cursor_execute")
-    def _after_cursor_execute(
-        conn, cursor, statement, parameters, context, executemany
-    ):
+    def _after_cursor_execute(conn, cursor, statement, parameters, context, executemany):
         duration_ms = (time.perf_counter() - context._query_start_time) * 1000
         maintenance = get_maintenance()
         maintenance.log_sql_query(
@@ -79,10 +74,10 @@ DBSession = Annotated[AsyncSession, Depends(get_db)]
 async def init_db() -> None:
     """Initialize database (create tables if not exist)."""
     import importlib
-    
+
     # Import Base
     from app.models.base import Base
-    
+
     # Import all model modules to register them with Base.metadata
     model_modules = [
         "app.models.user",
@@ -96,10 +91,13 @@ async def init_db() -> None:
         "app.models.payment",
         "app.models.portfolio",
         "app.models.plugin",
+        "app.models.notification",
+        "app.models.user_debt",
+        "app.models.wallet",
     ]
     for module_name in model_modules:
         importlib.import_module(module_name)
-    
+
     async with engine.begin() as conn:
         # Create tables (only for development)
         if settings.ENVIRONMENT == "development":
@@ -109,5 +107,3 @@ async def init_db() -> None:
 async def close_db() -> None:
     """Close database connections."""
     await engine.dispose()
-
-

@@ -1,19 +1,18 @@
 """Establishment service."""
 
 import re
-from typing import Optional
 from uuid import UUID
 
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.establishment import Establishment, EstablishmentStatus
 from app.models.user import User, UserRole
 from app.schemas.establishment import (
     EstablishmentCreate,
-    EstablishmentUpdate,
-    EstablishmentResponse,
     EstablishmentListResponse,
+    EstablishmentResponse,
+    EstablishmentUpdate,
     PaginationMeta,
 )
 
@@ -33,15 +32,13 @@ class EstablishmentService:
 
     async def list(
         self,
-        q: Optional[str] = None,
-        city: Optional[str] = None,
+        q: str | None = None,
+        city: str | None = None,
         page: int = 1,
         limit: int = 20,
     ) -> EstablishmentListResponse:
         """List establishments with filters."""
-        query = select(Establishment).where(
-            Establishment.status == EstablishmentStatus.ACTIVE
-        )
+        query = select(Establishment).where(Establishment.status == EstablishmentStatus.active)
 
         if q:
             query = query.where(Establishment.name.ilike(f"%{q}%"))
@@ -75,9 +72,7 @@ class EstablishmentService:
         slug = self._generate_slug(data.name)
 
         # Check if slug exists
-        existing = await self.db.execute(
-            select(Establishment).where(Establishment.slug == slug)
-        )
+        existing = await self.db.execute(select(Establishment).where(Establishment.slug == slug))
         if existing.scalar_one_or_none():
             slug = f"{slug}-{str(owner_id)[:8]}"
 
@@ -91,8 +86,8 @@ class EstablishmentService:
         # Update user role to owner
         user_result = await self.db.execute(select(User).where(User.id == owner_id))
         user = user_result.scalar_one_or_none()
-        if user and user.role == UserRole.CUSTOMER:
-            user.role = UserRole.OWNER
+        if user and user.role == UserRole.customer:
+            user.role = UserRole.owner
 
         await self.db.commit()
         await self.db.refresh(establishment)

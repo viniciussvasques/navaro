@@ -3,7 +3,7 @@
 import time
 from collections import deque
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 from uuid import UUID
 
@@ -34,7 +34,7 @@ class RequestStats:
 class MaintenanceSystem:
     """
     Maintenance system for debugging and profiling.
-    
+
     Features:
     - SQL query logging
     - Request statistics
@@ -46,7 +46,7 @@ class MaintenanceSystem:
         self._sql_queries: deque[SQLQuery] = deque(maxlen=settings.MAINTENANCE_SQL_LOG_SIZE)
         self._stats = RequestStats()
         self._response_times: deque[float] = deque(maxlen=1000)
-        self._start_time = datetime.now(timezone.utc)
+        self._start_time = datetime.now(UTC)
         self._active_requests: dict[UUID, float] = {}
 
     def is_enabled(self) -> bool:
@@ -68,13 +68,13 @@ class MaintenanceSystem:
         """Log a SQL query (only in maintenance mode)."""
         if not self.is_enabled():
             return
-        
+
         self._sql_queries.append(
             SQLQuery(
                 query=query,
                 params=params or {},
                 duration_ms=duration_ms,
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
             )
         )
 
@@ -109,26 +109,26 @@ class MaintenanceSystem:
         start_time = self._active_requests.pop(request_id, None)
         if start_time is None:
             return 0.0
-        
+
         duration_ms = (time.perf_counter() - start_time) * 1000
         self._response_times.append(duration_ms)
-        
+
         # Update average
         if self._response_times:
             self._stats.avg_response_time_ms = sum(self._response_times) / len(self._response_times)
-        
+
         if is_error:
             self._stats.total_errors += 1
             self._stats.errors_per_endpoint[endpoint] = (
                 self._stats.errors_per_endpoint.get(endpoint, 0) + 1
             )
-        
+
         return duration_ms
 
     def get_stats(self) -> dict[str, Any]:
         """Get current statistics."""
-        uptime = datetime.now(timezone.utc) - self._start_time
-        
+        uptime = datetime.now(UTC) - self._start_time
+
         return {
             "uptime_seconds": uptime.total_seconds(),
             "uptime_human": str(uptime),
@@ -161,7 +161,7 @@ class MaintenanceSystem:
         """Reset all statistics."""
         self._stats = RequestStats()
         self._response_times.clear()
-        self._start_time = datetime.now(timezone.utc)
+        self._start_time = datetime.now(UTC)
 
     # ─── Health & Config ───────────────────────────────────────────────────────
 
@@ -172,7 +172,7 @@ class MaintenanceSystem:
             "mode": settings.APP_MODE.value,
             "environment": settings.ENVIRONMENT,
             "version": settings.APP_VERSION,
-            "uptime_seconds": (datetime.now(timezone.utc) - self._start_time).total_seconds(),
+            "uptime_seconds": (datetime.now(UTC) - self._start_time).total_seconds(),
         }
 
     def get_config(self) -> dict[str, Any]:

@@ -16,6 +16,7 @@ class VerifyCodeRequest(BaseModel):
 
     phone: str = Field(..., min_length=10, max_length=20)
     code: str = Field(..., min_length=6, max_length=6)
+    referral_code: str | None = Field(None, min_length=8, max_length=20)
 
 
 class TokenResponse(BaseModel):

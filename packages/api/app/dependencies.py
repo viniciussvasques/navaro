@@ -4,15 +4,15 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.database import get_db
-from app.models.user import User
 from app.models.establishment import Establishment
+from app.models.user import User
 
 security = HTTPBearer()
 
@@ -55,9 +55,7 @@ async def verify_establishment_owner(
     user_id: UUID,
 ) -> Establishment:
     """Verify that user is the owner of the establishment."""
-    result = await db.execute(
-        select(Establishment).where(Establishment.id == establishment_id)
-    )
+    result = await db.execute(select(Establishment).where(Establishment.id == establishment_id))
     establishment = result.scalar_one_or_none()
 
     if not establishment:

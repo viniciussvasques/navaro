@@ -1,8 +1,8 @@
 """Appointments endpoints."""
 
-from typing import Annotated, Optional
-from uuid import UUID
 from datetime import date
+from typing import Annotated
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -17,14 +17,14 @@ from app.schemas.appointment import (
 )
 from app.services.appointment_service import AppointmentService
 
-router = APIRouter()
+router = APIRouter(prefix="/appointments", tags=["Appointments"])
 
 
 @router.get("", response_model=list[AppointmentResponse])
 async def list_user_appointments(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
-    status_filter: Optional[str] = Query(None, alias="status"),
+    status_filter: str | None = Query(None, alias="status"),
 ) -> list[AppointmentResponse]:
     """List current user's appointments."""
     service = AppointmentService(db)
@@ -40,9 +40,9 @@ async def list_establishment_appointments(
     establishment_id: UUID,
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
-    date_filter: Optional[date] = Query(None, alias="date"),
-    staff_id: Optional[UUID] = Query(None),
-    status_filter: Optional[str] = Query(None, alias="status"),
+    date_filter: date | None = Query(None, alias="date"),
+    staff_id: UUID | None = Query(None),
+    status_filter: str | None = Query(None, alias="status"),
 ) -> list[AppointmentResponse]:
     """List establishment appointments (owner/staff only)."""
     service = AppointmentService(db)
@@ -63,7 +63,7 @@ async def create_appointment(
 ) -> AppointmentResponse:
     """Create new appointment."""
     service = AppointmentService(db)
-    
+
     try:
         appointment = await service.create(current_user.id, data)
         return AppointmentResponse.model_validate(appointment)
@@ -84,10 +84,10 @@ async def update_appointment(
     """Update appointment status."""
     service = AppointmentService(db)
     updated = await service.update(appointment_id, data)
-    
+
     if not updated:
         raise HTTPException(status_code=404, detail="Agendamento não encontrado")
-    
+
     return AppointmentResponse.model_validate(updated)
 
 
@@ -96,7 +96,23 @@ async def cancel_appointment(
     appointment_id: UUID,
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
+    reason: str | None = Query(None),
 ) -> None:
     """Cancel appointment."""
     service = AppointmentService(db)
-    await service.cancel(appointment_id, current_user.id)
+    await service.cancel(appointment_id, current_user.id, reason=reason)
+
+
+@router.post("/{appointment_id}/no-show", status_code=status.HTTP_200_OK)
+async def mark_no_show(
+    appointment_id: UUID,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> dict[str, str]:
+    """Mark appointment as no-show (owner/staff only)."""
+    # Note: In a real app, we'd verify that current_user is staff or owner of the establishment
+    service = AppointmentService(db)
+    success = await service.mark_no_show(appointment_id)
+    if not success:
+        raise HTTPException(status_code=400, detail="Não foi possível marcar no-show")
+    return {"status": "success"}

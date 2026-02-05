@@ -1,115 +1,125 @@
-"""Subscriptions endpoints."""
+"""Subscription Plan endpoints."""
 
-from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import APIRouter
+from sqlalchemy import select
 
-from app.database import get_db
-from app.dependencies import get_current_user, verify_establishment_owner
-from app.models.user import User
-from app.schemas.subscription import (
-    SubscriptionCreate,
-    SubscriptionResponse,
+from app.api.deps import CurrentUser, DBSession
+from app.core.exceptions import ForbiddenError, NotFoundError
+from app.models import Establishment, SubscriptionPlan, SubscriptionPlanItem, UserRole
+from app.schemas.service import (
     SubscriptionPlanCreate,
     SubscriptionPlanResponse,
+    SubscriptionPlanUpdate,
 )
-from app.services.subscription_service import SubscriptionService
 
-router = APIRouter()
-
-
-# ==================== PLANS ====================
-
-@router.get(
-    "/establishments/{establishment_id}/plans",
-    response_model=list[SubscriptionPlanResponse],
+router = APIRouter(
+    prefix="/establishments/{establishment_id}/subscription-plans", tags=["Subscription Plans"]
 )
+
+
+# ─── Helpers ───────────────────────────────────────────────────────────────────
+
+
+async def get_establishment_or_404(db: DBSession, establishment_id: UUID) -> Establishment:
+    """Get establishment or raise 404."""
+    result = await db.execute(select(Establishment).where(Establishment.id == establishment_id))
+    establishment = result.scalar_one_or_none()
+    if not establishment:
+        raise NotFoundError("Estabelecimento")
+    return establishment
+
+
+def check_ownership(establishment: Establishment, user: CurrentUser) -> None:
+    """Check if user owns the establishment."""
+    if establishment.owner_id != user.id and user.role != UserRole.admin:
+        raise ForbiddenError()
+
+
+# ─── Endpoints ─────────────────────────────────────────────────────────────────
+
+
+@router.get("", response_model=list[SubscriptionPlanResponse])
 async def list_plans(
     establishment_id: UUID,
-    db: Annotated[AsyncSession, Depends(get_db)],
+    db: DBSession,
+    active_only: bool = True,
 ) -> list[SubscriptionPlanResponse]:
-    """List subscription plans of an establishment."""
-    service = SubscriptionService(db)
-    plans = await service.list_plans(establishment_id)
+    """List subscription plans for an establishment."""
+    query = select(SubscriptionPlan).where(SubscriptionPlan.establishment_id == establishment_id)
+
+    if active_only:
+        query = query.where(SubscriptionPlan.active == True)
+
+    result = await db.execute(query)
+    plans = result.scalars().all()
+
     return [SubscriptionPlanResponse.model_validate(p) for p in plans]
 
 
-@router.post(
-    "/establishments/{establishment_id}/plans",
-    response_model=SubscriptionPlanResponse,
-    status_code=status.HTTP_201_CREATED,
-)
+@router.post("", response_model=SubscriptionPlanResponse, status_code=201)
 async def create_plan(
     establishment_id: UUID,
-    data: SubscriptionPlanCreate,
-    current_user: Annotated[User, Depends(get_current_user)],
-    db: Annotated[AsyncSession, Depends(get_db)],
+    request: SubscriptionPlanCreate,
+    db: DBSession,
+    current_user: CurrentUser,
 ) -> SubscriptionPlanResponse:
-    """Create subscription plan."""
-    await verify_establishment_owner(db, establishment_id, current_user.id)
-    
-    service = SubscriptionService(db)
-    plan = await service.create_plan(establishment_id, data)
+    """Create new subscription plan."""
+    establishment = await get_establishment_or_404(db, establishment_id)
+    check_ownership(establishment, current_user)
+
+    plan = SubscriptionPlan(
+        establishment_id=establishment_id,
+        name=request.name,
+        description=request.description,
+        price=request.price,
+    )
+
+    db.add(plan)
+    await db.flush()
+
+    for item in request.items:
+        plan_item = SubscriptionPlanItem(
+            plan_id=plan.id,
+            service_id=item.service_id,
+            bundle_id=item.bundle_id,
+            quantity_per_month=item.quantity_per_month,
+        )
+        db.add(plan_item)
+
+    await db.commit()
+    await db.refresh(plan)
+
     return SubscriptionPlanResponse.model_validate(plan)
 
 
-# ==================== SUBSCRIPTIONS ====================
-
-@router.get("", response_model=list[SubscriptionResponse])
-async def list_user_subscriptions(
-    current_user: Annotated[User, Depends(get_current_user)],
-    db: Annotated[AsyncSession, Depends(get_db)],
-) -> list[SubscriptionResponse]:
-    """List current user's active subscriptions."""
-    service = SubscriptionService(db)
-    subscriptions = await service.list_by_user(current_user.id)
-    return [SubscriptionResponse.model_validate(s) for s in subscriptions]
-
-
-@router.get(
-    "/establishments/{establishment_id}",
-    response_model=list[SubscriptionResponse],
-)
-async def list_establishment_subscriptions(
+@router.patch("/{plan_id}", response_model=SubscriptionPlanResponse)
+async def update_plan(
     establishment_id: UUID,
-    current_user: Annotated[User, Depends(get_current_user)],
-    db: Annotated[AsyncSession, Depends(get_db)],
-) -> list[SubscriptionResponse]:
-    """List establishment's subscribers (owner only)."""
-    await verify_establishment_owner(db, establishment_id, current_user.id)
-    
-    service = SubscriptionService(db)
-    subscriptions = await service.list_by_establishment(establishment_id)
-    return [SubscriptionResponse.model_validate(s) for s in subscriptions]
+    plan_id: UUID,
+    request: SubscriptionPlanUpdate,
+    db: DBSession,
+    current_user: CurrentUser,
+) -> SubscriptionPlanResponse:
+    """Update subscription plan."""
+    establishment = await get_establishment_or_404(db, establishment_id)
+    check_ownership(establishment, current_user)
 
-
-@router.post("", response_model=SubscriptionResponse, status_code=status.HTTP_201_CREATED)
-async def create_subscription(
-    data: SubscriptionCreate,
-    current_user: Annotated[User, Depends(get_current_user)],
-    db: Annotated[AsyncSession, Depends(get_db)],
-) -> SubscriptionResponse:
-    """Subscribe to a plan."""
-    service = SubscriptionService(db)
-    
-    try:
-        subscription = await service.create(current_user.id, data)
-        return SubscriptionResponse.model_validate(subscription)
-    except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail={"code": "SUBSCRIPTION_ERROR", "message": str(e)},
+    result = await db.execute(
+        select(SubscriptionPlan).where(
+            SubscriptionPlan.id == plan_id, SubscriptionPlan.establishment_id == establishment_id
         )
+    )
+    plan = result.scalar_one_or_none()
 
+    if not plan:
+        raise NotFoundError("Plano")
 
-@router.delete("/{subscription_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def cancel_subscription(
-    subscription_id: UUID,
-    current_user: Annotated[User, Depends(get_current_user)],
-    db: Annotated[AsyncSession, Depends(get_db)],
-) -> None:
-    """Cancel subscription."""
-    service = SubscriptionService(db)
-    await service.cancel(subscription_id, current_user.id)
+    for field, value in request.model_dump(exclude_unset=True).items():
+        setattr(plan, field, value)
+
+    await db.commit()
+    await db.refresh(plan)
+
+    return SubscriptionPlanResponse.model_validate(plan)

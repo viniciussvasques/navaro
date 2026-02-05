@@ -1,16 +1,15 @@
 """API dependencies for route injection."""
 
 from typing import Annotated
-from uuid import UUID
 
-from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi import Depends
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.core.exceptions import ForbiddenError, UnauthorizedError
 from app.core.security import decode_access_token
-from app.core.exceptions import UnauthorizedError, ForbiddenError, NotFoundError
 from app.models import User, UserRole
 
 security = HTTPBearer()
@@ -33,15 +32,13 @@ async def get_current_user(
         user_id = decode_access_token(credentials.credentials)
     except Exception as e:
         raise UnauthorizedError("Token inválido ou expirado") from e
-    
-    result = await db.execute(
-        select(User).where(User.id == user_id)
-    )
+
+    result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
-    
+
     if not user:
         raise UnauthorizedError("Usuário não encontrado")
-    
+
     return user
 
 
@@ -53,28 +50,28 @@ CurrentUser = Annotated[User, Depends(get_current_user)]
 
 def require_role(*roles: UserRole):
     """Dependency to require user role."""
-    
+
     async def role_checker(current_user: CurrentUser) -> User:
         if current_user.role not in roles:
             raise ForbiddenError("Sem permissão para esta ação")
         return current_user
-    
+
     return role_checker
 
 
 def require_admin():
     """Require admin role."""
-    return require_role(UserRole.ADMIN)
+    return require_role(UserRole.admin)
 
 
 def require_owner():
     """Require owner or admin role."""
-    return require_role(UserRole.OWNER, UserRole.ADMIN)
+    return require_role(UserRole.owner, UserRole.admin)
 
 
 def require_staff():
     """Require staff, owner, or admin role."""
-    return require_role(UserRole.STAFF, UserRole.OWNER, UserRole.ADMIN)
+    return require_role(UserRole.staff, UserRole.owner, UserRole.admin)
 
 
 # ─── Type Aliases ──────────────────────────────────────────────────────────────
@@ -89,19 +86,15 @@ StaffUser = Annotated[User, Depends(require_staff())]
 
 async def get_optional_user(
     db: DBSession,
-    credentials: HTTPAuthorizationCredentials | None = Depends(
-        HTTPBearer(auto_error=False)
-    ),
+    credentials: HTTPAuthorizationCredentials | None = Depends(HTTPBearer(auto_error=False)),
 ) -> User | None:
     """Get current user if authenticated, otherwise None."""
     if not credentials:
         return None
-    
+
     try:
         user_id = decode_access_token(credentials.credentials)
-        result = await db.execute(
-            select(User).where(User.id == user_id)
-        )
+        result = await db.execute(select(User).where(User.id == user_id))
         return result.scalar_one_or_none()
     except Exception:
         return None

@@ -2,9 +2,9 @@
 
 import sentry_sdk
 from sentry_sdk.integrations.fastapi import FastApiIntegration
-from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
-from sentry_sdk.integrations.redis import RedisIntegration
 from sentry_sdk.integrations.httpx import HttpxIntegration
+from sentry_sdk.integrations.redis import RedisIntegration
+from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
 
 from app.core.config import get_settings
 from app.core.logging import get_logger
@@ -15,29 +15,27 @@ logger = get_logger(__name__)
 def init_sentry() -> bool:
     """
     Initialize Sentry SDK for error tracking.
-    
+
     Returns:
         True if Sentry was initialized, False otherwise.
     """
     settings = get_settings()
-    
+
     # Check if Sentry DSN is configured
-    sentry_dsn = getattr(settings, 'SENTRY_DSN', None)
-    
+    sentry_dsn = getattr(settings, "SENTRY_DSN", None)
+
     if not sentry_dsn:
         logger.info("Sentry DSN not configured, skipping initialization")
         return False
-    
+
     try:
         sentry_sdk.init(
             dsn=sentry_dsn,
             environment=settings.ENVIRONMENT,
             release=f"navaro-api@{settings.APP_VERSION}",
-            
             # Performance monitoring
             traces_sample_rate=0.1 if settings.ENVIRONMENT == "production" else 1.0,
             profiles_sample_rate=0.1 if settings.ENVIRONMENT == "production" else 1.0,
-            
             # Integrations
             integrations=[
                 FastApiIntegration(transaction_style="endpoint"),
@@ -45,21 +43,19 @@ def init_sentry() -> bool:
                 RedisIntegration(),
                 HttpxIntegration(),
             ],
-            
             # Data scrubbing
             send_default_pii=False,
-            
             # Before send hook for filtering
             before_send=_before_send,
         )
-        
+
         logger.info(
             "Sentry initialized",
             environment=settings.ENVIRONMENT,
             release=f"navaro-api@{settings.APP_VERSION}",
         )
         return True
-        
+
     except Exception as e:
         logger.error("Failed to initialize Sentry", error=str(e))
         return False
@@ -68,7 +64,7 @@ def init_sentry() -> bool:
 def _before_send(event, hint):
     """
     Filter events before sending to Sentry.
-    
+
     Use this to:
     - Filter out expected errors
     - Scrub sensitive data
@@ -82,14 +78,14 @@ def _before_send(event, hint):
                 # Filter out common HTTP errors
                 if "404" in str(exc.get("value", "")):
                     return None
-    
+
     return event
 
 
 def capture_exception(error: Exception, **context):
     """
     Capture an exception with additional context.
-    
+
     Args:
         error: The exception to capture
         **context: Additional context to attach
@@ -103,7 +99,7 @@ def capture_exception(error: Exception, **context):
 def capture_message(message: str, level: str = "info", **context):
     """
     Capture a message with additional context.
-    
+
     Args:
         message: The message to capture
         level: Log level (info, warning, error)
@@ -117,11 +113,13 @@ def capture_message(message: str, level: str = "info", **context):
 
 def set_user(user_id: str, email: str = None, phone: str = None):
     """Set user context for Sentry."""
-    sentry_sdk.set_user({
-        "id": user_id,
-        "email": email,
-        "phone": phone,
-    })
+    sentry_sdk.set_user(
+        {
+            "id": user_id,
+            "email": email,
+            "phone": phone,
+        }
+    )
 
 
 def set_tag(key: str, value: str):

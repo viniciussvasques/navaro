@@ -7,7 +7,7 @@ from typing import Any
 import structlog
 from structlog.types import Processor
 
-from app.core.config import settings, AppMode
+from app.core.config import AppMode, settings
 
 
 def _add_app_context(
@@ -26,7 +26,7 @@ def _filter_sensitive(
 ) -> dict[str, Any]:
     """Filter sensitive data from logs."""
     sensitive_keys = {"password", "token", "secret", "authorization", "api_key", "credit_card"}
-    
+
     def _redact(obj: Any, depth: int = 0) -> Any:
         if depth > 5:  # Prevent infinite recursion
             return obj
@@ -38,7 +38,7 @@ def _filter_sensitive(
         if isinstance(obj, list):
             return [_redact(item, depth + 1) for item in obj]
         return obj
-    
+
     return _redact(event_dict)
 
 
@@ -61,17 +61,17 @@ def get_processors() -> list[Processor]:
         structlog.processors.StackInfoRenderer(),
         _add_app_context,
     ]
-    
+
     # Filter sensitive data in production
     if settings.is_production:
         processors.append(_filter_sensitive)
-    
+
     # Add exception info in debug/maintenance
     if settings.is_debug:
         processors.append(structlog.processors.format_exc_info)
-    
+
     processors.append(structlog.processors.UnicodeDecoder())
-    
+
     return processors
 
 
@@ -79,17 +79,17 @@ def setup_logging() -> None:
     """Configure structured logging for the application."""
     # Determine log level
     log_level = getattr(logging, settings.log_level_effective.upper(), logging.INFO)
-    
+
     # Get processors
     processors = get_processors()
-    
+
     # Choose renderer based on format
     if settings.LOG_FORMAT == "json":
         processors.append(_drop_color_message)
         processors.append(structlog.processors.JSONRenderer())
     else:
         processors.append(structlog.dev.ConsoleRenderer(colors=True))
-    
+
     # Configure structlog
     structlog.configure(
         processors=processors,
@@ -98,19 +98,19 @@ def setup_logging() -> None:
         logger_factory=structlog.stdlib.LoggerFactory(),
         cache_logger_on_first_use=True,
     )
-    
+
     # Configure standard logging
     logging.basicConfig(
         format="%(message)s",
         stream=sys.stdout,
         level=log_level,
     )
-    
+
     # Suppress noisy loggers
     logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
     logging.getLogger("httpx").setLevel(logging.WARNING)
     logging.getLogger("httpcore").setLevel(logging.WARNING)
-    
+
     # Enable SQL logging in debug/maintenance
     if settings.APP_MODE in (AppMode.DEBUG, AppMode.MAINTENANCE):
         logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)

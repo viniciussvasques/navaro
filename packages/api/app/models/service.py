@@ -3,12 +3,11 @@
 from typing import TYPE_CHECKING
 from uuid import UUID
 
-from sqlalchemy import String, Boolean, Integer, Numeric, ForeignKey, Table, Column
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, Numeric, String, Table
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.models.base import BaseModel, Base
-
+from app.models.base import Base, BaseModel
 
 if TYPE_CHECKING:
     from app.models.establishment import Establishment
@@ -28,14 +27,14 @@ service_staff = Table(
 class Service(BaseModel):
     """
     Service model.
-    
+
     Represents a service offered by an establishment.
     """
 
     __tablename__ = "services"
 
     # ─── Foreign Keys ──────────────────────────────────────────────────────────
-    
+
     establishment_id: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True),
         ForeignKey("establishments.id"),
@@ -45,38 +44,38 @@ class Service(BaseModel):
     )
 
     # ─── Service Info ──────────────────────────────────────────────────────────
-    
+
     name: Mapped[str] = mapped_column(
         String(200),
         nullable=False,
         doc="Service name",
     )
-    
+
     description: Mapped[str | None] = mapped_column(
         String(1000),
         doc="Service description",
     )
-    
+
     price: Mapped[float] = mapped_column(
         Numeric(10, 2),
         nullable=False,
         doc="Service price",
     )
-    
+
     duration_minutes: Mapped[int] = mapped_column(
         Integer,
         nullable=False,
         default=30,
         doc="Duration in minutes",
     )
-    
+
     active: Mapped[bool] = mapped_column(
         Boolean,
         default=True,
         nullable=False,
         doc="Is service active",
     )
-    
+
     sort_order: Mapped[int] = mapped_column(
         Integer,
         default=0,
@@ -84,24 +83,31 @@ class Service(BaseModel):
         doc="Display order",
     )
 
+    deposit_required: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        nullable=False,
+        doc="Is deposit required for this service",
+    )
+
     # ─── Relationships ─────────────────────────────────────────────────────────
-    
+
     establishment: Mapped["Establishment"] = relationship(
         "Establishment",
         back_populates="services",
     )
-    
+
     staff_members: Mapped[list["StaffMember"]] = relationship(
         "StaffMember",
         secondary=service_staff,
         back_populates="services",
     )
-    
+
     bundle_items = relationship(
         "ServiceBundleItem",
         back_populates="service",
     )
-    
+
     subscription_items = relationship(
         "SubscriptionPlanItem",
         back_populates="service",
@@ -117,14 +123,14 @@ class Service(BaseModel):
 class ServiceBundle(BaseModel):
     """
     Service bundle (combo) model.
-    
+
     Represents a package of multiple services at a discounted price.
     """
 
     __tablename__ = "service_bundles"
 
     # ─── Foreign Keys ──────────────────────────────────────────────────────────
-    
+
     establishment_id: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True),
         ForeignKey("establishments.id"),
@@ -134,35 +140,35 @@ class ServiceBundle(BaseModel):
     )
 
     # ─── Bundle Info ───────────────────────────────────────────────────────────
-    
+
     name: Mapped[str] = mapped_column(
         String(200),
         nullable=False,
         doc="Bundle name",
     )
-    
+
     description: Mapped[str | None] = mapped_column(
         String(1000),
         doc="Bundle description",
     )
-    
+
     original_price: Mapped[float] = mapped_column(
         Numeric(10, 2),
         nullable=False,
         doc="Sum of individual service prices",
     )
-    
+
     bundle_price: Mapped[float] = mapped_column(
         Numeric(10, 2),
         nullable=False,
         doc="Discounted bundle price",
     )
-    
+
     discount_percent: Mapped[float | None] = mapped_column(
         Numeric(5, 2),
         doc="Discount percentage",
     )
-    
+
     active: Mapped[bool] = mapped_column(
         Boolean,
         default=True,
@@ -171,12 +177,12 @@ class ServiceBundle(BaseModel):
     )
 
     # ─── Relationships ─────────────────────────────────────────────────────────
-    
+
     establishment: Mapped["Establishment"] = relationship(
         "Establishment",
         back_populates="service_bundles",
     )
-    
+
     items = relationship(
         "ServiceBundleItem",
         back_populates="bundle",
@@ -198,7 +204,7 @@ class ServiceBundleItem(BaseModel):
         nullable=False,
         index=True,
     )
-    
+
     service_id: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True),
         ForeignKey("services.id"),
@@ -207,12 +213,12 @@ class ServiceBundleItem(BaseModel):
     )
 
     # ─── Relationships ─────────────────────────────────────────────────────────
-    
+
     bundle = relationship(
         "ServiceBundle",
         back_populates="items",
     )
-    
+
     service = relationship(
         "Service",
         back_populates="bundle_items",

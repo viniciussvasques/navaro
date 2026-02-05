@@ -1,7 +1,6 @@
 """Subscription schemas."""
 
 from datetime import datetime
-from typing import Optional, List
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -13,7 +12,7 @@ class SubscriptionPlanBase(BaseModel):
     """Base subscription plan schema."""
 
     name: str = Field(..., max_length=100)
-    description: Optional[str] = Field(None, max_length=500)
+    description: str | None = Field(None, max_length=500)
     price: float = Field(..., gt=0)
     max_uses_per_week: int = Field(..., ge=1, le=30)
 
@@ -21,7 +20,7 @@ class SubscriptionPlanBase(BaseModel):
 class SubscriptionPlanCreate(SubscriptionPlanBase):
     """Create subscription plan schema."""
 
-    service_ids: List[UUID] = Field(
+    service_ids: list[UUID] = Field(
         ...,
         min_length=1,
         description="IDs of services included in this plan",
@@ -34,7 +33,7 @@ class SubscriptionPlanResponse(BaseModel):
     id: UUID
     establishment_id: UUID
     name: str
-    description: Optional[str]
+    description: str | None
     price: float
     max_uses_per_week: int
     max_uses_per_day: int
@@ -74,8 +73,8 @@ class SubscriptionResponse(BaseModel):
     current_period_start: datetime
     current_period_end: datetime
     created_at: datetime
-    cancelled_at: Optional[datetime]
-    plan: Optional[SubscriptionPlanResponse] = None
-    usage: Optional[SubscriptionUsageResponse] = None
+    cancelled_at: datetime | None
+    plan: SubscriptionPlanResponse | None = None
+    usage: SubscriptionUsageResponse | None = None
 
     model_config = {"from_attributes": True}

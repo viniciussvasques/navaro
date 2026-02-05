@@ -5,10 +5,9 @@ from uuid import UUID
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
 from sqlalchemy import select
-from sqlalchemy.orm import selectinload
 
-from app.api.deps import DBSession, CurrentUser
-from app.core.exceptions import NotFoundError, ForbiddenError
+from app.api.deps import CurrentUser, DBSession
+from app.core.exceptions import ForbiddenError, NotFoundError
 from app.models import Establishment, Service, UserRole
 
 router = APIRouter(prefix="/establishments/{establishment_id}/services", tags=["Services"])
@@ -19,24 +18,29 @@ router = APIRouter(prefix="/establishments/{establishment_id}/services", tags=["
 
 class ServiceCreate(BaseModel):
     """Create service request."""
+
     name: str = Field(..., min_length=2, max_length=200)
     description: str | None = Field(None, max_length=1000)
     price: float = Field(..., gt=0)
     duration_minutes: int = Field(30, ge=5, le=480)
+    deposit_required: bool = False
 
 
 class ServiceUpdate(BaseModel):
     """Update service request."""
+
     name: str | None = Field(None, max_length=200)
     description: str | None = Field(None, max_length=1000)
     price: float | None = Field(None, gt=0)
     duration_minutes: int | None = Field(None, ge=5)
     active: bool | None = None
     sort_order: int | None = None
+    deposit_required: bool | None = None
 
 
 class ServiceResponse(BaseModel):
     """Service response."""
+
     id: str
     name: str
     description: str | None
@@ -44,7 +48,8 @@ class ServiceResponse(BaseModel):
     duration_minutes: int
     active: bool
     sort_order: int
-    
+    deposit_required: bool
+
     class Config:
         from_attributes = True
 
@@ -54,9 +59,7 @@ class ServiceResponse(BaseModel):
 
 async def get_establishment_or_404(db: DBSession, establishment_id: UUID) -> Establishment:
     """Get establishment or raise 404."""
-    result = await db.execute(
-        select(Establishment).where(Establishment.id == establishment_id)
-    )
+    result = await db.execute(select(Establishment).where(Establishment.id == establishment_id))
     establishment = result.scalar_one_or_none()
     if not establishment:
         raise NotFoundError("Estabelecimento")
@@ -65,7 +68,7 @@ async def get_establishment_or_404(db: DBSession, establishment_id: UUID) -> Est
 
 def check_ownership(establishment: Establishment, user: CurrentUser) -> None:
     """Check if user owns the establishment."""
-    if establishment.owner_id != user.id and user.role != UserRole.ADMIN:
+    if establishment.owner_id != user.id and user.role != UserRole.admin:
         raise ForbiddenError()
 
 
@@ -80,15 +83,15 @@ async def list_services(
 ) -> list[ServiceResponse]:
     """List services for an establishment."""
     query = select(Service).where(Service.establishment_id == establishment_id)
-    
+
     if active_only:
         query = query.where(Service.active == True)
-    
+
     query = query.order_by(Service.sort_order, Service.name)
-    
+
     result = await db.execute(query)
     services = result.scalars().all()
-    
+
     return [
         ServiceResponse(
             id=str(s.id),
@@ -98,6 +101,7 @@ async def list_services(
             duration_minutes=s.duration_minutes,
             active=s.active,
             sort_order=s.sort_order,
+            deposit_required=s.deposit_required,
         )
         for s in services
     ]
@@ -113,19 +117,20 @@ async def create_service(
     """Create new service."""
     establishment = await get_establishment_or_404(db, establishment_id)
     check_ownership(establishment, current_user)
-    
+
     service = Service(
         establishment_id=establishment_id,
         name=request.name,
         description=request.description,
         price=request.price,
         duration_minutes=request.duration_minutes,
+        deposit_required=request.deposit_required,
     )
-    
+
     db.add(service)
     await db.commit()
     await db.refresh(service)
-    
+
     return ServiceResponse(
         id=str(service.id),
         name=service.name,
@@ -134,6 +139,7 @@ async def create_service(
         duration_minutes=service.duration_minutes,
         active=service.active,
         sort_order=service.sort_order,
+        deposit_required=service.deposit_required,
     )
 
 
@@ -151,10 +157,10 @@ async def get_service(
         )
     )
     service = result.scalar_one_or_none()
-    
+
     if not service:
         raise NotFoundError("Serviço")
-    
+
     return ServiceResponse(
         id=str(service.id),
         name=service.name,
@@ -163,6 +169,7 @@ async def get_service(
         duration_minutes=service.duration_minutes,
         active=service.active,
         sort_order=service.sort_order,
+        deposit_required=service.deposit_required,
     )
 
 
@@ -177,7 +184,7 @@ async def update_service(
     """Update service."""
     establishment = await get_establishment_or_404(db, establishment_id)
     check_ownership(establishment, current_user)
-    
+
     result = await db.execute(
         select(Service).where(
             Service.id == service_id,
@@ -185,16 +192,16 @@ async def update_service(
         )
     )
     service = result.scalar_one_or_none()
-    
+
     if not service:
         raise NotFoundError("Serviço")
-    
+
     for field, value in request.model_dump(exclude_unset=True).items():
         setattr(service, field, value)
-    
+
     await db.commit()
     await db.refresh(service)
-    
+
     return ServiceResponse(
         id=str(service.id),
         name=service.name,
@@ -203,6 +210,7 @@ async def update_service(
         duration_minutes=service.duration_minutes,
         active=service.active,
         sort_order=service.sort_order,
+        deposit_required=service.deposit_required,
     )
 
 
@@ -216,7 +224,7 @@ async def delete_service(
     """Delete service (soft delete)."""
     establishment = await get_establishment_or_404(db, establishment_id)
     check_ownership(establishment, current_user)
-    
+
     result = await db.execute(
         select(Service).where(
             Service.id == service_id,
@@ -224,9 +232,9 @@ async def delete_service(
         )
     )
     service = result.scalar_one_or_none()
-    
+
     if not service:
         raise NotFoundError("Serviço")
-    
+
     service.active = False
     await db.commit()

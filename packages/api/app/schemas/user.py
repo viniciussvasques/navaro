@@ -1,7 +1,6 @@
 """User schemas."""
 
 from datetime import datetime
-from typing import Optional
 from uuid import UUID
 
 from pydantic import BaseModel, EmailStr, Field
@@ -12,14 +11,14 @@ from app.models.user import UserRole
 class UserBase(BaseModel):
     """Base user schema."""
 
-    name: Optional[str] = Field(None, max_length=200)
-    email: Optional[EmailStr] = None
+    name: str | None = Field(None, max_length=200)
+    email: EmailStr | None = None
 
 
 class UserUpdate(UserBase):
     """Update user schema."""
 
-    avatar_url: Optional[str] = None
+    avatar_url: str | None = None
 
 
 class UserResponse(BaseModel):
@@ -27,9 +26,9 @@ class UserResponse(BaseModel):
 
     id: UUID
     phone: str
-    name: Optional[str]
-    email: Optional[str]
-    avatar_url: Optional[str]
+    name: str | None
+    email: str | None
+    avatar_url: str | None
     role: UserRole
     created_at: datetime
 

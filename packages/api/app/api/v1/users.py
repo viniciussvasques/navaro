@@ -4,7 +4,7 @@ from fastapi import APIRouter
 from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy import select
 
-from app.api.deps import DBSession, CurrentUser, AdminUser
+from app.api.deps import AdminUser, CurrentUser, DBSession
 from app.models import User
 
 router = APIRouter(prefix="/users", tags=["Users"])
@@ -15,6 +15,7 @@ router = APIRouter(prefix="/users", tags=["Users"])
 
 class UserResponse(BaseModel):
     """User response."""
+
     id: str
     phone: str
     name: str | None
@@ -22,13 +23,15 @@ class UserResponse(BaseModel):
     avatar_url: str | None
     role: str
     referral_code: str | None
-    
+    referred_by_id: str | None
+
     class Config:
         from_attributes = True
 
 
 class UserUpdateRequest(BaseModel):
     """User update request."""
+
     name: str | None = Field(None, max_length=200)
     email: EmailStr | None = None
     avatar_url: str | None = Field(None, max_length=500)
@@ -36,6 +39,7 @@ class UserUpdateRequest(BaseModel):
 
 class UserListResponse(BaseModel):
     """User list response."""
+
     items: list[UserResponse]
     total: int
 
@@ -54,6 +58,7 @@ async def get_current_user_info(current_user: CurrentUser) -> UserResponse:
         avatar_url=current_user.avatar_url,
         role=current_user.role.value,
         referral_code=current_user.referral_code,
+        referred_by_id=str(current_user.referred_by_id) if current_user.referred_by_id else None,
     )
 
 
@@ -70,10 +75,10 @@ async def update_current_user(
         current_user.email = request.email
     if request.avatar_url is not None:
         current_user.avatar_url = request.avatar_url
-    
+
     await db.commit()
     await db.refresh(current_user)
-    
+
     return UserResponse(
         id=str(current_user.id),
         phone=current_user.phone,
@@ -93,14 +98,12 @@ async def list_users(
     limit: int = 50,
 ) -> UserListResponse:
     """List all users (admin only)."""
-    result = await db.execute(
-        select(User).offset(skip).limit(limit)
-    )
+    result = await db.execute(select(User).offset(skip).limit(limit))
     users = result.scalars().all()
-    
+
     total_result = await db.execute(select(User))
     total = len(total_result.scalars().all())
-    
+
     return UserListResponse(
         items=[
             UserResponse(
@@ -111,6 +114,7 @@ async def list_users(
                 avatar_url=u.avatar_url,
                 role=u.role.value,
                 referral_code=u.referral_code,
+                referred_by_id=str(u.referred_by_id) if u.referred_by_id else None,
             )
             for u in users
         ],

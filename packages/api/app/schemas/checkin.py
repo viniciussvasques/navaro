@@ -1,19 +1,16 @@
 """Check-in schemas."""
 
 from datetime import datetime
-from typing import Optional
 from uuid import UUID
 
 from pydantic import BaseModel, Field
-
-from app.schemas.appointment import AppointmentResponse
-from app.schemas.subscription import SubscriptionUsageResponse
 
 
 class QRCodeResponse(BaseModel):
     """QR code response for check-in."""
 
     qr_token: str
+    qr_image_base64: str
     expires_at: datetime
 
 
@@ -27,6 +24,7 @@ class CheckinResponse(BaseModel):
     """Check-in response schema."""
 
     success: bool
-    appointment: Optional[AppointmentResponse] = None
-    subscription_usage: Optional[SubscriptionUsageResponse] = None
-    message: Optional[str] = None
+    establishment_id: UUID | None = None
+    appointment_id: UUID | None = None
+    queue_position: int | None = None
+    message: str | None = None

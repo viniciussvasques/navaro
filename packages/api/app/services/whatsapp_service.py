@@ -1,11 +1,10 @@
 """WhatsApp Business API service."""
 
 import httpx
-from typing import Optional
 
 from app.core.logging import get_logger
-from app.services.settings_service import get_cached_setting, get_cached_bool
 from app.models.system_settings import SettingsKeys
+from app.services.settings_service import get_cached_bool, get_cached_setting
 
 logger = get_logger(__name__)
 
@@ -19,7 +18,10 @@ class WhatsAppService:
 
     @property
     def api_url(self) -> str:
-        return get_cached_setting(SettingsKeys.WHATSAPP_API_URL, "https://graph.facebook.com/v18.0") or "https://graph.facebook.com/v18.0"
+        return (
+            get_cached_setting(SettingsKeys.WHATSAPP_API_URL, "https://graph.facebook.com/v18.0")
+            or "https://graph.facebook.com/v18.0"
+        )
 
     @property
     def access_token(self) -> str:
@@ -32,7 +34,7 @@ class WhatsAppService:
     async def send_text(self, to_phone: str, message: str) -> bool:
         """
         Send text message via WhatsApp.
-        
+
         Args:
             to_phone: Phone number with country code (e.g., 5511999999999)
             message: Text message to send
@@ -61,21 +63,18 @@ class WhatsAppService:
                         "recipient_type": "individual",
                         "to": clean_phone,
                         "type": "text",
-                        "text": {"body": message}
+                        "text": {"body": message},
                     },
-                    timeout=15.0
+                    timeout=15.0,
                 )
 
                 if response.status_code in [200, 201]:
                     logger.info("WhatsApp sent", to=to_phone)
                     return True
-                else:
-                    logger.error(
-                        "WhatsApp failed",
-                        status=response.status_code,
-                        response=response.text[:200]
-                    )
-                    return False
+                logger.error(
+                    "WhatsApp failed", status=response.status_code, response=response.text[:200]
+                )
+                return False
 
         except Exception as e:
             logger.error("WhatsApp error", error=str(e))
@@ -86,11 +85,11 @@ class WhatsAppService:
         to_phone: str,
         template_name: str,
         language_code: str = "pt_BR",
-        components: Optional[list] = None
+        components: list | None = None,
     ) -> bool:
         """
         Send template message via WhatsApp (for approved templates).
-        
+
         Args:
             to_phone: Phone number with country code
             template_name: Pre-approved template name
@@ -110,7 +109,7 @@ class WhatsAppService:
                 "template": {
                     "name": template_name,
                     "language": {"code": language_code},
-                }
+                },
             }
 
             if components:
@@ -124,7 +123,7 @@ class WhatsAppService:
                         "Content-Type": "application/json",
                     },
                     json=payload,
-                    timeout=15.0
+                    timeout=15.0,
                 )
 
                 return response.status_code in [200, 201]
@@ -136,21 +135,14 @@ class WhatsAppService:
     # ─── Convenience Methods ────────────────────────────────────────────────────
 
     async def send_appointment_confirmation(
-        self,
-        to_phone: str,
-        establishment_name: str,
-        date: str,
-        time: str
+        self, to_phone: str, establishment_name: str, date: str, time: str
     ) -> bool:
         """Send appointment confirmation via WhatsApp."""
         message = f"✅ *Agendamento Confirmado*\n\n📍 {establishment_name}\n📅 {date}\n🕐 {time}\n\nChegue 5 min antes! 😊"
         return await self.send_text(to_phone, message)
 
     async def send_appointment_reminder(
-        self,
-        to_phone: str,
-        establishment_name: str,
-        time: str
+        self, to_phone: str, establishment_name: str, time: str
     ) -> bool:
         """Send appointment reminder via WhatsApp."""
         message = f"⏰ *Lembrete*\n\nVocê tem horário *amanhã* às {time} em {establishment_name}.\n\nNão esqueça! 👋"
@@ -163,7 +155,7 @@ class WhatsAppService:
 
 
 # Singleton
-_whatsapp_service: Optional[WhatsAppService] = None
+_whatsapp_service: WhatsAppService | None = None
 
 
 def get_whatsapp_service() -> WhatsAppService:

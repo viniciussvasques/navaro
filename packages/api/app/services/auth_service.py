@@ -2,7 +2,7 @@
 
 import random
 import string
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 from jose import jwt
@@ -27,54 +27,74 @@ class AuthService:
         """Send verification code to phone number."""
         # Generate 6-digit code
         code = "".join(random.choices(string.digits, k=6))
-        
+
         # Store code with expiration
-        expires_at = datetime.now(timezone.utc) + timedelta(minutes=5)
+        expires_at = datetime.now(UTC) + timedelta(minutes=5)
         self._codes[phone] = (code, expires_at)
-        
+
         # TODO: Send SMS via Twilio/WhatsApp
         # For development, log the code
         print(f"[DEV] Verification code for {phone}: {code}")
 
-    async def verify_code(self, phone: str, code: str) -> TokenResponse | None:
+    async def verify_code(
+        self, phone: str, code: str, referral_code: str | None = None
+    ) -> TokenResponse | None:
         """Verify code and return tokens."""
         # Check code (in dev, allow "123456" as bypass)
         stored = self._codes.get(phone)
-        
+
         if settings.DEBUG and code == "123456":
             # Development bypass
             pass
-        elif not stored:
+        elif not stored or stored[0] != code:
             return None
-        elif stored[0] != code:
-            return None
-        elif stored[1] < datetime.now(timezone.utc):
+        elif stored[1] < datetime.now(UTC):
             # Code expired
             del self._codes[phone]
             return None
         else:
             # Valid code, remove it
             del self._codes[phone]
-        
+
         # Get or create user
         result = await self.db.execute(select(User).where(User.phone == phone))
         user = result.scalar_one_or_none()
-        
+
         if not user:
-            user = User(phone=phone, role=UserRole.CUSTOMER)
+            # Generate unique referral code
+            new_ref_code = self._generate_referral_code()
+
+            # Check who referred (if provided)
+            referred_by_id = None
+            if referral_code:
+                result = await self.db.execute(
+                    select(User.id).where(User.referral_code == referral_code)
+                )
+                referred_by_id = result.scalar_one_or_none()
+
+            user = User(
+                phone=phone,
+                role=UserRole.customer,
+                referral_code=new_ref_code,
+                referred_by_id=referred_by_id,
+            )
             self.db.add(user)
             await self.db.commit()
             await self.db.refresh(user)
-        
+
         # Generate tokens
         access_token = self._create_access_token(str(user.id))
         refresh_token = self._create_refresh_token(str(user.id))
-        
+
         return TokenResponse(
             access_token=access_token,
             refresh_token=refresh_token,
             user=UserResponse.model_validate(user),
         )
+
+    def _generate_referral_code(self) -> str:
+        """Generate a random unique-ish referral code."""
+        return "".join(random.choices(string.ascii_uppercase + string.digits, k=8))
 
     async def refresh_tokens(self, refresh_token: str) -> TokenResponse | None:
         """Refresh access token using refresh token."""
@@ -86,21 +106,19 @@ class AuthService:
             )
             user_id = payload.get("sub")
             token_type = payload.get("type")
-            
+
             if not user_id or token_type != "refresh":
                 return None
-            
-            result = await self.db.execute(
-                select(User).where(User.id == UUID(user_id))
-            )
+
+            result = await self.db.execute(select(User).where(User.id == UUID(user_id)))
             user = result.scalar_one_or_none()
-            
+
             if not user:
                 return None
-            
+
             access_token = self._create_access_token(str(user.id))
             new_refresh_token = self._create_refresh_token(str(user.id))
-            
+
             return TokenResponse(
                 access_token=access_token,
                 refresh_token=new_refresh_token,
@@ -111,9 +129,7 @@ class AuthService:
 
     def _create_access_token(self, user_id: str) -> str:
         """Create access token."""
-        expires = datetime.now(timezone.utc) + timedelta(
-            minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
-        )
+        expires = datetime.now(UTC) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
         payload = {
             "sub": user_id,
             "exp": expires,
@@ -123,9 +139,7 @@ class AuthService:
 
     def _create_refresh_token(self, user_id: str) -> str:
         """Create refresh token."""
-        expires = datetime.now(timezone.utc) + timedelta(
-            days=settings.REFRESH_TOKEN_EXPIRE_DAYS
-        )
+        expires = datetime.now(UTC) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
         payload = {
             "sub": user_id,
             "exp": expires,

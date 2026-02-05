@@ -1,10 +1,15 @@
 """Models package - export all models."""
 
 # Base
+# Appointment
+from app.models.appointment import (
+    Appointment,
+    AppointmentProduct,
+    AppointmentStatus,
+    Checkin,
+    PaymentType,
+)
 from app.models.base import BaseModel
-
-# User
-from app.models.user import User, UserRole
 
 # Establishment
 from app.models.establishment import (
@@ -13,6 +18,33 @@ from app.models.establishment import (
     EstablishmentStatus,
     SubscriptionTier,
 )
+
+# Notification
+from app.models.notification import Notification, NotificationType
+
+# Payment
+from app.models.payment import (
+    Payment,
+    PaymentPurpose,
+    PaymentStatus,
+    Payout,
+    Tip,
+)
+
+# Plugin
+from app.models.plugin import AdCampaign, EstablishmentPlugin
+
+# Portfolio
+from app.models.portfolio import PortfolioImage, SearchHistory
+
+# Product
+from app.models.product import Product
+
+# Queue
+from app.models.queue import QueueEntry, QueueStatus
+
+# Review & Favorites
+from app.models.review import Favorite, FavoriteStaff, Review
 
 # Service
 from app.models.service import (
@@ -28,58 +60,24 @@ from app.models.staff_block import StaffBlock
 
 # Subscription
 from app.models.subscription import (
+    Subscription,
     SubscriptionPlan,
     SubscriptionPlanItem,
-    Subscription,
-    SubscriptionUsage,
     SubscriptionStatus,
+    SubscriptionUsage,
 )
-
-# Appointment
-from app.models.appointment import (
-    Appointment,
-    Checkin,
-    AppointmentProduct,
-    AppointmentStatus,
-    PaymentType,
-)
-
-# Queue
-from app.models.queue import QueueEntry, QueueStatus
-
-# Review & Favorites
-from app.models.review import Review, Favorite, FavoriteStaff
-
-# Payment
-from app.models.payment import (
-    Payment,
-    Tip,
-    Payout,
-    PaymentStatus,
-    PaymentPurpose,
-)
-
-# Portfolio
-from app.models.portfolio import PortfolioImage, SearchHistory
-
-# Product
-from app.models.product import Product
-
-# Plugin
-from app.models.plugin import EstablishmentPlugin, AdCampaign
-
-# Notification
-from app.models.notification import Notification, NotificationType
-
-# User Debt
-from app.models.user_debt import UserDebt, DebtStatus
-
-# Wallet
-from app.models.wallet import UserWallet, WalletTransaction, TransactionType, TransactionStatus
 
 # System Settings
-from app.models.system_settings import SystemSettings, SettingsKeys
+from app.models.system_settings import SettingsKeys, SystemSettings
 
+# User
+from app.models.user import User, UserRole
+
+# User Debt
+from app.models.user_debt import DebtStatus, UserDebt
+
+# Wallet
+from app.models.wallet import TransactionStatus, TransactionType, UserWallet, WalletTransaction
 
 __all__ = [
     # Base

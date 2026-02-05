@@ -1,7 +1,6 @@
 """Staff schemas."""
 
 from datetime import datetime
-from typing import Optional
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -19,7 +18,7 @@ class StaffBase(BaseModel):
     """Base staff schema."""
 
     name: str = Field(..., max_length=200)
-    phone: Optional[str] = Field(None, max_length=20)
+    phone: str | None = Field(None, max_length=20)
     role: str = Field(..., max_length=100, examples=["barbeiro", "cabeleireiro"])
 
 
@@ -27,19 +26,19 @@ class StaffCreate(StaffBase):
     """Create staff schema."""
 
     work_schedule: dict[str, WorkSchedule] = Field(default_factory=dict)
-    commission_rate: Optional[float] = Field(None, ge=0, le=100)
+    commission_rate: float | None = Field(None, ge=0, le=100)
 
 
 class StaffUpdate(BaseModel):
     """Update staff schema."""
 
-    name: Optional[str] = Field(None, max_length=200)
-    phone: Optional[str] = Field(None, max_length=20)
-    role: Optional[str] = Field(None, max_length=100)
-    avatar_url: Optional[str] = None
-    work_schedule: Optional[dict] = None
-    commission_rate: Optional[float] = Field(None, ge=0, le=100)
-    active: Optional[bool] = None
+    name: str | None = Field(None, max_length=200)
+    phone: str | None = Field(None, max_length=20)
+    role: str | None = Field(None, max_length=100)
+    avatar_url: str | None = None
+    work_schedule: dict | None = None
+    commission_rate: float | None = Field(None, ge=0, le=100)
+    active: bool | None = None
 
 
 class StaffResponse(BaseModel):
@@ -48,12 +47,33 @@ class StaffResponse(BaseModel):
     id: UUID
     establishment_id: UUID
     name: str
-    phone: Optional[str]
+    phone: str | None
     role: str
-    avatar_url: Optional[str]
+    avatar_url: str | None
     work_schedule: dict
-    commission_rate: Optional[float]
+    commission_rate: float | None
     active: bool
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class StaffBlockCreate(BaseModel):
+    """Create staff block schema."""
+
+    start_at: datetime
+    end_at: datetime
+    reason: str | None = Field(None, max_length=200)
+
+
+class StaffBlockResponse(BaseModel):
+    """Staff block response schema."""
+
+    id: UUID
+    staff_id: UUID
+    start_at: datetime
+    end_at: datetime
+    reason: str | None
     created_at: datetime
 
     model_config = {"from_attributes": True}

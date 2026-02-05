@@ -7,14 +7,11 @@ from sqlalchemy import DateTime, func
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
-
 # ─── SQLAlchemy Base ───────────────────────────────────────────────────────────
 
 
 class Base(DeclarativeBase):
     """Base class for all SQLAlchemy models."""
-
-    pass
 
 
 # ─── BaseModel ─────────────────────────────────────────────────────────────────
@@ -23,7 +20,7 @@ class Base(DeclarativeBase):
 class BaseModel(Base):
     """
     Base model with common fields.
-    
+
     All models should inherit from this class to get:
     - UUID primary key
     - created_at timestamp
@@ -38,14 +35,14 @@ class BaseModel(Base):
         default=uuid4,
         doc="Unique identifier",
     )
-    
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
         nullable=False,
         doc="Creation timestamp",
     )
-    
+
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
@@ -57,4 +54,3 @@ class BaseModel(Base):
     def __repr__(self) -> str:
         """String representation."""
         return f"<{self.__class__.__name__}(id={self.id})>"
-

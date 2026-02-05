@@ -5,17 +5,16 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 from uuid import UUID
 
-from sqlalchemy import String, Integer, ForeignKey, Enum, DateTime, Index, Numeric
+from sqlalchemy import DateTime, Enum, ForeignKey, Index, Integer, Numeric, String
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import BaseModel
 
 if TYPE_CHECKING:
-    from app.models.user import User
     from app.models.establishment import Establishment
     from app.models.staff import StaffMember
-    from app.models.service import Service, ServiceBundle
+    from app.models.user import User
 
 
 class AppointmentStatus(str, enum.Enum):
@@ -47,14 +46,14 @@ class PaymentMethod(str, enum.Enum):
 class Appointment(BaseModel):
     """
     Appointment model.
-    
+
     Represents a booking for a service.
     """
 
     __tablename__ = "appointments"
 
     # ─── Foreign Keys ──────────────────────────────────────────────────────────
-    
+
     user_id: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True),
         ForeignKey("users.id"),
@@ -62,7 +61,7 @@ class Appointment(BaseModel):
         index=True,
         doc="Customer user ID",
     )
-    
+
     establishment_id: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True),
         ForeignKey("establishments.id"),
@@ -70,7 +69,7 @@ class Appointment(BaseModel):
         index=True,
         doc="Establishment ID",
     )
-    
+
     staff_id: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True),
         ForeignKey("staff_members.id"),
@@ -78,19 +77,19 @@ class Appointment(BaseModel):
         index=True,
         doc="Staff member ID",
     )
-    
+
     service_id: Mapped[UUID | None] = mapped_column(
         PGUUID(as_uuid=True),
         ForeignKey("services.id"),
         doc="Service ID (if single service)",
     )
-    
+
     bundle_id: Mapped[UUID | None] = mapped_column(
         PGUUID(as_uuid=True),
         ForeignKey("service_bundles.id"),
         doc="Bundle ID (if bundle)",
     )
-    
+
     subscription_id: Mapped[UUID | None] = mapped_column(
         PGUUID(as_uuid=True),
         ForeignKey("subscriptions.id"),
@@ -98,14 +97,14 @@ class Appointment(BaseModel):
     )
 
     # ─── Schedule ──────────────────────────────────────────────────────────────
-    
+
     scheduled_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
         index=True,
         doc="Scheduled date and time",
     )
-    
+
     duration_minutes: Mapped[int] = mapped_column(
         Integer,
         nullable=False,
@@ -113,7 +112,7 @@ class Appointment(BaseModel):
     )
 
     # ─── Status ────────────────────────────────────────────────────────────────
-    
+
     status: Mapped[AppointmentStatus] = mapped_column(
         Enum(AppointmentStatus),
         default=AppointmentStatus.pending,
@@ -121,13 +120,13 @@ class Appointment(BaseModel):
         index=True,
         doc="Appointment status",
     )
-    
+
     payment_type: Mapped[PaymentType] = mapped_column(
         Enum(PaymentType),
         nullable=False,
         doc="Payment type structure",
     )
-    
+
     payment_method: Mapped[PaymentMethod] = mapped_column(
         Enum(PaymentMethod),
         default=PaymentMethod.card,
@@ -136,17 +135,17 @@ class Appointment(BaseModel):
     )
 
     # ─── Notes ─────────────────────────────────────────────────────────────────
-    
+
     notes: Mapped[str | None] = mapped_column(
         String(500),
         doc="Customer notes",
     )
-    
+
     cancel_reason: Mapped[str | None] = mapped_column(
         String(200),
         doc="Reason for cancellation",
     )
-    
+
     reminder_sent: Mapped[bool] = mapped_column(
         default=False,
         server_default="false",
@@ -154,65 +153,65 @@ class Appointment(BaseModel):
     )
 
     # ─── Payment & Total ───────────────────────────────────────────────────────
-    
+
     total_price: Mapped[float | None] = mapped_column(
         Numeric(10, 2),
         doc="Total price including products",
     )
 
     # ─── Relationships ─────────────────────────────────────────────────────────
-    
+
     user: Mapped["User"] = relationship(
         "User",
         back_populates="appointments",
     )
-    
+
     establishment: Mapped["Establishment"] = relationship(
         "Establishment",
         back_populates="appointments",
     )
-    
+
     staff: Mapped["StaffMember"] = relationship(
         "StaffMember",
         back_populates="appointments",
     )
-    
+
     service = relationship(
         "Service",
     )
-    
+
     bundle = relationship(
         "ServiceBundle",
     )
-    
+
     subscription = relationship(
         "Subscription",
     )
-    
+
     products = relationship(
         "AppointmentProduct",
         back_populates="appointment",
         cascade="all, delete-orphan",
     )
-    
+
     checkin = relationship(
         "Checkin",
         back_populates="appointment",
         uselist=False,
     )
-    
+
     payment = relationship(
         "Payment",
         back_populates="appointment",
         uselist=False,
     )
-    
+
     review = relationship(
         "Review",
         back_populates="appointment",
         uselist=False,
     )
-    
+
     tip = relationship(
         "Tip",
         back_populates="appointment",
@@ -220,7 +219,7 @@ class Appointment(BaseModel):
     )
 
     # ─── Indexes ───────────────────────────────────────────────────────────────
-    
+
     __table_args__ = (
         Index("idx_appointments_staff_scheduled", "staff_id", "scheduled_at"),
         Index("idx_appointments_establishment_date", "establishment_id", "scheduled_at"),
@@ -231,7 +230,7 @@ class Appointment(BaseModel):
 class AppointmentProduct(BaseModel):
     """
     Associative table between Appointment and Product.
-    
+
     Represents a product sale linked to an appointment.
     """
 
@@ -243,20 +242,20 @@ class AppointmentProduct(BaseModel):
         nullable=False,
         index=True,
     )
-    
+
     product_id: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True),
         ForeignKey("products.id"),
         nullable=False,
         index=True,
     )
-    
+
     quantity: Mapped[int] = mapped_column(
         Integer,
         default=1,
         nullable=False,
     )
-    
+
     unit_price: Mapped[float] = mapped_column(
         Numeric(10, 2),
         nullable=False,
@@ -264,12 +263,12 @@ class AppointmentProduct(BaseModel):
     )
 
     # ─── Relationships ─────────────────────────────────────────────────────────
-    
+
     appointment = relationship(
         "Appointment",
         back_populates="products",
     )
-    
+
     product = relationship(
         "Product",
         back_populates="appointment_items",
@@ -287,14 +286,14 @@ class AppointmentProduct(BaseModel):
 class Checkin(BaseModel):
     """
     Checkin model.
-    
+
     Records when a customer checks in for their appointment.
     """
 
     __tablename__ = "checkins"
 
     # ─── Foreign Keys ──────────────────────────────────────────────────────────
-    
+
     appointment_id: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True),
         ForeignKey("appointments.id"),
@@ -302,7 +301,7 @@ class Checkin(BaseModel):
         nullable=False,
         doc="Appointment ID",
     )
-    
+
     user_id: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True),
         ForeignKey("users.id"),
@@ -310,7 +309,7 @@ class Checkin(BaseModel):
         index=True,
         doc="User ID",
     )
-    
+
     establishment_id: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True),
         ForeignKey("establishments.id"),
@@ -320,7 +319,7 @@ class Checkin(BaseModel):
     )
 
     # ─── Checkin Data ──────────────────────────────────────────────────────────
-    
+
     checked_in_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
@@ -328,7 +327,7 @@ class Checkin(BaseModel):
     )
 
     # ─── Relationships ─────────────────────────────────────────────────────────
-    
+
     appointment = relationship(
         "Appointment",
         back_populates="checkin",

@@ -1,11 +1,12 @@
 """Push notification service using Firebase Cloud Messaging (FCM)."""
 
+from typing import Any
+
 import httpx
-from typing import Optional, List, Dict, Any
 
 from app.core.logging import get_logger
-from app.services.settings_service import get_cached_setting, get_cached_bool
 from app.models.system_settings import SettingsKeys
+from app.services.settings_service import get_cached_bool, get_cached_setting
 
 logger = get_logger(__name__)
 
@@ -26,12 +27,12 @@ class PushService:
         device_token: str,
         title: str,
         body: str,
-        data: Optional[Dict[str, Any]] = None,
-        image: Optional[str] = None
+        data: dict[str, Any] | None = None,
+        image: str | None = None,
     ) -> bool:
         """
         Send push notification to a single device.
-        
+
         Args:
             device_token: FCM device token
             title: Notification title
@@ -74,7 +75,7 @@ class PushService:
                         "Content-Type": "application/json",
                     },
                     json=payload,
-                    timeout=10.0
+                    timeout=10.0,
                 )
 
                 if response.status_code == 200:
@@ -82,27 +83,21 @@ class PushService:
                     if result.get("success", 0) > 0:
                         logger.info("Push sent", title=title)
                         return True
-                    else:
-                        logger.error("Push rejected", response=result)
-                        return False
-                else:
-                    logger.error("Push failed", status=response.status_code)
+                    logger.error("Push rejected", response=result)
                     return False
+                logger.error("Push failed", status=response.status_code)
+                return False
 
         except Exception as e:
             logger.error("Push error", error=str(e))
             return False
 
     async def send_to_many(
-        self,
-        device_tokens: List[str],
-        title: str,
-        body: str,
-        data: Optional[Dict[str, Any]] = None
+        self, device_tokens: list[str], title: str, body: str, data: dict[str, Any] | None = None
     ) -> int:
         """
         Send push notification to multiple devices.
-        
+
         Returns:
             Number of successful sends
         """
@@ -128,7 +123,7 @@ class PushService:
                         "Content-Type": "application/json",
                     },
                     json=payload,
-                    timeout=15.0
+                    timeout=15.0,
                 )
 
                 if response.status_code == 200:
@@ -143,11 +138,7 @@ class PushService:
             return 0
 
     async def send_topic(
-        self,
-        topic: str,
-        title: str,
-        body: str,
-        data: Optional[Dict[str, Any]] = None
+        self, topic: str, title: str, body: str, data: dict[str, Any] | None = None
     ) -> bool:
         """Send push notification to a topic (e.g., all users of an establishment)."""
         if not self.enabled or not self.server_key:
@@ -168,7 +159,7 @@ class PushService:
                         "Content-Type": "application/json",
                     },
                     json=payload,
-                    timeout=10.0
+                    timeout=10.0,
                 )
                 return response.status_code == 200
 
@@ -178,7 +169,7 @@ class PushService:
 
 
 # Singleton
-_push_service: Optional[PushService] = None
+_push_service: PushService | None = None
 
 
 def get_push_service() -> PushService:

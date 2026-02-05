@@ -23,8 +23,6 @@ AsyncSessionLocal = async_sessionmaker(
 class Base(DeclarativeBase):
     """Base class for all models."""
 
-    pass
-
 
 async def init_db() -> None:
     """Initialize database (create tables if not exist)."""

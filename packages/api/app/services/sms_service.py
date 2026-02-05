@@ -1,11 +1,10 @@
 """SMS Service using nVoIP API."""
 
 import httpx
-from typing import Optional
 
 from app.core.logging import get_logger
-from app.services.settings_service import get_cached_setting, get_cached_bool
 from app.models.system_settings import SettingsKeys
+from app.services.settings_service import get_cached_bool, get_cached_setting
 
 logger = get_logger(__name__)
 
@@ -36,11 +35,11 @@ class SMSService:
     async def send(self, phone: str, message: str) -> bool:
         """
         Send SMS via nVoIP API.
-        
+
         Args:
             phone: Phone number in E.164 format (e.g., +5511999999999)
             message: SMS content (max 160 chars for single SMS)
-            
+
         Returns:
             True if sent successfully, False otherwise
         """
@@ -71,22 +70,21 @@ class SMSService:
                         "contacts": [{"phone": clean_phone}],
                         "options": {
                             "flash": False,
-                        }
+                        },
                     },
-                    timeout=10.0
+                    timeout=10.0,
                 )
 
                 if response.status_code in [200, 201, 202]:
                     logger.info("SMS sent successfully", phone=phone)
                     return True
-                else:
-                    logger.error(
-                        "SMS send failed",
-                        phone=phone,
-                        status=response.status_code,
-                        response=response.text[:200]
-                    )
-                    return False
+                logger.error(
+                    "SMS send failed",
+                    phone=phone,
+                    status=response.status_code,
+                    response=response.text[:200],
+                )
+                return False
 
         except Exception as e:
             logger.error("SMS send error", phone=phone, error=str(e))
@@ -98,31 +96,23 @@ class SMSService:
         return await self.send(phone, message)
 
     async def send_appointment_confirmation(
-        self,
-        phone: str,
-        establishment_name: str,
-        date: str,
-        time: str
+        self, phone: str, establishment_name: str, date: str, time: str
     ) -> bool:
         """Send appointment confirmation SMS."""
         message = f"Navaro: Agendamento confirmado para {date} às {time} em {establishment_name}."
         return await self.send(phone, message)
 
     async def send_appointment_reminder(
-        self,
-        phone: str,
-        establishment_name: str,
-        time: str
+        self, phone: str, establishment_name: str, time: str
     ) -> bool:
         """Send appointment reminder (24h before)."""
-        message = f"Navaro: Lembrete! Você tem agendamento amanhã às {time} em {establishment_name}."
+        message = (
+            f"Navaro: Lembrete! Você tem agendamento amanhã às {time} em {establishment_name}."
+        )
         return await self.send(phone, message)
 
     async def send_appointment_cancelled(
-        self,
-        phone: str,
-        establishment_name: str,
-        reason: Optional[str] = None
+        self, phone: str, establishment_name: str, reason: str | None = None
     ) -> bool:
         """Send appointment cancellation SMS."""
         message = f"Navaro: Seu agendamento em {establishment_name} foi cancelado."
@@ -131,10 +121,7 @@ class SMSService:
         return await self.send(phone, message)
 
     async def send_payment_received(
-        self,
-        phone: str,
-        amount: float,
-        establishment_name: str
+        self, phone: str, amount: float, establishment_name: str
     ) -> bool:
         """Send payment confirmation to establishment owner."""
         message = f"Navaro: Pagamento de R${amount:.2f} recebido em {establishment_name}."
@@ -142,7 +129,7 @@ class SMSService:
 
 
 # Singleton instance
-_sms_service: Optional[SMSService] = None
+_sms_service: SMSService | None = None
 
 
 def get_sms_service() -> SMSService:

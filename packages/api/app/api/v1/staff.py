@@ -6,9 +6,10 @@ from fastapi import APIRouter
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 
-from app.api.deps import DBSession, CurrentUser
-from app.core.exceptions import NotFoundError, ForbiddenError
-from app.models import Establishment, StaffMember, UserRole
+from app.api.deps import CurrentUser, DBSession
+from app.core.exceptions import ForbiddenError, NotFoundError
+from app.models import Establishment, StaffBlock, StaffMember, UserRole
+from app.schemas.staff import StaffBlockCreate, StaffBlockResponse
 
 router = APIRouter(prefix="/establishments/{establishment_id}/staff", tags=["Staff"])
 
@@ -18,15 +19,18 @@ router = APIRouter(prefix="/establishments/{establishment_id}/staff", tags=["Sta
 
 class StaffCreate(BaseModel):
     """Create staff request."""
+
     name: str = Field(..., min_length=2, max_length=200)
     phone: str | None = Field(None, max_length=20)
     role: str = Field("barbeiro", max_length=100)
     avatar_url: str | None = Field(None, max_length=500)
     commission_rate: float | None = Field(None, ge=0, le=100)
+    work_schedule: dict | None = Field(default_factory=dict)
 
 
 class StaffUpdate(BaseModel):
     """Update staff request."""
+
     name: str | None = Field(None, max_length=200)
     phone: str | None = Field(None, max_length=20)
     role: str | None = Field(None, max_length=100)
@@ -38,6 +42,7 @@ class StaffUpdate(BaseModel):
 
 class StaffResponse(BaseModel):
     """Staff response."""
+
     id: str
     name: str
     phone: str | None
@@ -46,7 +51,7 @@ class StaffResponse(BaseModel):
     work_schedule: dict
     commission_rate: float | None
     active: bool
-    
+
     class Config:
         from_attributes = True
 
@@ -56,9 +61,7 @@ class StaffResponse(BaseModel):
 
 async def get_establishment_or_404(db: DBSession, establishment_id: UUID) -> Establishment:
     """Get establishment or raise 404."""
-    result = await db.execute(
-        select(Establishment).where(Establishment.id == establishment_id)
-    )
+    result = await db.execute(select(Establishment).where(Establishment.id == establishment_id))
     establishment = result.scalar_one_or_none()
     if not establishment:
         raise NotFoundError("Estabelecimento")
@@ -67,7 +70,7 @@ async def get_establishment_or_404(db: DBSession, establishment_id: UUID) -> Est
 
 def check_ownership(establishment: Establishment, user: CurrentUser) -> None:
     """Check if user owns the establishment."""
-    if establishment.owner_id != user.id and user.role != UserRole.ADMIN:
+    if establishment.owner_id != user.id and user.role != UserRole.admin:
         raise ForbiddenError()
 
 
@@ -82,15 +85,15 @@ async def list_staff(
 ) -> list[StaffResponse]:
     """List staff members for an establishment."""
     query = select(StaffMember).where(StaffMember.establishment_id == establishment_id)
-    
+
     if active_only:
         query = query.where(StaffMember.active == True)
-    
+
     query = query.order_by(StaffMember.name)
-    
+
     result = await db.execute(query)
     staff = result.scalars().all()
-    
+
     return [
         StaffResponse(
             id=str(s.id),
@@ -116,7 +119,7 @@ async def create_staff(
     """Create new staff member."""
     establishment = await get_establishment_or_404(db, establishment_id)
     check_ownership(establishment, current_user)
-    
+
     staff = StaffMember(
         establishment_id=establishment_id,
         name=request.name,
@@ -124,12 +127,13 @@ async def create_staff(
         role=request.role,
         avatar_url=request.avatar_url,
         commission_rate=request.commission_rate,
+        work_schedule=request.work_schedule or {},
     )
-    
+
     db.add(staff)
     await db.commit()
     await db.refresh(staff)
-    
+
     return StaffResponse(
         id=str(staff.id),
         name=staff.name,
@@ -156,10 +160,10 @@ async def get_staff(
         )
     )
     staff = result.scalar_one_or_none()
-    
+
     if not staff:
         raise NotFoundError("Funcionário")
-    
+
     return StaffResponse(
         id=str(staff.id),
         name=staff.name,
@@ -183,7 +187,7 @@ async def update_staff(
     """Update staff member."""
     establishment = await get_establishment_or_404(db, establishment_id)
     check_ownership(establishment, current_user)
-    
+
     result = await db.execute(
         select(StaffMember).where(
             StaffMember.id == staff_id,
@@ -191,16 +195,16 @@ async def update_staff(
         )
     )
     staff = result.scalar_one_or_none()
-    
+
     if not staff:
         raise NotFoundError("Funcionário")
-    
+
     for field, value in request.model_dump(exclude_unset=True).items():
         setattr(staff, field, value)
-    
+
     await db.commit()
     await db.refresh(staff)
-    
+
     return StaffResponse(
         id=str(staff.id),
         name=staff.name,
@@ -223,7 +227,7 @@ async def delete_staff(
     """Delete staff member (soft delete)."""
     establishment = await get_establishment_or_404(db, establishment_id)
     check_ownership(establishment, current_user)
-    
+
     result = await db.execute(
         select(StaffMember).where(
             StaffMember.id == staff_id,
@@ -231,9 +235,54 @@ async def delete_staff(
         )
     )
     staff = result.scalar_one_or_none()
-    
+
     if not staff:
         raise NotFoundError("Funcionário")
-    
+
     staff.active = False
     await db.commit()
+
+
+@router.post("/{staff_id}/blocks", response_model=StaffBlockResponse, status_code=201)
+async def create_staff_block(
+    establishment_id: UUID,
+    staff_id: UUID,
+    request: StaffBlockCreate,
+    db: DBSession,
+    current_user: CurrentUser,
+) -> StaffBlock:
+    """Create a block period for a staff member."""
+    establishment = await get_establishment_or_404(db, establishment_id)
+    check_ownership(establishment, current_user)
+
+    result = await db.execute(
+        select(StaffMember).where(
+            StaffMember.id == staff_id,
+            StaffMember.establishment_id == establishment_id,
+        )
+    )
+    staff = result.scalar_one_or_none()
+    if not staff:
+        raise NotFoundError("Funcionário")
+
+    block = StaffBlock(
+        staff_id=staff_id,
+        start_at=request.start_at,
+        end_at=request.end_at,
+        reason=request.reason,
+    )
+    db.add(block)
+    await db.commit()
+    await db.refresh(block)
+    return block
+
+
+@router.get("/{staff_id}/blocks", response_model=list[StaffBlockResponse])
+async def list_staff_blocks(
+    establishment_id: UUID,
+    staff_id: UUID,
+    db: DBSession,
+) -> list[StaffBlock]:
+    """List blocks for a staff member."""
+    result = await db.execute(select(StaffBlock).where(StaffBlock.staff_id == staff_id))
+    return result.scalars().all()

@@ -1,7 +1,6 @@
 """Establishment schemas."""
 
 from datetime import datetime
-from typing import Optional, List
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -9,7 +8,7 @@ from pydantic import BaseModel, Field
 from app.models.establishment import (
     EstablishmentCategory,
     EstablishmentStatus,
-    EstablishmentPlan,
+    SubscriptionTier,
 )
 
 
@@ -37,22 +36,27 @@ class EstablishmentCreate(EstablishmentBase):
 
     business_hours: dict[str, BusinessHours] = Field(
         default_factory=dict,
-        examples=[{
-            "monday": {"open": "09:00", "close": "19:00", "closed": False},
-            "sunday": {"open": "", "close": "", "closed": True},
-        }],
+        examples=[
+            {
+                "monday": {"open": "09:00", "close": "19:00", "closed": False},
+                "sunday": {"open": "", "close": "", "closed": True},
+            }
+        ],
     )
 
 
 class EstablishmentUpdate(BaseModel):
     """Update establishment schema."""
 
-    name: Optional[str] = Field(None, max_length=200)
-    address: Optional[str] = Field(None, max_length=500)
-    phone: Optional[str] = Field(None, max_length=20)
-    logo_url: Optional[str] = None
-    cover_url: Optional[str] = None
-    business_hours: Optional[dict] = None
+    name: str | None = Field(None, max_length=200)
+    address: str | None = Field(None, max_length=500)
+    phone: str | None = Field(None, max_length=20)
+    latitude: float | None = None
+    longitude: float | None = None
+    status: EstablishmentStatus | None = None
+    logo_url: str | None = None
+    cover_url: str | None = None
+    business_hours: dict | None = None
 
 
 class EstablishmentResponse(BaseModel):
@@ -67,11 +71,12 @@ class EstablishmentResponse(BaseModel):
     city: str
     state: str
     phone: str
-    logo_url: Optional[str]
-    cover_url: Optional[str]
+    logo_url: str | None
+    cover_url: str | None
     business_hours: dict
+    distance: float | None = None
     status: EstablishmentStatus
-    plan: EstablishmentPlan
+    subscription_tier: SubscriptionTier
     created_at: datetime
 
     model_config = {"from_attributes": True}
@@ -88,5 +93,5 @@ class PaginationMeta(BaseModel):
 class EstablishmentListResponse(BaseModel):
     """Paginated list of establishments."""
 
-    data: List[EstablishmentResponse]
+    data: list[EstablishmentResponse]
     pagination: PaginationMeta
