@@ -44,7 +44,7 @@ async def test_appointment_flow(client: AsyncClient):
         "business_hours": business_hours,
     }
     resp = await client.post("/api/v1/establishments", json=est_data, headers=headers)
-    assert resp.status_code == 201
+    assert resp.status_code == 201, f"Create Establishment Failed: {resp.text}"
     est_id = resp.json()["id"]
 
     # 3. Create Service
@@ -52,7 +52,7 @@ async def test_appointment_flow(client: AsyncClient):
     resp = await client.post(
         f"/api/v1/establishments/{est_id}/services", json=service_data, headers=headers
     )
-    assert resp.status_code == 201
+    assert resp.status_code == 201, f"Create Service Failed: {resp.text}"
     service_id = resp.json()["id"]
 
     # 4. Create Staff
@@ -65,7 +65,7 @@ async def test_appointment_flow(client: AsyncClient):
     resp = await client.post(
         f"/api/v1/establishments/{est_id}/staff", json=staff_data, headers=headers
     )
-    assert resp.status_code == 201
+    assert resp.status_code == 201, f"Create Staff Failed: {resp.text}"
     staff_id = resp.json()["id"]
 
     # 5. Create Appointment
