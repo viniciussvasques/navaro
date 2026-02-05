@@ -60,6 +60,7 @@ dev = [
     "httpx>=0.28.0",
     "factory-boy>=3.3.0",
     "faker>=33.0.0",
+    "asgi-lifespan>=2.1.0",
     
     # Linting & Formatting
     "ruff>=0.8.0",
