@@ -24,6 +24,7 @@ from app.models.service import (
 
 # Staff
 from app.models.staff import StaffMember
+from app.models.staff_block import StaffBlock
 
 # Subscription
 from app.models.subscription import (
@@ -38,6 +39,7 @@ from app.models.subscription import (
 from app.models.appointment import (
     Appointment,
     Checkin,
+    AppointmentProduct,
     AppointmentStatus,
     PaymentType,
 )
@@ -60,8 +62,23 @@ from app.models.payment import (
 # Portfolio
 from app.models.portfolio import PortfolioImage, SearchHistory
 
+# Product
+from app.models.product import Product
+
 # Plugin
 from app.models.plugin import EstablishmentPlugin, AdCampaign
+
+# Notification
+from app.models.notification import Notification, NotificationType
+
+# User Debt
+from app.models.user_debt import UserDebt, DebtStatus
+
+# Wallet
+from app.models.wallet import UserWallet, WalletTransaction, TransactionType, TransactionStatus
+
+# System Settings
+from app.models.system_settings import SystemSettings, SettingsKeys
 
 
 __all__ = [
@@ -82,6 +99,7 @@ __all__ = [
     "service_staff",
     # Staff
     "StaffMember",
+    "StaffBlock",
     # Subscription
     "SubscriptionPlan",
     "SubscriptionPlanItem",
@@ -112,4 +130,12 @@ __all__ = [
     # Plugin
     "EstablishmentPlugin",
     "AdCampaign",
+    # Notification
+    "Notification",
+    "NotificationType",
+    # Wallet
+    "UserWallet",
+    "WalletTransaction",
+    "TransactionType",
+    "TransactionStatus",
 ]

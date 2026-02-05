@@ -65,10 +65,11 @@ class Settings(BaseSettings):
     STRIPE_WEBHOOK_SECRET: str = ""
     STRIPE_PLATFORM_FEE_PERCENT: float = 5.0
 
-    # ─── Twilio (SMS/WhatsApp) ─────────────────────────────────────────────────
-    TWILIO_ACCOUNT_SID: str = ""
-    TWILIO_AUTH_TOKEN: str = ""
-    TWILIO_PHONE_NUMBER: str = ""
+    # ─── nVoIP (SMS Brasil) ─────────────────────────────────────────────────────
+    NVOIP_API_URL: str = "https://api.nvoip.com.br/v2"
+    NVOIP_TOKEN: str = ""
+    NVOIP_FROM_NUMBER: str = ""  # Número de origem cadastrado na nVoIP
+    SMS_ENABLED: bool = False  # Ativar envio real de SMS
 
     # ─── Storage (S3/R2) ───────────────────────────────────────────────────────
     S3_ENDPOINT: str = ""
@@ -85,6 +86,10 @@ class Settings(BaseSettings):
     # ─── Logging ───────────────────────────────────────────────────────────────
     LOG_LEVEL: str = "INFO"
     LOG_FORMAT: Literal["json", "console"] = "console"
+
+    # ─── Hardening ─────────────────────────────────────────────────────────────
+    SENTRY_DSN: str = ""
+    WEBHOOK_IDEMPOTENCY_TIMEOUT: int = 86400  # 24 hours
 
     # ─── Maintenance ───────────────────────────────────────────────────────────
     MAINTENANCE_SQL_LOG_SIZE: int = 100  # Number of SQL queries to keep

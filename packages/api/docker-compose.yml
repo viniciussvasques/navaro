@@ -1,0 +1,90 @@
+version: "3.9"
+
+services:
+  # ─── API ──────────────────────────────────────────────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: navaro-api
+    restart: unless-stopped
+    ports:
+      - "${PORT:-8000}:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://navaro:${DB_PASSWORD:-navaro_dev}@db:5432/navaro
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=${SECRET_KEY:-change-me-in-production}
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - navaro-network
+
+  # ─── PostgreSQL ───────────────────────────────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    container_name: navaro-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=navaro
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-navaro_dev}
+      - POSTGRES_DB=navaro
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U navaro"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - navaro-network
+
+  # ─── Redis ────────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: navaro-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - navaro-network
+
+  # ─── Migrations (run once) ────────────────────────────────────────────────────
+  migrations:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: navaro-migrations
+    command: ["alembic", "upgrade", "head"]
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://navaro:${DB_PASSWORD:-navaro_dev}@db:5432/navaro
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - navaro-network
+    profiles:
+      - migrations
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  navaro-network:
+    driver: bridge

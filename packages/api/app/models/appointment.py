@@ -5,7 +5,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 from uuid import UUID
 
-from sqlalchemy import String, Integer, ForeignKey, Enum, DateTime, Index
+from sqlalchemy import String, Integer, ForeignKey, Enum, DateTime, Index, Numeric
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -21,18 +21,27 @@ if TYPE_CHECKING:
 class AppointmentStatus(str, enum.Enum):
     """Appointment status."""
 
-    PENDING = "pending"
-    CONFIRMED = "confirmed"
-    COMPLETED = "completed"
-    CANCELLED = "cancelled"
-    NO_SHOW = "no_show"
+    pending = "pending"
+    confirmed = "confirmed"
+    completed = "completed"
+    cancelled = "cancelled"
+    no_show = "no_show"
+    awaiting_deposit = "awaiting_deposit"
 
 
 class PaymentType(str, enum.Enum):
     """Payment type for appointment."""
 
-    SINGLE = "single"
-    SUBSCRIPTION = "subscription"
+    single = "single"
+    subscription = "subscription"
+
+
+class PaymentMethod(str, enum.Enum):
+    """Payment method for appointment."""
+
+    card = "card"
+    cash = "cash"
+    wallet = "wallet"
 
 
 class Appointment(BaseModel):
@@ -107,7 +116,7 @@ class Appointment(BaseModel):
     
     status: Mapped[AppointmentStatus] = mapped_column(
         Enum(AppointmentStatus),
-        default=AppointmentStatus.PENDING,
+        default=AppointmentStatus.pending,
         nullable=False,
         index=True,
         doc="Appointment status",
@@ -116,7 +125,14 @@ class Appointment(BaseModel):
     payment_type: Mapped[PaymentType] = mapped_column(
         Enum(PaymentType),
         nullable=False,
-        doc="Payment type",
+        doc="Payment type structure",
+    )
+    
+    payment_method: Mapped[PaymentMethod] = mapped_column(
+        Enum(PaymentMethod),
+        default=PaymentMethod.card,
+        nullable=False,
+        doc="Payment method choice",
     )
 
     # ─── Notes ─────────────────────────────────────────────────────────────────
@@ -127,8 +143,21 @@ class Appointment(BaseModel):
     )
     
     cancel_reason: Mapped[str | None] = mapped_column(
-        String(500),
-        doc="Cancellation reason",
+        String(200),
+        doc="Reason for cancellation",
+    )
+    
+    reminder_sent: Mapped[bool] = mapped_column(
+        default=False,
+        server_default="false",
+        doc="Whether 24h reminder was sent",
+    )
+
+    # ─── Payment & Total ───────────────────────────────────────────────────────
+    
+    total_price: Mapped[float | None] = mapped_column(
+        Numeric(10, 2),
+        doc="Total price including products",
     )
 
     # ─── Relationships ─────────────────────────────────────────────────────────
@@ -158,6 +187,12 @@ class Appointment(BaseModel):
     
     subscription = relationship(
         "Subscription",
+    )
+    
+    products = relationship(
+        "AppointmentProduct",
+        back_populates="appointment",
+        cascade="all, delete-orphan",
     )
     
     checkin = relationship(
@@ -191,6 +226,59 @@ class Appointment(BaseModel):
         Index("idx_appointments_establishment_date", "establishment_id", "scheduled_at"),
         Index("idx_appointments_user_date", "user_id", "scheduled_at"),
     )
+
+
+class AppointmentProduct(BaseModel):
+    """
+    Associative table between Appointment and Product.
+    
+    Represents a product sale linked to an appointment.
+    """
+
+    __tablename__ = "appointment_products"
+
+    appointment_id: Mapped[UUID] = mapped_column(
+        PGUUID(as_uuid=True),
+        ForeignKey("appointments.id"),
+        nullable=False,
+        index=True,
+    )
+    
+    product_id: Mapped[UUID] = mapped_column(
+        PGUUID(as_uuid=True),
+        ForeignKey("products.id"),
+        nullable=False,
+        index=True,
+    )
+    
+    quantity: Mapped[int] = mapped_column(
+        Integer,
+        default=1,
+        nullable=False,
+    )
+    
+    unit_price: Mapped[float] = mapped_column(
+        Numeric(10, 2),
+        nullable=False,
+        doc="Price at the moment of sale",
+    )
+
+    # ─── Relationships ─────────────────────────────────────────────────────────
+    
+    appointment = relationship(
+        "Appointment",
+        back_populates="products",
+    )
+    
+    product = relationship(
+        "Product",
+        back_populates="appointment_items",
+    )
+
+    @property
+    def name(self) -> str:
+        """Get product name."""
+        return self.product.name if self.product else "Desconhecido"
 
     def __repr__(self) -> str:
         return f"<Appointment(id={self.id}, status={self.status.value})>"

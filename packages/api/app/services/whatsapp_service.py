@@ -1,0 +1,174 @@
+"""WhatsApp Business API service."""
+
+import httpx
+from typing import Optional
+
+from app.core.logging import get_logger
+from app.services.settings_service import get_cached_setting, get_cached_bool
+from app.models.system_settings import SettingsKeys
+
+logger = get_logger(__name__)
+
+
+class WhatsAppService:
+    """WhatsApp Business API service (Meta Cloud API)."""
+
+    @property
+    def enabled(self) -> bool:
+        return get_cached_bool(SettingsKeys.WHATSAPP_ENABLED, False)
+
+    @property
+    def api_url(self) -> str:
+        return get_cached_setting(SettingsKeys.WHATSAPP_API_URL, "https://graph.facebook.com/v18.0") or "https://graph.facebook.com/v18.0"
+
+    @property
+    def access_token(self) -> str:
+        return get_cached_setting(SettingsKeys.WHATSAPP_ACCESS_TOKEN, "") or ""
+
+    @property
+    def phone_number_id(self) -> str:
+        return get_cached_setting(SettingsKeys.WHATSAPP_PHONE_NUMBER_ID, "") or ""
+
+    async def send_text(self, to_phone: str, message: str) -> bool:
+        """
+        Send text message via WhatsApp.
+        
+        Args:
+            to_phone: Phone number with country code (e.g., 5511999999999)
+            message: Text message to send
+        """
+        if not self.enabled:
+            logger.info("WhatsApp disabled", to=to_phone, message=message[:50])
+            return True
+
+        if not self.access_token or not self.phone_number_id:
+            logger.warning("WhatsApp enabled but not configured")
+            return False
+
+        # Normalize phone (remove + and spaces)
+        clean_phone = to_phone.replace("+", "").replace(" ", "").replace("-", "")
+
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    f"{self.api_url}/{self.phone_number_id}/messages",
+                    headers={
+                        "Authorization": f"Bearer {self.access_token}",
+                        "Content-Type": "application/json",
+                    },
+                    json={
+                        "messaging_product": "whatsapp",
+                        "recipient_type": "individual",
+                        "to": clean_phone,
+                        "type": "text",
+                        "text": {"body": message}
+                    },
+                    timeout=15.0
+                )
+
+                if response.status_code in [200, 201]:
+                    logger.info("WhatsApp sent", to=to_phone)
+                    return True
+                else:
+                    logger.error(
+                        "WhatsApp failed",
+                        status=response.status_code,
+                        response=response.text[:200]
+                    )
+                    return False
+
+        except Exception as e:
+            logger.error("WhatsApp error", error=str(e))
+            return False
+
+    async def send_template(
+        self,
+        to_phone: str,
+        template_name: str,
+        language_code: str = "pt_BR",
+        components: Optional[list] = None
+    ) -> bool:
+        """
+        Send template message via WhatsApp (for approved templates).
+        
+        Args:
+            to_phone: Phone number with country code
+            template_name: Pre-approved template name
+            language_code: Template language
+            components: Template components (header, body, button params)
+        """
+        if not self.enabled or not self.access_token:
+            return False
+
+        clean_phone = to_phone.replace("+", "").replace(" ", "").replace("-", "")
+
+        try:
+            payload = {
+                "messaging_product": "whatsapp",
+                "to": clean_phone,
+                "type": "template",
+                "template": {
+                    "name": template_name,
+                    "language": {"code": language_code},
+                }
+            }
+
+            if components:
+                payload["template"]["components"] = components
+
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    f"{self.api_url}/{self.phone_number_id}/messages",
+                    headers={
+                        "Authorization": f"Bearer {self.access_token}",
+                        "Content-Type": "application/json",
+                    },
+                    json=payload,
+                    timeout=15.0
+                )
+
+                return response.status_code in [200, 201]
+
+        except Exception as e:
+            logger.error("WhatsApp template error", error=str(e))
+            return False
+
+    # ─── Convenience Methods ────────────────────────────────────────────────────
+
+    async def send_appointment_confirmation(
+        self,
+        to_phone: str,
+        establishment_name: str,
+        date: str,
+        time: str
+    ) -> bool:
+        """Send appointment confirmation via WhatsApp."""
+        message = f"✅ *Agendamento Confirmado*\n\n📍 {establishment_name}\n📅 {date}\n🕐 {time}\n\nChegue 5 min antes! 😊"
+        return await self.send_text(to_phone, message)
+
+    async def send_appointment_reminder(
+        self,
+        to_phone: str,
+        establishment_name: str,
+        time: str
+    ) -> bool:
+        """Send appointment reminder via WhatsApp."""
+        message = f"⏰ *Lembrete*\n\nVocê tem horário *amanhã* às {time} em {establishment_name}.\n\nNão esqueça! 👋"
+        return await self.send_text(to_phone, message)
+
+    async def send_verification_code(self, to_phone: str, code: str) -> bool:
+        """Send verification code via WhatsApp."""
+        message = f"🔐 Seu código de verificação Navaro é: *{code}*\n\nVálido por 5 minutos."
+        return await self.send_text(to_phone, message)
+
+
+# Singleton
+_whatsapp_service: Optional[WhatsAppService] = None
+
+
+def get_whatsapp_service() -> WhatsAppService:
+    """Get WhatsApp service singleton."""
+    global _whatsapp_service
+    if _whatsapp_service is None:
+        _whatsapp_service = WhatsAppService()
+    return _whatsapp_service
