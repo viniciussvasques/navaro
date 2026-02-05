@@ -5,12 +5,12 @@ name: CI
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, master, develop]
     paths:
       - 'packages/api/**'
       - '.github/workflows/api.yml'
   pull_request:
-    branches: [main, develop]
+    branches: [main, master, develop]
     paths:
       - 'packages/api/**'
 
@@ -140,7 +140,7 @@ jobs:
     name: Build Docker Image
     runs-on: ubuntu-latest
     needs: [test, security]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
     
     steps:
       - uses: actions/checkout@v4
