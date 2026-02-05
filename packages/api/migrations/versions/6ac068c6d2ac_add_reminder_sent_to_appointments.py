@@ -91,9 +91,9 @@ def upgrade() -> None:
                existing_type=postgresql.TIMESTAMP(timezone=True),
                nullable=False,
                existing_server_default=sa.text('now()'))
-    op.drop_index(op.f('idx_payments_provider_payment_id'), table_name='payments')
-    op.create_index(op.f('ix_payments_provider_payment_id'), 'payments', ['provider_payment_id'], unique=False)
-    op.create_index(op.f('ix_payments_status'), 'payments', ['status'], unique=False)
+    # op.drop_index(op.f('idx_payments_provider_payment_id'), table_name='payments')
+    # op.create_index(op.f('ix_payments_provider_payment_id'), 'payments', ['provider_payment_id'], unique=False)
+    # op.create_index(op.f('ix_payments_status'), 'payments', ['status'], unique=False)
     op.alter_column('payouts', 'created_at',
                existing_type=postgresql.TIMESTAMP(timezone=True),
                nullable=False,
@@ -208,8 +208,8 @@ def upgrade() -> None:
                existing_type=postgresql.TIMESTAMP(timezone=True),
                nullable=False,
                existing_server_default=sa.text('now()'))
-    op.drop_index(op.f('idx_tips_provider_payment_id'), table_name='tips')
-    op.create_index(op.f('ix_tips_provider_payment_id'), 'tips', ['provider_payment_id'], unique=False)
+    # op.drop_index(op.f('idx_tips_provider_payment_id'), table_name='tips')
+    # op.create_index(op.f('ix_tips_provider_payment_id'), 'tips', ['provider_payment_id'], unique=False)
     op.alter_column('users', 'created_at',
                existing_type=postgresql.TIMESTAMP(timezone=True),
                nullable=False,
@@ -233,8 +233,8 @@ def downgrade() -> None:
                existing_type=postgresql.TIMESTAMP(timezone=True),
                nullable=True,
                existing_server_default=sa.text('now()'))
-    op.drop_index(op.f('ix_tips_provider_payment_id'), table_name='tips')
-    op.create_index(op.f('idx_tips_provider_payment_id'), 'tips', ['provider_payment_id'], unique=False)
+    # op.drop_index(op.f('ix_tips_provider_payment_id'), table_name='tips')
+    # op.create_index(op.f('idx_tips_provider_payment_id'), 'tips', ['provider_payment_id'], unique=False)
     op.alter_column('tips', 'updated_at',
                existing_type=postgresql.TIMESTAMP(timezone=True),
                nullable=True,
@@ -349,9 +349,9 @@ def downgrade() -> None:
                existing_type=postgresql.TIMESTAMP(timezone=True),
                nullable=True,
                existing_server_default=sa.text('now()'))
-    op.drop_index(op.f('ix_payments_status'), table_name='payments')
-    op.drop_index(op.f('ix_payments_provider_payment_id'), table_name='payments')
-    op.create_index(op.f('idx_payments_provider_payment_id'), 'payments', ['provider_payment_id'], unique=False)
+    # op.drop_index(op.f('ix_payments_status'), table_name='payments')
+    # op.drop_index(op.f('ix_payments_provider_payment_id'), table_name='payments')
+    # op.create_index(op.f('idx_payments_provider_payment_id'), 'payments', ['provider_payment_id'], unique=False)
     op.alter_column('payments', 'updated_at',
                existing_type=postgresql.TIMESTAMP(timezone=True),
                nullable=True,
