@@ -16,8 +16,6 @@ async def test_auth_flow(client: AsyncClient):
     response = await client.post("/api/v1/auth/send-code", json={"phone": phone})
     if response.status_code != 200:
         print(f"DEBUG ERROR: {response.text}")
-        with open("/root/projetos/navaro/packages/api/error.txt", "w") as f:
-            f.write(response.text)
     assert response.status_code == 200
     data = response.json()
     # In dev mode, message format is "Código de verificação: XXXXXX"
