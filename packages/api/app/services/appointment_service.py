@@ -1,7 +1,7 @@
 """Appointment service."""
 
 from collections.abc import Sequence
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from uuid import UUID
 
 from sqlalchemy import func, select
@@ -47,7 +47,7 @@ class AppointmentService:
     async def list_by_establishment(
         self,
         establishment_id: UUID,
-        date_filter: datetime.date | None = None,
+        date_filter: date | None = None,
         staff_id: UUID | None = None,
         status_filter: str | None = None,
     ) -> Sequence[Appointment]:
