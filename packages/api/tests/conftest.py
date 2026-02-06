@@ -61,10 +61,9 @@ def anyio_backend():
 
 
 @pytest.fixture(scope="function")
-def app():
-    """Create a fresh app instance for each test."""
+def app(db_engine):
+    """Create a fresh app instance for each test. Depends on db_engine to ensure patching."""
     from app.main import create_app
-
     return create_app()
 
 
