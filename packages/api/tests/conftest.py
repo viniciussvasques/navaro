@@ -13,9 +13,6 @@ from asgi_lifespan import LifespanManager
 from httpx import ASGITransport, AsyncClient
 
 from app.main import app
-from app.core.database import engine
-from app.models.base import Base
-from sqlalchemy import text
 
 
 @pytest.fixture(scope="function")

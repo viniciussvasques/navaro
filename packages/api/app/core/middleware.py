@@ -1,12 +1,5 @@
 """Application middlewares."""
-
-import time
-from collections.abc import Callable
-from uuid import uuid4
-
-from fastapi import FastAPI, Request, Response
-from fastapi.middleware.cors import CORSMiddleware
-from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.types import ASGIApp, Receive, Scope, Send
 
 from app.core.config import settings
 from app.core.exceptions import AppException, RateLimitError
@@ -17,9 +10,6 @@ logger = get_logger(__name__)
 
 
 # ─── Request Timing Middleware ─────────────────────────────────────────────────
-
-
-from starlette.types import ASGIApp, Receive, Scope, Send
 
 
 class RequestTimingMiddleware:
