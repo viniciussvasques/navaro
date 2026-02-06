@@ -69,9 +69,15 @@ async def test_notifications_checkin(
 
     # 1. Create Appointment first (required by CheckinService)
     # ----------------------------------------------------------------------------------
-    from datetime import datetime, timedelta
-
-    scheduled_at = (datetime.now() + timedelta(days=1)).isoformat()
+    from datetime import UTC, datetime, timedelta
+    
+    # Use deterministic date (Next Monday 10:00) to match business hours
+    today = datetime.now(UTC)
+    days_ahead = 0 - today.weekday()  # Target Monday (0)
+    if days_ahead <= 0:
+        days_ahead += 7
+    next_monday = today + timedelta(days=days_ahead)
+    scheduled_at = next_monday.replace(hour=10, minute=0, second=0, microsecond=0).isoformat()
     resp = await client.post(
         "/api/v1/appointments",
         headers=auth_headers_second_user,
