@@ -22,7 +22,7 @@ async def db_engine():
     from app.core import database
     from app.core.config import settings
     from sqlalchemy.pool import NullPool
-    from sqlalchemy.ext.asyncio import create_async_engine
+    from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
     # Ensure we use the test database URL
     db_url = settings.DATABASE_URL
@@ -30,18 +30,26 @@ async def db_engine():
     # Create fresh engine
     test_engine = create_async_engine(db_url, echo=False, future=True, poolclass=NullPool)
 
-    # Patch global engine
-    original_engine = database.engine
-    database.engine = test_engine
+    # Create fresh session factory
+    test_session_maker = async_sessionmaker(
+        bind=test_engine,
+        expire_on_commit=False,
+        autoflush=False,
+    )
 
-    # Patch session factory
-    database.async_session_maker.configure(bind=test_engine)
+    # Patch global engine and session maker
+    original_engine = database.engine
+    original_session_maker = database.async_session_maker
+    
+    database.engine = test_engine
+    database.async_session_maker = test_session_maker
 
     yield test_engine
 
     # Restore and cleanup
     await test_engine.dispose()
     database.engine = original_engine
+    database.async_session_maker = original_session_maker
 
 
 @pytest.fixture(autouse=True)
@@ -129,6 +137,10 @@ async def establishment_id(client: AsyncClient, auth_headers: dict) -> str:
     """Create an establishment and return its ID."""
     from uuid import uuid4
 
+    business_hours = {
+        day: {"open": "08:00", "close": "20:00"}
+        for day in ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
+    }
     est_data = {
         "name": f"Barbearia Teste {uuid4()}",
         "category": "barbershop",
@@ -136,6 +148,7 @@ async def establishment_id(client: AsyncClient, auth_headers: dict) -> str:
         "city": "São Paulo",
         "state": "SP",
         "phone": "+551133333333",
+        "business_hours": business_hours,
     }
     resp = await client.post("/api/v1/establishments", json=est_data, headers=auth_headers)
     assert resp.status_code == 201
