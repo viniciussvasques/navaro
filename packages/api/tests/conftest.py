@@ -12,8 +12,6 @@ import pytest
 from asgi_lifespan import LifespanManager
 from httpx import ASGITransport, AsyncClient
 
-from app.main import app
-
 
 @pytest.fixture(scope="function")
 async def db_engine():
@@ -63,7 +61,14 @@ def anyio_backend():
 
 
 @pytest.fixture(scope="function")
-async def client() -> AsyncGenerator[AsyncClient, None]:
+def app():
+    """Create a fresh app instance for each test."""
+    from app.main import create_app
+    return create_app()
+
+
+@pytest.fixture(scope="function")
+async def client(app) -> AsyncGenerator[AsyncClient, None]:
     """
     Fixture that creates an AsyncClient for testing the FastAPI app.
     Uses LifespanManager to handle startup/shutdown events (DB connection).
