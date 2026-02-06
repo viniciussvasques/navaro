@@ -3,9 +3,12 @@
 import random
 import string
 from datetime import UTC, datetime, timedelta
+import json
 
 from fastapi import APIRouter, HTTPException
+import httpx
 from pydantic import BaseModel, Field
+import redis.asyncio as aioredis
 from sqlalchemy import select
 
 from app.api.deps import DBSession
@@ -20,6 +23,69 @@ logger = get_logger(__name__)
 
 # In-memory verification codes (use Redis in production)
 _verification_codes: dict[str, tuple[str, datetime]] = {}
+OTP_TTL_SECONDS = 300
+
+
+def _otp_key(phone: str) -> str:
+    return f"{settings.REDIS_PREFIX}otp:{phone}"
+
+
+async def _store_verification_code(phone: str, code: str, expires_at: datetime) -> None:
+    payload = json.dumps({"code": code, "expires_at": expires_at.isoformat()})
+    try:
+        redis_client = aioredis.from_url(settings.REDIS_URL)
+        await redis_client.setex(_otp_key(phone), OTP_TTL_SECONDS, payload)
+        await redis_client.close()
+    except Exception:
+        logger.warning("OTP Redis store failed; using in-memory fallback", phone=phone)
+        _verification_codes[phone] = (code, expires_at)
+
+
+async def _get_verification_code(phone: str) -> tuple[str, datetime] | None:
+    try:
+        redis_client = aioredis.from_url(settings.REDIS_URL)
+        raw = await redis_client.get(_otp_key(phone))
+        await redis_client.close()
+        if raw:
+            data = json.loads(raw)
+            return data["code"], datetime.fromisoformat(data["expires_at"])
+    except Exception:
+        logger.warning("OTP Redis read failed; using in-memory fallback", phone=phone)
+    return _verification_codes.get(phone)
+
+
+async def _delete_verification_code(phone: str) -> None:
+    try:
+        redis_client = aioredis.from_url(settings.REDIS_URL)
+        await redis_client.delete(_otp_key(phone))
+        await redis_client.close()
+    except Exception:
+        logger.warning("OTP Redis delete failed; cleaning in-memory fallback", phone=phone)
+    _verification_codes.pop(phone, None)
+
+
+async def _send_sms_code(phone: str, code: str) -> None:
+    """Send verification code using configured provider when enabled."""
+    if not settings.SMS_ENABLED:
+        logger.info("SMS provider disabled; skipping outbound SMS", phone=phone)
+        return
+
+    if not settings.NVOIP_TOKEN:
+        logger.warning("SMS enabled but NVOIP_TOKEN not configured", phone=phone)
+        return
+
+    payload = {
+        "celular": phone,
+        "mensagem": f"Seu código Navaro é: {code}",
+    }
+    headers = {
+        "token_auth": settings.NVOIP_TOKEN,
+        "Content-Type": "application/json",
+    }
+
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        response = await client.post(f"{settings.NVOIP_API_URL}/sms", json=payload, headers=headers)
+        response.raise_for_status()
 
 
 # ─── Schemas ───────────────────────────────────────────────────────────────────
@@ -101,7 +167,7 @@ async def send_verification_code(request: SendCodeRequest) -> SendCodeResponse:
     expires_at = datetime.now(UTC) + timedelta(minutes=5)
 
     # Store code
-    _verification_codes[request.phone] = (code, expires_at)
+    await _store_verification_code(request.phone, code, expires_at)
 
     logger.info("Verification code sent", phone=request.phone)
 
@@ -109,13 +175,13 @@ async def send_verification_code(request: SendCodeRequest) -> SendCodeResponse:
     if settings.ENVIRONMENT == "development":
         return SendCodeResponse(
             message=f"Código de verificação: {code}",
-            expires_in_seconds=300,
+            expires_in_seconds=OTP_TTL_SECONDS,
         )
 
-    # TODO: Send SMS via Twilio in production
+    await _send_sms_code(request.phone, code)
     return SendCodeResponse(
         message="Código de verificação enviado",
-        expires_in_seconds=300,
+        expires_in_seconds=OTP_TTL_SECONDS,
     )
 
 
@@ -127,21 +193,21 @@ async def verify_code(request: VerifyCodeRequest, db: DBSession) -> AuthResponse
     Creates new user if phone not registered.
     """
     # Check code
-    stored = _verification_codes.get(request.phone)
+    stored = await _get_verification_code(request.phone)
     if not stored:
         raise InvalidCodeError()
 
     code, expires_at = stored
 
     if datetime.now(UTC) > expires_at:
-        del _verification_codes[request.phone]
+        await _delete_verification_code(request.phone)
         raise InvalidCodeError()
 
     if code != request.code:
         raise InvalidCodeError()
 
     # Remove used code
-    del _verification_codes[request.phone]
+    await _delete_verification_code(request.phone)
 
     # Find or create user
     result = await db.execute(select(User).where(User.phone == request.phone))

@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
-from app.dependencies import get_current_user, verify_establishment_owner
+from app.dependencies import get_current_user, verify_establishment_access
 from app.models.user import User
 from app.services.payout_service import PayoutService
 
@@ -36,7 +36,7 @@ async def get_balance(
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
     """Get establishment's withdrawable balance."""
-    await verify_establishment_owner(db, establishment_id, current_user.id)
+    await verify_establishment_access(db, establishment_id, current_user)
     service = PayoutService(db)
     balance = await service.get_withdrawable_balance(establishment_id)
     return {"available_balance": balance}
@@ -50,7 +50,7 @@ async def request_payout(
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
     """Request a payout."""
-    await verify_establishment_owner(db, establishment_id, current_user.id)
+    await verify_establishment_access(db, establishment_id, current_user)
     service = PayoutService(db)
     try:
         payout = await service.request_payout(establishment_id, data.amount)
@@ -66,6 +66,6 @@ async def list_payouts(
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
     """List payout history for an establishment."""
-    await verify_establishment_owner(db, establishment_id, current_user.id)
+    await verify_establishment_access(db, establishment_id, current_user)
     service = PayoutService(db)
     return await service.list_payouts(establishment_id)

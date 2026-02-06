@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
-from app.dependencies import get_current_user, verify_establishment_owner
+from app.dependencies import get_current_user, verify_establishment_access
 from app.models.user import User
 from app.schemas.review import (
     ReviewCreate,
@@ -116,7 +116,7 @@ async def respond_to_review(
         raise HTTPException(status_code=404, detail="Review not found")
 
     # 2. Verify ownership
-    await verify_establishment_owner(db, review.establishment_id, current_user.id)
+    await verify_establishment_access(db, review.establishment_id, current_user)
 
     # 3. Add response
     updated_review = await service.respond(review_id, data.response)

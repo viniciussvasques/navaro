@@ -6,9 +6,9 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.config import settings
+from app.core.config import settings
 from app.database import get_db
-from app.dependencies import get_current_user, verify_establishment_owner
+from app.dependencies import get_current_user, verify_establishment_access
 from app.models.user import User
 from app.schemas.payment import (
     CreatePaymentIntentRequest,
@@ -40,7 +40,7 @@ async def list_establishment_payments(
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> list[PaymentResponse]:
     """List establishment payments (owner only)."""
-    await verify_establishment_owner(db, establishment_id, current_user.id)
+    await verify_establishment_access(db, establishment_id, current_user)
 
     service = PaymentService(db)
     payments = await service.list_by_establishment(establishment_id)

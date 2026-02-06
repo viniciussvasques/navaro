@@ -8,7 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.config import settings
+from app.core.config import settings
 from app.models.appointment import Appointment, AppointmentStatus
 from app.models.establishment import Establishment
 from app.models.payment import Payment, PaymentPurpose, PaymentStatus
