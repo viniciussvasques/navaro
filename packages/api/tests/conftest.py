@@ -55,9 +55,6 @@ async def clear_db(db_engine):
     yield
 
 
-@pytest.fixture(scope="session")
-def anyio_backend():
-    return "asyncio"
 
 
 @pytest.fixture(scope="function")
