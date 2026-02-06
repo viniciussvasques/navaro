@@ -70,7 +70,7 @@ async def test_notifications_checkin(
     # 1. Create Appointment first (required by CheckinService)
     # ----------------------------------------------------------------------------------
     from datetime import UTC, datetime, timedelta
-    
+
     # Use deterministic date (Next Monday 10:00) to match business hours
     today = datetime.now(UTC)
     days_ahead = 0 - today.weekday()  # Target Monday (0)
