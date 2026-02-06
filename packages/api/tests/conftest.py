@@ -4,6 +4,7 @@ import os
 os.environ["ENVIRONMENT"] = "development"
 os.environ["APP_MODE"] = "debug"
 os.environ["RATE_LIMIT_ENABLED"] = "False"
+os.environ["TESTING"] = "True"
 
 from collections.abc import AsyncGenerator
 

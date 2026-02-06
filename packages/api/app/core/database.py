@@ -4,6 +4,8 @@ from collections.abc import AsyncGenerator
 from typing import Annotated
 
 from fastapi import Depends
+import sqlalchemy.pool
+import os
 from sqlalchemy import event
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
@@ -22,6 +24,7 @@ engine = create_async_engine(
     max_overflow=settings.DATABASE_MAX_OVERFLOW,
     echo=settings.database_echo_effective,
     pool_pre_ping=True,
+    poolclass=sqlalchemy.pool.NullPool if os.environ.get("TESTING") else None,
 )
 
 async_session_maker = async_sessionmaker(
