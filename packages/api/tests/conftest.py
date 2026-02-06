@@ -7,10 +7,38 @@ os.environ["RATE_LIMIT_ENABLED"] = "False"
 os.environ["TESTING"] = "True"
 
 from collections.abc import AsyncGenerator
+from contextlib import AbstractAsyncContextManager
+from types import TracebackType
+from typing import Any
 
 import pytest
-from asgi_lifespan import LifespanManager
 from httpx import ASGITransport, AsyncClient
+
+try:
+    from asgi_lifespan import LifespanManager
+except ModuleNotFoundError:
+
+    class LifespanManager(AbstractAsyncContextManager):
+        """Fallback lifespan manager when asgi_lifespan isn't installed."""
+
+        def __init__(self, app: Any):
+            self.app = app
+            self._context = None
+
+        async def __aenter__(self) -> Any:
+            self._context = self.app.router.lifespan_context(self.app)
+            await self._context.__aenter__()
+            return self.app
+
+        async def __aexit__(
+            self,
+            exc_type: type[BaseException] | None,
+            exc: BaseException | None,
+            tb: TracebackType | None,
+        ) -> bool | None:
+            if self._context is None:
+                return None
+            return await self._context.__aexit__(exc_type, exc, tb)
 
 
 @pytest.fixture(scope="function")
