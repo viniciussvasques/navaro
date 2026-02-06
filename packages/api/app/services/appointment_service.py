@@ -113,7 +113,9 @@ class AppointmentService:
             raise ValueError(f"Estabelecimento fechado em {day_key}")
 
         # 2. Staff Work Schedule
-        staff_hours = staff.work_schedule.get(day_key)
+        staff_hours = staff.work_schedule.get(day_key) if staff.work_schedule else None
+        if not staff_hours:
+            staff_hours = est_hours
         if not staff_hours:
             raise ValueError(f"Profissional não trabalha em {day_key}")
 
