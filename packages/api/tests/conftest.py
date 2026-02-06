@@ -64,6 +64,7 @@ def anyio_backend():
 def app():
     """Create a fresh app instance for each test."""
     from app.main import create_app
+
     return create_app()
 
 
