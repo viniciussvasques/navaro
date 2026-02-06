@@ -19,13 +19,13 @@ async def test_appointment_flow(client: AsyncClient):
 
     # Send code
     resp = await client.post("/api/v1/auth/send-code", json={"phone": phone})
-    assert resp.status_code == 200
+    assert resp.status_code == 200, f"Send Code Failed: {resp.text}"
     msg = resp.json()["message"]
     code = msg.split(": ")[1].strip()
 
     # Verify code
     resp = await client.post("/api/v1/auth/verify", json={"phone": phone, "code": code})
-    assert resp.status_code == 200
+    assert resp.status_code == 200, f"Verify Code Failed: {resp.text}"
     token = resp.json()["tokens"]["access_token"]
     headers = {"Authorization": f"Bearer {token}"}
 

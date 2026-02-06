@@ -3,6 +3,7 @@ import os
 # Set environment variables BEFORE importing app to ensure settings are loaded correctly
 os.environ["ENVIRONMENT"] = "development"
 os.environ["APP_MODE"] = "debug"
+os.environ["RATE_LIMIT_ENABLED"] = "False"
 
 from collections.abc import AsyncGenerator
 
