@@ -18,13 +18,20 @@ from app.core.maintenance import get_maintenance
 
 # ─── Engine & Session ──────────────────────────────────────────────────────────
 
+engine_kwargs = {
+    "echo": settings.database_echo_effective,
+    "pool_pre_ping": True,
+}
+
+if os.environ.get("TESTING"):
+    engine_kwargs["poolclass"] = sqlalchemy.pool.NullPool
+else:
+    engine_kwargs["pool_size"] = settings.DATABASE_POOL_SIZE
+    engine_kwargs["max_overflow"] = settings.DATABASE_MAX_OVERFLOW
+
 engine = create_async_engine(
     settings.DATABASE_URL,
-    pool_size=settings.DATABASE_POOL_SIZE,
-    max_overflow=settings.DATABASE_MAX_OVERFLOW,
-    echo=settings.database_echo_effective,
-    pool_pre_ping=True,
-    poolclass=sqlalchemy.pool.NullPool if os.environ.get("TESTING") else None,
+    **engine_kwargs,
 )
 
 async_session_maker = async_sessionmaker(
