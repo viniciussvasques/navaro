@@ -70,11 +70,7 @@ def app(db_engine):
 
     # Create a completely fresh sessionmaker bound to the test engine
     # This ensures sessions are eager-bound to the current tests's event loop
-    test_session_maker = async_sessionmaker(
-        bind=db_engine,
-        expire_on_commit=False,
-        autoflush=False
-    )
+    test_session_maker = async_sessionmaker(bind=db_engine, expire_on_commit=False, autoflush=False)
 
     async def override_get_db():
         async with test_session_maker() as session:
