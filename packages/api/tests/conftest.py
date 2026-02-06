@@ -55,8 +55,6 @@ async def clear_db(db_engine):
     yield
 
 
-
-
 @pytest.fixture(scope="function")
 def app(db_engine):
     """Create a fresh app instance for each test. Depends on db_engine to ensure patching."""
