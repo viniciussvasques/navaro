@@ -8,7 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
-from app.dependencies import get_current_user, verify_establishment_owner
+from app.dependencies import get_current_user, verify_establishment_access
 from app.models.establishment import Establishment
 from app.models.notification import NotificationType
 from app.models.user import User
@@ -29,8 +29,7 @@ async def generate_qr_code(
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> QRCodeResponse:
     """Generate QR code for check-in (owner/staff only)."""
-    # TODO: Also allow staff members
-    await verify_establishment_owner(db, establishment_id, current_user.id)
+    await verify_establishment_access(db, establishment_id, current_user)
 
     service = CheckinService(db)
     qr_data = await service.generate_qr_token(establishment_id)
