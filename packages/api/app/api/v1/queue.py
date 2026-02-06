@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
-from app.dependencies import get_current_user, verify_establishment_owner
+from app.dependencies import get_current_user, verify_establishment_access
 from app.models.queue import QueueEntry, QueueStatus
 from app.models.user import User
 from app.schemas.queue import (
@@ -62,7 +62,7 @@ async def list_my_queues(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> list[QueueEntryResponse]:
-    """List active queues the user has joined (TODO implementation optional)."""
+    """List active queues the user has joined."""
     service = QueueService(db)
     entries = await service.list_by_user(current_user.id)
     return [QueueEntryResponse.model_validate(entry) for entry in entries]
@@ -80,7 +80,7 @@ async def update_queue_status(
     entry = await db.get(QueueEntry, entry_id)
     if not entry:
         raise HTTPException(status_code=404, detail="Entry not found")
-    await verify_establishment_owner(db, entry.establishment_id, current_user.id)
+    await verify_establishment_access(db, entry.establishment_id, current_user)
 
     entry = await service.update_status(entry_id, data.status, data.assigned_staff_id)
     if not entry:
