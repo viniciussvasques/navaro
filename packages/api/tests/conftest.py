@@ -28,24 +28,19 @@ async def db_engine():
 
     # Ensure we use the test database URL
     db_url = settings.DATABASE_URL
-    
+
     # Create fresh engine
-    test_engine = create_async_engine(
-        db_url,
-        echo=False,
-        future=True,
-        poolclass=NullPool
-    )
-    
+    test_engine = create_async_engine(db_url, echo=False, future=True, poolclass=NullPool)
+
     # Patch global engine
     original_engine = database.engine
     database.engine = test_engine
-    
+
     # Patch session factory
     database.async_session_maker.configure(bind=test_engine)
-    
+
     yield test_engine
-    
+
     # Restore and cleanup
     await test_engine.dispose()
     database.engine = original_engine
@@ -55,6 +50,7 @@ async def db_engine():
 async def clear_db(db_engine):
     """Clear database before each test. Uses patched engine."""
     from app.models.base import Base
+
     async with db_engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)

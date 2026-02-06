@@ -1,4 +1,5 @@
 """Application middlewares."""
+
 from starlette.types import ASGIApp, Receive, Scope, Send
 import time
 from uuid import uuid4
@@ -70,7 +71,7 @@ class RequestTimingMiddleware:
                     duration_ms=round(duration_ms, 2),
                     status_code=status_code,
                 )
-            
+
             clear_context()
 
 
@@ -172,7 +173,7 @@ class RateLimitMiddleware:
         # Get client IP
         client = scope.get("client")
         client_ip = client[0] if client else "unknown"
-        
+
         # Check X-Forwarded-For
         headers = dict(scope.get("headers", []))
         forwarded = headers.get(b"x-forwarded-for")

@@ -76,7 +76,7 @@ async def test_appointment_flow(client: AsyncClient):
         days_ahead += 7
     next_monday = today + timedelta(days=days_ahead)
     scheduled_at = next_monday.replace(hour=10, minute=0, second=0, microsecond=0).isoformat()
-    
+
     appt_data = {
         "establishment_id": est_id,
         "service_id": service_id,
