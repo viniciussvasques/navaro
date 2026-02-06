@@ -11,8 +11,8 @@ on:
       - '.github/workflows/api.yml'
   pull_request:
     branches: [main, master, develop]
-    paths:
-      - 'packages/api/**'
+    # Sem path filter: CI roda em toda atualização da PR (inclusive commit vazio)
+  workflow_dispatch:  # Executar CI manualmente (Actions → CI → Run workflow)
 
 defaults:
   run:
