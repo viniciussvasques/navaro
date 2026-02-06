@@ -22,7 +22,7 @@ async def test_notifications_queue_flow(
         headers=auth_headers_second_user,
         json={"establishment_id": establishment_id},
     )
-    assert resp.status_code == 201
+    assert resp.status_code == 201, f"Response: {resp.text}"
     entry_id = resp.json()["id"]
 
     # 2. Call from Queue (as Owner)
@@ -32,12 +32,12 @@ async def test_notifications_queue_flow(
         headers=auth_headers,  # auth_headers is owner
         json={"status": QueueStatus.called},
     )
-    assert resp.status_code == 200
+    assert resp.status_code == 200, f"Response: {resp.text}"
 
     # 3. Check Notifications (as Customer)
     # ----------------------------------------------------------------------------------
     resp = await client.get("/api/v1/notifications", headers=auth_headers_second_user)
-    assert resp.status_code == 200
+    assert resp.status_code == 200, f"Response: {resp.text}"
     data = resp.json()
     assert data["total"] >= 1
     assert data["unread_count"] >= 1
@@ -52,7 +52,7 @@ async def test_notifications_queue_flow(
     resp = await client.patch(
         f"/api/v1/notifications/{notif_id}/read", headers=auth_headers_second_user
     )
-    assert resp.status_code == 200
+    assert resp.status_code == 200, f"Response: {resp.text}"
     assert resp.json()["is_read"] is True
 
 
@@ -89,14 +89,14 @@ async def test_notifications_checkin(
             "payment_type": "single",
         },
     )
-    assert resp.status_code == 201
+    assert resp.status_code == 201, f"Response: {resp.text}"
 
     # 2. Generate QR token as owner
     # ----------------------------------------------------------------------------------
     resp = await client.get(
         f"/api/v1/checkins/establishments/{establishment_id}/qr", headers=auth_headers
     )
-    assert resp.status_code == 200
+    assert resp.status_code == 200, f"Response: {resp.text}"
     qr_token = resp.json()["qr_token"]
 
     # 3. Perform check-in as user
@@ -104,12 +104,12 @@ async def test_notifications_checkin(
     resp = await client.post(
         "/api/v1/checkins", headers=auth_headers_second_user, json={"qr_token": qr_token}
     )
-    assert resp.status_code == 200
+    assert resp.status_code == 200, f"Response: {resp.text}"
 
     # 4. Check owner inbox
     # ----------------------------------------------------------------------------------
     resp = await client.get("/api/v1/notifications", headers=auth_headers)
-    assert resp.status_code == 200
+    assert resp.status_code == 200, f"Response: {resp.text}"
     data = resp.json()
 
     found = False
