@@ -57,10 +57,32 @@ async def clear_db(db_engine):
 
 @pytest.fixture(scope="function")
 def app(db_engine):
-    """Create a fresh app instance for each test. Depends on db_engine to ensure patching."""
+    """
+    Create a fresh app instance for each test.
+    Depends on db_engine to ensure patching (for background tasks/lifespan).
+    Uses dependency_overrides to bypass global get_db completely.
+    """
     from app.main import create_app
+    from app.core import database
+    from sqlalchemy.ext.asyncio import async_sessionmaker
 
-    return create_app()
+    _app = create_app()
+
+    # Create a completely fresh sessionmaker bound to the test engine
+    # This ensures sessions are eager-bound to the current tests's event loop
+    test_session_maker = async_sessionmaker(
+        bind=db_engine,
+        expire_on_commit=False,
+        autoflush=False
+    )
+
+    async def override_get_db():
+        async with test_session_maker() as session:
+            yield session
+
+    _app.dependency_overrides[database.get_db] = override_get_db
+
+    return _app
 
 
 @pytest.fixture(scope="function")
