@@ -7,8 +7,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
-from app.dependencies import get_current_user
-from app.models.queue import QueueStatus
+from app.dependencies import get_current_user, verify_establishment_owner
+from app.models.queue import QueueEntry, QueueStatus
 from app.models.user import User
 from app.schemas.queue import (
     QueueEntryCreate,
@@ -63,9 +63,9 @@ async def list_my_queues(
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> list[QueueEntryResponse]:
     """List active queues the user has joined (TODO implementation optional)."""
-    # For now, simplistic implementation or placeholder
-    # Ideally should be in service
-    return []
+    service = QueueService(db)
+    entries = await service.list_by_user(current_user.id)
+    return [QueueEntryResponse.model_validate(entry) for entry in entries]
 
 
 @router.patch("/{entry_id}/status", response_model=QueueEntryResponse)
@@ -77,13 +77,10 @@ async def update_queue_status(
 ) -> QueueEntryResponse:
     """Update queue status (Staff/Owner only)."""
     service = QueueService(db)
-
-    # Needs a way to verify if entry belongs to establishment owned by user
-    # Simplified check: Fetch entry first (TODO: Optimize)
-    # This is a critical security check missing in this MVP draft
-    # Assuming owner for now based on context provided in previous files (verify_establishment_owner)
-
-    # Real implementation needs to check if user has permissions for the establishment of this queue entry
+    entry = await db.get(QueueEntry, entry_id)
+    if not entry:
+        raise HTTPException(status_code=404, detail="Entry not found")
+    await verify_establishment_owner(db, entry.establishment_id, current_user.id)
 
     entry = await service.update_status(entry_id, data.status, data.assigned_staff_id)
     if not entry:

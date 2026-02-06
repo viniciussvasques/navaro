@@ -52,6 +52,28 @@ class QueueService:
         result = await self.db.execute(query)
         return result.scalars().all()
 
+    async def list_by_user(self, user_id: UUID) -> Sequence[QueueEntry]:
+        """List active queue entries for a user."""
+        query = (
+            select(QueueEntry)
+            .where(
+                QueueEntry.user_id == user_id,
+                QueueEntry.status.in_(
+                    [QueueStatus.waiting, QueueStatus.called, QueueStatus.serving]
+                ),
+            )
+            .options(
+                selectinload(QueueEntry.user),
+                selectinload(QueueEntry.service),
+                selectinload(QueueEntry.preferred_staff),
+                selectinload(QueueEntry.assigned_staff),
+            )
+            .order_by(QueueEntry.entered_at.desc())
+        )
+
+        result = await self.db.execute(query)
+        return result.scalars().all()
+
     async def get_user_position(self, establishment_id: UUID, user_id: UUID) -> QueueEntry | None:
         """Get active queue entry for a user in an establishment."""
         result = await self.db.execute(
