@@ -40,7 +40,7 @@ async def db_engine():
     # Patch global engine and session maker
     original_engine = database.engine
     original_session_maker = database.async_session_maker
-    
+
     database.engine = test_engine
     database.async_session_maker = test_session_maker
 
