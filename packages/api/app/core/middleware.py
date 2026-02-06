@@ -19,63 +19,83 @@ logger = get_logger(__name__)
 # ─── Request Timing Middleware ─────────────────────────────────────────────────
 
 
-class RequestTimingMiddleware(BaseHTTPMiddleware):
-    """Add request timing and logging."""
+from starlette.types import ASGIApp, Receive, Scope, Send
 
-    async def dispatch(self, request: Request, call_next: Callable) -> Response:
+
+class RequestTimingMiddleware:
+    """Add request timing and logging (ASGI implementation)."""
+
+    def __init__(self, app: ASGIApp):
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
         request_id = uuid4()
+        method = scope["method"]
+        path = scope["path"]
 
-        # Bind context for logging
+        # Bind context
         bind_context(
             request_id=str(request_id),
-            method=request.method,
-            path=request.url.path,
+            method=method,
+            path=path,
         )
 
-        # Track in maintenance system
         maintenance = get_maintenance()
-        endpoint = f"{request.method} {request.url.path}"
+        endpoint = f"{method} {path}"
         maintenance.start_request(request_id, endpoint)
 
+        status_code = 500
         is_error = False
+
+        async def send_wrapper(message: dict) -> None:
+            nonlocal status_code
+            if message["type"] == "http.response.start":
+                status_code = message["status"]
+            await send(message)
+
         try:
-            response = await call_next(request)
-            is_error = response.status_code >= 400
-            return response
+            await self.app(scope, receive, send_wrapper)
+            # 400+ dianggap error untuk log
+            if status_code >= 400:
+                is_error = True
         except Exception:
             is_error = True
             raise
         finally:
             duration_ms = maintenance.end_request(request_id, endpoint, is_error)
 
-            # Log request (only in debug mode or for errors)
+            # Log request
             if settings.is_debug or is_error:
                 log_method = logger.error if is_error else logger.info
                 log_method(
                     "Request completed",
                     duration_ms=round(duration_ms, 2),
-                    status_code=getattr(response, "status_code", 500)
-                    if "response" in dir()
-                    else 500,
+                    status_code=status_code,
                 )
-
-            # Add timing header
-            if "response" in dir():
-                response.headers["X-Request-ID"] = str(request_id)
-                response.headers["X-Response-Time"] = f"{duration_ms:.2f}ms"
-
+            
             clear_context()
 
 
 # ─── Error Handler Middleware ──────────────────────────────────────────────────
 
 
-class ErrorHandlerMiddleware(BaseHTTPMiddleware):
-    """Global error handling middleware."""
+class ErrorHandlerMiddleware:
+    """Global error handling middleware (ASGI implementation)."""
 
-    async def dispatch(self, request: Request, call_next: Callable) -> Response:
+    def __init__(self, app: ASGIApp):
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
         try:
-            return await call_next(request)
+            await self.app(scope, receive, send)
         except AppException as e:
             logger.warning(
                 "Application exception",
@@ -83,78 +103,87 @@ class ErrorHandlerMiddleware(BaseHTTPMiddleware):
                 message=e.message,
                 status_code=e.status_code,
             )
-
             from fastapi.responses import JSONResponse
 
-            return JSONResponse(
+            response = JSONResponse(
                 status_code=e.status_code,
                 content=e.to_dict(),
             )
+            await response(scope, receive, send)
         except Exception as e:
             # Check for FastAPI/Pydantic validation errors
             from fastapi.exceptions import RequestValidationError
+            from fastapi.responses import JSONResponse
 
             if isinstance(e, RequestValidationError):
-                # Log and let FastAPI handle it (or handle it here to satisfy the test)
                 logger.warning("Validation error", errors=e.errors())
-                from fastapi.responses import JSONResponse
-
-                return JSONResponse(
+                response = JSONResponse(
                     status_code=422,
                     content={"detail": e.errors()},
                 )
+                await response(scope, receive, send)
+                return
 
             logger.exception("Unhandled exception", error=str(e))
 
-            from fastapi.responses import JSONResponse
-
             # In debug mode, show full error
             if settings.is_debug:
-                return JSONResponse(
-                    status_code=500,
-                    content={
-                        "error": {
-                            "code": "INTERNAL_ERROR",
-                            "message": str(e),
-                            "type": type(e).__name__,
-                        }
-                    },
-                )
-
-            return JSONResponse(
-                status_code=500,
-                content={
+                content = {
+                    "error": {
+                        "code": "INTERNAL_ERROR",
+                        "message": str(e),
+                        "type": type(e).__name__,
+                    }
+                }
+            else:
+                content = {
                     "error": {
                         "code": "INTERNAL_ERROR",
                         "message": "Erro interno do servidor",
                     }
-                },
+                }
+
+            response = JSONResponse(
+                status_code=500,
+                content=content,
             )
+            await response(scope, receive, send)
 
 
 # ─── Rate Limiting Middleware ──────────────────────────────────────────────────
 
 
-class RateLimitMiddleware(BaseHTTPMiddleware):
-    """Simple in-memory rate limiting (use Redis in production)."""
+class RateLimitMiddleware:
+    """Simple in-memory rate limiting (ASGI implementation)."""
 
-    def __init__(self, app: FastAPI) -> None:
-        super().__init__(app)
+    def __init__(self, app: ASGIApp):
+        self.app = app
         self._requests: dict[str, list[float]] = {}
 
-    async def dispatch(self, request: Request, call_next: Callable) -> Response:
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
         if not settings.RATE_LIMIT_ENABLED:
-            return await call_next(request)
+            await self.app(scope, receive, send)
+            return
 
         # Skip rate limiting for health checks
-        if request.url.path in ("/health", "/debug/health"):
-            return await call_next(request)
+        path = scope["path"]
+        if path in ("/health", "/debug/health"):
+            await self.app(scope, receive, send)
+            return
 
         # Get client IP
-        client_ip = request.client.host if request.client else "unknown"
-        forwarded = request.headers.get("X-Forwarded-For")
+        client = scope.get("client")
+        client_ip = client[0] if client else "unknown"
+        
+        # Check X-Forwarded-For
+        headers = dict(scope.get("headers", []))
+        forwarded = headers.get(b"x-forwarded-for")
         if forwarded:
-            client_ip = forwarded.split(",")[0].strip()
+            client_ip = forwarded.decode().split(",")[0].strip()
 
         # Check rate limit
         now = time.time()
@@ -168,12 +197,14 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
         # Check limit
         if len(self._requests[client_ip]) >= settings.RATE_LIMIT_REQUESTS:
+            # Raise RateLimitError which is handled by ErrorHandlerMiddleware
+            # Since ErrorHandler wraps this, exception will bubble up
             raise RateLimitError(retry_after=settings.RATE_LIMIT_WINDOW_SECONDS)
 
         # Record request
         self._requests[client_ip].append(now)
 
-        return await call_next(request)
+        await self.app(scope, receive, send)
 
 
 # ─── Setup Middlewares ─────────────────────────────────────────────────────────

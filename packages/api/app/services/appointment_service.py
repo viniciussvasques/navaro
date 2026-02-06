@@ -97,7 +97,10 @@ class AppointmentService:
             appt_start = appt_start.replace(tzinfo=UTC)
 
         appt_end = appt_start + timedelta(minutes=service.duration_minutes)
-        day_key = appt_start.strftime("%a").lower()  # "mon", "tue", etc.
+        
+        # Robust day detection (0=Mon, 6=Sun)
+        weekdays = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
+        day_key = weekdays[appt_start.weekday()]
 
         # 1. Establishment Business Hours
         est_result = await self.db.execute(

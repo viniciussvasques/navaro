@@ -69,7 +69,14 @@ async def test_appointment_flow(client: AsyncClient):
     staff_id = resp.json()["id"]
 
     # 5. Create Appointment
-    scheduled_at = (datetime.now(UTC) + timedelta(days=1)).isoformat()
+    # Find next Monday to ensure it matches business hours
+    today = datetime.now(UTC)
+    days_ahead = 0 - today.weekday()  # Target Monday (0)
+    if days_ahead <= 0:
+        days_ahead += 7
+    next_monday = today + timedelta(days=days_ahead)
+    scheduled_at = next_monday.replace(hour=10, minute=0, second=0, microsecond=0).isoformat()
+    
     appt_data = {
         "establishment_id": est_id,
         "service_id": service_id,

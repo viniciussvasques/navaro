@@ -13,6 +13,55 @@ from asgi_lifespan import LifespanManager
 from httpx import ASGITransport, AsyncClient
 
 from app.main import app
+from app.core.database import engine
+from app.models.base import Base
+from sqlalchemy import text
+
+
+@pytest.fixture(scope="function")
+async def db_engine():
+    """
+    Patch global engine with a fresh one for the test function.
+    Ensures connection pool is tied to the correct loop and uses NullPool.
+    """
+    from app.core import database
+    from app.core.config import settings
+    from sqlalchemy.pool import NullPool
+    from sqlalchemy.ext.asyncio import create_async_engine
+
+    # Ensure we use the test database URL
+    db_url = settings.DATABASE_URL
+    
+    # Create fresh engine
+    test_engine = create_async_engine(
+        db_url,
+        echo=False,
+        future=True,
+        poolclass=NullPool
+    )
+    
+    # Patch global engine
+    original_engine = database.engine
+    database.engine = test_engine
+    
+    # Patch session factory
+    database.async_session_maker.configure(bind=test_engine)
+    
+    yield test_engine
+    
+    # Restore and cleanup
+    await test_engine.dispose()
+    database.engine = original_engine
+
+
+@pytest.fixture(autouse=True)
+async def clear_db(db_engine):
+    """Clear database before each test. Uses patched engine."""
+    from app.models.base import Base
+    async with db_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+        await conn.run_sync(Base.metadata.create_all)
+    yield
 
 
 @pytest.fixture(scope="session")

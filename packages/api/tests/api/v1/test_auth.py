@@ -16,7 +16,7 @@ async def test_auth_flow(client: AsyncClient):
     response = await client.post("/api/v1/auth/send-code", json={"phone": phone})
     if response.status_code != 200:
         print(f"DEBUG ERROR: {response.text}")
-    assert response.status_code == 200
+    assert response.status_code == 200, f"Send Code Failed: {response.text}"
     data = response.json()
     # In dev mode, message format is "Código de verificação: XXXXXX"
     assert "Código de verificação" in data["message"]
@@ -27,7 +27,9 @@ async def test_auth_flow(client: AsyncClient):
 
     # 2. Verify Code
     response = await client.post("/api/v1/auth/verify", json={"phone": phone, "code": code})
-    assert response.status_code == 200
+    if response.status_code != 200:
+        print(f"\nDEBUG_AUTH_ERROR: {response.text}\n")
+    assert response.status_code == 200, f"Verify Code Failed: {response.text}"
     auth_data = response.json()
     assert "tokens" in auth_data
     assert "access_token" in auth_data["tokens"]
