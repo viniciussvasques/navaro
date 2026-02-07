@@ -5,7 +5,7 @@ name: CI
 
 on:
   push:
-    branches: [main, master, develop]
+    branches: [main, master, develop, 'codex/**']
     paths:
       - 'packages/api/**'
       - '.github/workflows/api.yml'
