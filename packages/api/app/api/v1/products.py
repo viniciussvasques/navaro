@@ -78,7 +78,7 @@ async def create_product(
          # But in ProductCreate we made it optional.
          # So we must ensure it is set.
          raise HTTPException(
-             status_code=status.HTTP_400_BAD_REQUEST, 
+             status_code=status.HTTP_400_BAD_REQUEST,
              detail="Preço de venda é obrigatório se não houver custo e margem."
          )
 
@@ -138,7 +138,6 @@ async def update_product(
     # Check if we need to recalculate price
     cost = data.get("cost_price", product.cost_price)
     markup = data.get("markup_percentage", product.markup_percentage)
-    original_price = product.price
     new_price = data.get("price")
 
     # If user didn't provide new price, but changed cost or markup, recalculate

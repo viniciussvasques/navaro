@@ -5,7 +5,6 @@ from datetime import datetime, timedelta, UTC
 from sqlalchemy import select, update
 from app.models.user import User, UserRole
 from app.models.system_settings import SettingsKeys
-from app.models.wallet import TransactionType
 from app.database import get_db
 
 async def promote_to_admin(email_or_phone: str, db):

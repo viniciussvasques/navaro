@@ -1,11 +1,11 @@
 import logging
-from datetime import datetime, date
+from datetime import datetime
 from uuid import UUID
 from sqlalchemy import select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.staff import StaffMember
 from app.models.staff_goal import StaffGoal, GoalType
-from app.models.wallet import UserWallet, TransactionType
+from app.models.wallet import TransactionType
 from app.services.wallet_service import WalletService
 
 logger = logging.getLogger(__name__)

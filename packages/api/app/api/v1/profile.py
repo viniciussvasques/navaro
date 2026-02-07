@@ -82,7 +82,7 @@ async def get_establishment_profile(
     # 2. Get Services (Active only)
     services_result = await db.execute(
         select(Service).where(
-            Service.establishment_id == establishment_id, 
+            Service.establishment_id == establishment_id,
             Service.active == True
         ).order_by(Service.name)
     )

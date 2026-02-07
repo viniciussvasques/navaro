@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.models.appointment import Appointment, AppointmentProduct, AppointmentStatus, PaymentMethod
-from app.models.establishment import Establishment, SubscriptionTier
+from app.models.establishment import Establishment
 from app.models.product import Product
 from app.models.service import Service
 from app.models.staff import StaffMember

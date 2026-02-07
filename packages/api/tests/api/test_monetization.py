@@ -2,8 +2,6 @@ import pytest
 from httpx import AsyncClient
 from uuid import uuid4
 from datetime import datetime, timedelta, UTC
-from app.models.establishment import SubscriptionTier
-from app.models.appointment import AppointmentStatus
 
 @pytest.mark.asyncio
 async def test_dynamic_platform_fees(client: AsyncClient, auth_headers: dict):
@@ -70,7 +68,7 @@ async def test_dynamic_platform_fees(client: AsyncClient, auth_headers: dict):
     # 5. Check Fees (Trial uses 5% -> $5.00)
     est_status = await client.get(f"/api/v1/establishments/{est_id}", headers=headers)
     # Since we can't easily see pending_platform_fees in the public response without updating the schema,
-    # let's assume the success of the Patch implies the logic ran. 
+    # let's assume the success of the Patch implies the logic ran.
     # To truly verify, we'd need a manager/owner endpoint that shows financial data.
     
 @pytest.mark.asyncio

@@ -1,19 +1,13 @@
 """Auth endpoints."""
 
-import random
-import string
-from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
-from sqlalchemy import select
 
 from app.api.deps import DBSession
 from app.core.config import settings
 from app.core.exceptions import InvalidCodeError
 from app.core.logging import get_logger
-from app.core.security import create_access_token, create_refresh_token, decode_refresh_token
-from app.models import User
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 logger = get_logger(__name__)
@@ -89,7 +83,7 @@ class AuthResponse(BaseModel):
 
 @router.post("/send-code", response_model=SendCodeResponse)
 async def send_verification_code(
-    request: SendCodeRequest, 
+    request: SendCodeRequest,
     db: DBSession
 ) -> SendCodeResponse:
     """
@@ -107,12 +101,12 @@ async def send_verification_code(
     
     message = "Código enviado com sucesso"
     if settings.ENVIRONMENT == "development" or settings.is_debug:
-        # Try to retrieve from Redis to show in message? 
+        # Try to retrieve from Redis to show in message?
         # Or just say "check logs/redis"
         # However, conftest.py parses the message!
         # "msg.split(': ')[1].strip()"
         # I need to fetch the code from Redis to maintain compat?
-        # Or I can update conftest.py. 
+        # Or I can update conftest.py.
         # Updating conftest.py is better practice but might break other things.
         # Let's see if I can fetch it.
         from app.core.redis import get_redis
@@ -136,8 +130,8 @@ async def verify_code(request: VerifyCodeRequest, db: DBSession) -> AuthResponse
     
     auth_service = AuthService(db)
     token_response = await auth_service.verify_code(
-        phone=request.phone, 
-        code=request.code, 
+        phone=request.phone,
+        code=request.code,
         referral_code=request.referral_code
     )
     

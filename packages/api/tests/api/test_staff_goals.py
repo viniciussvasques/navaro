@@ -68,7 +68,7 @@ async def test_staff_goals_workflow(client: AsyncClient, auth_headers: dict):
     service_id = resp.json()["id"]
     
     # Link service to staff (assuming endpoint exists or it's automatic in some setups)
-    # Looking at Establishment router, it might be separate. 
+    # Looking at Establishment router, it might be separate.
     # But usually creating in establishment might not link to staff automatically if many staff.
     # Let's check staff services.
     await client.post(f"/api/v1/services/{service_id}/staff", json={"staff_ids": [staff_id]}, headers=headers)

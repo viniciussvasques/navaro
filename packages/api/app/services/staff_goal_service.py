@@ -1,6 +1,5 @@
 """Staff goal service."""
 
-from datetime import datetime
 from uuid import UUID
 
 from sqlalchemy import func, select
@@ -62,13 +61,6 @@ class StaffGoalService:
 
     async def calculate_progress(self, goal: StaffGoal) -> dict:
         """Calculate current progress for a specific goal."""
-        query = select(Appointment).where(
-            Appointment.staff_id == goal.staff_id,
-            Appointment.status == AppointmentStatus.completed,
-            Appointment.scheduled_at >= goal.start_date,
-            Appointment.scheduled_at <= goal.end_date,
-        )
-
         current_value = 0.0
 
         if goal.goal_type == GoalType.revenue:
