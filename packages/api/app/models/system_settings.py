@@ -88,7 +88,7 @@ class SettingsKeys:
     SUPPORT_PHONE = "support_phone"
     TERMS_URL = "terms_url"
     PRIVACY_URL = "privacy_url"
-    
+
     # ─── Loyalty & Wallet ──────────────────────────────────────────────────────
     CASHBACK_ENABLED = "cashback_enabled"
     CASHBACK_PERCENT = "cashback_percent"

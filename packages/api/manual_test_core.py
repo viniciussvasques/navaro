@@ -52,7 +52,7 @@ async def run_test():
                 "fri": {"open": "08:00", "close": "20:00"},
                 "sat": {"open": "08:00", "close": "20:00"},
                 "sun": {"open": "08:00", "close": "20:00"},
-            }
+            },
         }
 
         try:
@@ -140,13 +140,15 @@ async def run_test():
             print(f"  🟢 Create Product: Success (ID: {product_id})")
         except Exception as e:
             print(f"  🔴 Create Product: Failed ({e})")
-        
+
         # 7. Payments (Simulate)
         print("\n💳 Testing Payments...")
         # Create Payment Intent
         pay_data = {"appointment_id": appt_id, "provider": "stripe"}
         try:
-            resp = await client.post(f"{BASE_URL}/payments/create-intent", json=pay_data, headers=headers)
+            resp = await client.post(
+                f"{BASE_URL}/payments/create-intent", json=pay_data, headers=headers
+            )
             if resp.status_code in [200, 201]:
                 print(f"  🟢 Create Payment Intent: Success")
             else:
@@ -158,12 +160,12 @@ async def run_test():
         # 8. Queue (Extra Check)
         print("\ntest Testing Queue...")
         try:
-           queue_data = {"service_id": service_id, "establishment_id": est_id}
-           resp = await client.post(f"{BASE_URL}/queue", json=queue_data, headers=headers)
-           if resp.status_code == 201:
-               print(f"  🟢 Join Queue: Success")
-           else:
-               print(f"  🔴 Join Queue: Failed ({resp.text})")
+            queue_data = {"service_id": service_id, "establishment_id": est_id}
+            resp = await client.post(f"{BASE_URL}/queue", json=queue_data, headers=headers)
+            if resp.status_code == 201:
+                print(f"  🟢 Join Queue: Success")
+            else:
+                print(f"  🔴 Join Queue: Failed ({resp.text})")
         except Exception as e:
             print(f"  🔴 Join Queue: Error ({e})")
 

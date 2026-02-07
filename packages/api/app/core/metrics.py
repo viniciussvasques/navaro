@@ -48,7 +48,7 @@ class Metrics:
         logger.info(
             "metric_count", metric_name=name, metric_value=value, metric_type="count", **tags
         )
-        
+
         # Map specific business events to Prometheus
         # Implementation can be expanded based on 'name'
         if tags.get("event_type"):

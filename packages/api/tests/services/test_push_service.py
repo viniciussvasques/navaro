@@ -22,7 +22,9 @@ class TestPushService:
             "enabled": False,
             "server_key": "",
         }
-        with patch("app.services.push_service.PushService.get_settings", new_callable=AsyncMock) as mock_get:
+        with patch(
+            "app.services.push_service.PushService.get_settings", new_callable=AsyncMock
+        ) as mock_get:
             mock_get.return_value = settings
             yield
 
@@ -33,7 +35,9 @@ class TestPushService:
             "enabled": True,
             "server_key": "test_server_key",
         }
-        with patch("app.services.push_service.PushService.get_settings", new_callable=AsyncMock) as mock_get:
+        with patch(
+            "app.services.push_service.PushService.get_settings", new_callable=AsyncMock
+        ) as mock_get:
             mock_get.return_value = settings
             yield
 

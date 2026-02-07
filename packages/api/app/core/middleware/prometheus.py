@@ -17,14 +17,14 @@ class PrometheusMiddleware(BaseHTTPMiddleware):
         """Process request and record metrics."""
         method = request.method
         path_template = self._get_path_template(request)
-        
+
         # Skip health check and metrics endpoints to avoid noise
         if path_template in ["/health", "/metrics", "/openapi.json", "/docs"]:
             return await call_next(request)
 
         ACTIVE_REQUESTS.labels(method=method, endpoint=path_template).inc()
         start_time = time.time()
-        
+
         try:
             response = await call_next(request)
             status_code = str(response.status_code)

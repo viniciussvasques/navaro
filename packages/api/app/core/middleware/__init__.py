@@ -165,7 +165,6 @@ class RateLimitMiddleware:
             await self.app(scope, receive, send)
             return
 
-
         # Skip rate limiting for health checks
         path = scope["path"]
         if path in ("/health", "/debug/health"):
@@ -224,7 +223,7 @@ def setup_middlewares(app: FastAPI) -> None:
 
     # Error handling
     app.add_middleware(ErrorHandlerMiddleware)
-    
+
     # Prometheus metrics
     app.add_middleware(PrometheusMiddleware)
 

@@ -75,6 +75,7 @@ def app(db_engine):
     from sqlalchemy.ext.asyncio import async_sessionmaker
 
     from app.core.config import settings
+
     settings.RATE_LIMIT_ENABLED = False
     settings.TESTING = True
     _app = create_app()

@@ -24,7 +24,9 @@ class TestWhatsAppService:
             "access_token": "",
             "phone_number_id": "",
         }
-        with patch("app.services.whatsapp_service.WhatsAppService.get_settings", new_callable=AsyncMock) as mock_get:
+        with patch(
+            "app.services.whatsapp_service.WhatsAppService.get_settings", new_callable=AsyncMock
+        ) as mock_get:
             mock_get.return_value = settings
             yield
 
@@ -37,7 +39,9 @@ class TestWhatsAppService:
             "access_token": "test_access_token",
             "phone_number_id": "123456789",
         }
-        with patch("app.services.whatsapp_service.WhatsAppService.get_settings", new_callable=AsyncMock) as mock_get:
+        with patch(
+            "app.services.whatsapp_service.WhatsAppService.get_settings", new_callable=AsyncMock
+        ) as mock_get:
             mock_get.return_value = settings
             yield
 
@@ -60,7 +64,9 @@ class TestWhatsAppService:
             "access_token": "",  # Missing
             "phone_number_id": "123",
         }
-        with patch("app.services.whatsapp_service.WhatsAppService.get_settings", new_callable=AsyncMock) as mock_get:
+        with patch(
+            "app.services.whatsapp_service.WhatsAppService.get_settings", new_callable=AsyncMock
+        ) as mock_get:
             mock_get.return_value = settings
             result = await whatsapp_service.send_text(to_phone="+5511999999999", message="Test")
             assert result is False

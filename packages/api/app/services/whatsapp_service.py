@@ -20,10 +20,16 @@ class WhatsAppService:
             settings_service = SettingsService(session)
             return {
                 "enabled": await settings_service.get_bool(SettingsKeys.WHATSAPP_ENABLED, False),
-                "api_url": await settings_service.get(SettingsKeys.WHATSAPP_API_URL, "https://graph.facebook.com/v18.0")
+                "api_url": await settings_service.get(
+                    SettingsKeys.WHATSAPP_API_URL, "https://graph.facebook.com/v18.0"
+                )
                 or "https://graph.facebook.com/v18.0",
-                "access_token": await settings_service.get(SettingsKeys.WHATSAPP_ACCESS_TOKEN, "") or "",
-                "phone_number_id": await settings_service.get(SettingsKeys.WHATSAPP_PHONE_NUMBER_ID, "") or "",
+                "access_token": await settings_service.get(SettingsKeys.WHATSAPP_ACCESS_TOKEN, "")
+                or "",
+                "phone_number_id": await settings_service.get(
+                    SettingsKeys.WHATSAPP_PHONE_NUMBER_ID, ""
+                )
+                or "",
             }
 
     async def send_text(self, to_phone: str, message: str) -> bool:

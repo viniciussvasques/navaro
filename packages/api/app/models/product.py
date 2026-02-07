@@ -94,7 +94,9 @@ class Product(BaseModel):
     def profit_margin(self) -> float | None:
         """Calculate profit margin percentage."""
         if self.price and self.cost_price and self.price > 0:
-            return round(((float(self.price) - float(self.cost_price)) / float(self.price)) * 100, 2)
+            return round(
+                ((float(self.price) - float(self.cost_price)) / float(self.price)) * 100, 2
+            )
         return None
 
     def __repr__(self) -> str:

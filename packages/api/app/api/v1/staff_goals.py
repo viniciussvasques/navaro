@@ -35,7 +35,10 @@ async def create_staff_goal(
     if not staff:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail={"code": "NOT_FOUND", "message": "Profissional não encontrado neste estabelecimento"},
+            detail={
+                "code": "NOT_FOUND",
+                "message": "Profissional não encontrado neste estabelecimento",
+            },
         )
 
     service = StaffGoalService(db)

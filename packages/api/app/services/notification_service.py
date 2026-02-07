@@ -56,7 +56,7 @@ class NotificationService:
         notification = await self.db.get(Notification, notification_id)
         if not notification or notification.user_id != user_id:
             raise HTTPException(status_code=404, detail="Notification not found")
-        
+
         notification.is_read = True
         await self.db.commit()
         await self.db.refresh(notification)

@@ -29,7 +29,8 @@ class EmailService:
                 "user": await settings_service.get(SettingsKeys.SMTP_USER, "") or "",
                 "password": await settings_service.get(SettingsKeys.SMTP_PASSWORD, "") or "",
                 "from_email": await settings_service.get(SettingsKeys.SMTP_FROM_EMAIL, "") or "",
-                "from_name": await settings_service.get(SettingsKeys.SMTP_FROM_NAME, "Navaro") or "Navaro",
+                "from_name": await settings_service.get(SettingsKeys.SMTP_FROM_NAME, "Navaro")
+                or "Navaro",
                 "use_tls": await settings_service.get_bool(SettingsKeys.SMTP_USE_TLS, True),
             }
 

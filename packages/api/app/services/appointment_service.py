@@ -211,7 +211,7 @@ class AppointmentService:
                     user_id=user_id,
                     amount=appointment.total_price,
                     description=f"Pagamento de agendamento: {service.name}",
-                    reference_id=str(appointment.id)
+                    reference_id=str(appointment.id),
                 )
                 # If paid with wallet, it's already confirmed/confirmed pending
                 appointment.status = AppointmentStatus.confirmed
@@ -257,7 +257,7 @@ class AppointmentService:
             .where(Appointment.id == appointment_id)
             .options(
                 selectinload(Appointment.products).selectinload(AppointmentProduct.product),
-                selectinload(Appointment.service)
+                selectinload(Appointment.service),
             )
         )
         result = await self.db.execute(query)
@@ -309,45 +309,55 @@ class AppointmentService:
                         float(establishment.pending_platform_fees or 0) + fee
                     )
 
-            if data.status == AppointmentStatus.completed and appointment.status != AppointmentStatus.completed:
+            if (
+                data.status == AppointmentStatus.completed
+                and appointment.status != AppointmentStatus.completed
+            ):
                 # Check for cashback
                 settings_service = SettingsService(self.db)
                 cashback_enabled = await settings_service.get_bool(SettingsKeys.CASHBACK_ENABLED)
-                
+
                 if cashback_enabled:
-                    cashback_percent = await settings_service.get_float(SettingsKeys.CASHBACK_PERCENT, 2.0)
-                    cashback_amount = float(appointment.total_price or 0) * (cashback_percent / 100.0)
-                    
+                    cashback_percent = await settings_service.get_float(
+                        SettingsKeys.CASHBACK_PERCENT, 2.0
+                    )
+                    cashback_amount = float(appointment.total_price or 0) * (
+                        cashback_percent / 100.0
+                    )
+
                     if cashback_amount > 0:
                         wallet_service = WalletService(self.db)
                         from app.models.wallet import TransactionType
+
                         await wallet_service.add_balance(
                             user_id=appointment.user_id,
                             amount=cashback_amount,
                             description=f"Cashback: {appointment.service.name if appointment.service else 'Agendamento'}",
                             reference_id=str(appointment.id),
-                            tx_type=TransactionType.cashback
+                            tx_type=TransactionType.cashback,
                         )
 
                 # --- Staff Commissions and Goals ---
                 from app.services.staff_service import StaffService
+
                 staff_service = StaffService(self.db)
                 await staff_service.record_service_completion(
                     staff_id=appointment.staff_id,
                     establishment_id=appointment.establishment_id,
                     amount=float(appointment.total_price),
-                    appointment_id=appointment.id
+                    appointment_id=appointment.id,
                 )
 
                 # --- Referral Reward ---
                 # Check if this is the user's first completed appointment
                 from sqlalchemy import and_, func
                 from app.models.user import User
+
                 first_appt_query = select(func.count(Appointment.id)).where(
                     and_(
                         Appointment.user_id == appointment.user_id,
                         Appointment.status == AppointmentStatus.completed,
-                        Appointment.id != appointment.id
+                        Appointment.id != appointment.id,
                     )
                 )
                 first_appt_res = await self.db.execute(first_appt_query)
@@ -361,15 +371,18 @@ class AppointmentService:
 
                     if user.referred_by_id:
                         # Get referral bonus from settings
-                        referral_bonus = await settings_service.get_float("referral_bonus_amount", 5.0)
+                        referral_bonus = await settings_service.get_float(
+                            "referral_bonus_amount", 5.0
+                        )
                         wallet_service = WalletService(self.db)
                         from app.models.wallet import TransactionType
+
                         await wallet_service.add_balance(
                             user_id=user.referred_by_id,
                             amount=referral_bonus,
                             description=f"Bônus de indicação: {user.name or user.phone}",
                             reference_id=str(user.id),
-                            tx_type=TransactionType.referral
+                            tx_type=TransactionType.referral,
                         )
 
             appointment.status = data.status

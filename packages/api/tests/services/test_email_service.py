@@ -28,7 +28,9 @@ class TestEmailService:
             "from_name": "",
             "use_tls": True,
         }
-        with patch("app.services.email_service.EmailService.get_settings", new_callable=AsyncMock) as mock_get:
+        with patch(
+            "app.services.email_service.EmailService.get_settings", new_callable=AsyncMock
+        ) as mock_get:
             mock_get.return_value = settings
             yield
 
@@ -45,7 +47,9 @@ class TestEmailService:
             "from_name": "Test App",
             "use_tls": True,
         }
-        with patch("app.services.email_service.EmailService.get_settings", new_callable=AsyncMock) as mock_get:
+        with patch(
+            "app.services.email_service.EmailService.get_settings", new_callable=AsyncMock
+        ) as mock_get:
             mock_get.return_value = settings
             yield
 
@@ -67,7 +71,9 @@ class TestEmailService:
             "host": "",  # Missing host
             "user": "user",
         }
-        with patch("app.services.email_service.EmailService.get_settings", new_callable=AsyncMock) as mock_get:
+        with patch(
+            "app.services.email_service.EmailService.get_settings", new_callable=AsyncMock
+        ) as mock_get:
             mock_get.return_value = settings
             result = await email_service.send(
                 to_email="test@test.com", subject="Test", body_html="<p>Test</p>"

@@ -21,7 +21,7 @@ class ProductBase(BaseModel):
 
 class ProductCreate(ProductBase):
     """Create product schema."""
-    
+
     # Overwrite price to be optional because it can be calculated
     price: float | None = Field(None, gt=0)
 

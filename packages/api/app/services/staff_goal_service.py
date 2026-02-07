@@ -97,9 +97,7 @@ class StaffGoalService:
             current_value = float(res.scalar() or 0)
 
         progress_percentage = (
-            (current_value / float(goal.target_value)) * 100
-            if goal.target_value > 0
-            else 0.0
+            (current_value / float(goal.target_value)) * 100 if goal.target_value > 0 else 0.0
         )
         is_completed = current_value >= float(goal.target_value)
 

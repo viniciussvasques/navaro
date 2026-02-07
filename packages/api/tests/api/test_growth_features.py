@@ -2,6 +2,7 @@ import pytest
 from httpx import AsyncClient
 from uuid import uuid4
 
+
 @pytest.mark.asyncio
 async def test_establishment_ranking_logic(client: AsyncClient, auth_headers: dict):
     """
@@ -14,10 +15,10 @@ async def test_establishment_ranking_logic(client: AsyncClient, auth_headers: di
     # A: Free, not sponsored, close
     # B: Bronze, not sponsored, far
     # C: Free, sponsored, far
-    
+
     # Coordinates for Sao Paulo (ish)
     base_lat, base_lng = -23.5505, -46.6333
-    
+
     # Establishments
     payloads = [
         {
@@ -52,9 +53,9 @@ async def test_establishment_ranking_logic(client: AsyncClient, auth_headers: di
             "phone": "11999999997",
             "latitude": base_lat + 0.02,
             "longitude": base_lng + 0.02,
-        }
+        },
     ]
-    
+
     est_ids = []
     headers = auth_headers
     for p in payloads:
@@ -63,33 +64,41 @@ async def test_establishment_ranking_logic(client: AsyncClient, auth_headers: di
         est_id = resp.json()["id"]
         est_ids.append(est_id)
         # Activate
-        await client.patch(f"/api/v1/establishments/{est_id}", json={"status": "active"}, headers=headers)
+        await client.patch(
+            f"/api/v1/establishments/{est_id}", json={"status": "active"}, headers=headers
+        )
 
     # Update Tiers and Sponsored status (Directly via Admin or Internal if endpoint exists)
     # Since we don't have a specific endpoint for everything yet, let's assume we can PATCH them
-    
+
     # Est B -> Bronze
-    await client.patch(f"/api/v1/establishments/{est_ids[1]}", json={"subscription_tier": "bronze"}, headers=headers)
-    
+    await client.patch(
+        f"/api/v1/establishments/{est_ids[1]}",
+        json={"subscription_tier": "bronze"},
+        headers=headers,
+    )
+
     # Est C -> Sponsored
-    await client.patch(f"/api/v1/establishments/{est_ids[2]}", json={"is_sponsored": True}, headers=headers)
+    await client.patch(
+        f"/api/v1/establishments/{est_ids[2]}", json={"is_sponsored": True}, headers=headers
+    )
 
     # Search
     # We expect: C (Sponsored), B (Bronze), A (Free, but closer)
     resp = await client.get(
-        f"/api/v1/establishments?city=Sao Paulo&lat={base_lat}&lng={base_lng}",
-        headers=headers
+        f"/api/v1/establishments?city=Sao Paulo&lat={base_lat}&lng={base_lng}", headers=headers
     )
     assert resp.status_code == 200
     items = resp.json()["items"]
-    
+
     # Filter only our newly created ones for testing
     our_items = [i for i in items if i["id"] in est_ids]
-    
+
     assert len(our_items) == 3
     assert our_items[0]["name"] == "Est C (Sponsored, Far)"
     assert our_items[1]["name"] == "Est B (Bronze, Far)"
     assert our_items[2]["name"] == "Est A (Free, Close)"
+
 
 @pytest.mark.asyncio
 async def test_staff_contract_and_base_salary(client: AsyncClient, auth_headers: dict):
@@ -114,9 +123,11 @@ async def test_staff_contract_and_base_salary(client: AsyncClient, auth_headers:
         "role": "barbeiro",
         "contract_type": "chair_rental",
         "base_salary": 500.0,
-        "commission_rate": 0.0
+        "commission_rate": 0.0,
     }
-    resp = await client.post(f"/api/v1/establishments/{est_id}/staff", json=staff_payload, headers=headers)
+    resp = await client.post(
+        f"/api/v1/establishments/{est_id}/staff", json=staff_payload, headers=headers
+    )
     assert resp.status_code == 201
     data = resp.json()
     assert data["contract_type"] == "chair_rental"

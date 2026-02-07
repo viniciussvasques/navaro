@@ -248,7 +248,7 @@ async def list_establishments(
     # ─── Ordering Logic ───────────────────────────────────────────────────────
     # We want to limit the "Sponsored Boost" to the TOP 4 sponsored establishments.
     # To do this cleanly in SQLAlchemy with pagination, we use a window function.
-    
+
     sponsored_rank = func.row_number().over(
         partition_by=Establishment.is_sponsored,
         order_by=[
@@ -258,10 +258,10 @@ async def list_establishments(
                 (Establishment.subscription_tier == "silver", 3),
                 (Establishment.subscription_tier == "bronze", 2),
                 (Establishment.subscription_tier == "free", 1),
-                else_=0
+                else_=0,
             ).desc(),
-            Establishment.name.asc()
-        ]
+            Establishment.name.asc(),
+        ],
     )
 
     # If geo searching, distance is the third tie-breaker for sponsored rank
@@ -275,17 +275,16 @@ async def list_establishments(
                     (Establishment.subscription_tier == "silver", 3),
                     (Establishment.subscription_tier == "bronze", 2),
                     (Establishment.subscription_tier == "free", 1),
-                    else_=0
+                    else_=0,
                 ).desc(),
                 distance_col.asc(),
-                Establishment.name.asc()
-            ]
+                Establishment.name.asc(),
+            ],
         )
 
     # A "Prime Sponsored" is someone who is_sponsored=True AND is within the top 4
     is_prime_sponsored = case(
-        ((Establishment.is_sponsored == True) & (sponsored_rank <= 4), 1),
-        else_=0
+        ((Establishment.is_sponsored == True) & (sponsored_rank <= 4), 1), else_=0
     )
 
     tier_priority = case(
@@ -294,20 +293,14 @@ async def list_establishments(
         (Establishment.subscription_tier == "silver", 3),
         (Establishment.subscription_tier == "bronze", 2),
         (Establishment.subscription_tier == "free", 1),
-        else_=0
+        else_=0,
     )
 
     if distance_col is not None:
-        query = query.order_by(
-            is_prime_sponsored.desc(),
-            tier_priority.desc(),
-            distance_col.asc()
-        )
+        query = query.order_by(is_prime_sponsored.desc(), tier_priority.desc(), distance_col.asc())
     else:
         query = query.order_by(
-            is_prime_sponsored.desc(),
-            tier_priority.desc(),
-            Establishment.name.asc()
+            is_prime_sponsored.desc(), tier_priority.desc(), Establishment.name.asc()
         )
 
     # ─── Other Filters ─────────────────────────────────────────────────────────
