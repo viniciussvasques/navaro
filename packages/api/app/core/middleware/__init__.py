@@ -10,6 +10,7 @@ from app.core.config import settings
 from app.core.exceptions import AppException, RateLimitError
 from app.core.logging import bind_context, clear_context, get_logger
 from app.core.maintenance import get_maintenance
+from app.core.middleware.prometheus import PrometheusMiddleware
 
 logger = get_logger(__name__)
 
@@ -222,6 +223,9 @@ def setup_middlewares(app: FastAPI) -> None:
 
     # Error handling
     app.add_middleware(ErrorHandlerMiddleware)
+    
+    # Prometheus metrics
+    app.add_middleware(PrometheusMiddleware)
 
     # Request timing (must be last to wrap everything)
     app.add_middleware(RequestTimingMiddleware)

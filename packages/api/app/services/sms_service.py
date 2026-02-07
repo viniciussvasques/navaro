@@ -4,7 +4,7 @@ import httpx
 
 from app.core.logging import get_logger
 from app.models.system_settings import SettingsKeys
-from app.services.settings_service import get_cached_bool, get_cached_setting
+from app.models.system_settings import SettingsKeys
 
 logger = get_logger(__name__)
 
@@ -16,21 +16,18 @@ class SMSService:
         # Settings are loaded from database cache
         pass
 
-    @property
-    def api_url(self) -> str:
-        return "https://api.nvoip.com.br/v2"
+    async def get_settings(self) -> dict:
+        """Get SMS settings from database."""
+        from app.core import database
+        from app.services.settings_service import SettingsService
 
-    @property
-    def token(self) -> str:
-        return get_cached_setting(SettingsKeys.NVOIP_TOKEN, "") or ""
-
-    @property
-    def from_number(self) -> str:
-        return get_cached_setting(SettingsKeys.NVOIP_FROM_NUMBER, "") or ""
-
-    @property
-    def enabled(self) -> bool:
-        return get_cached_bool(SettingsKeys.SMS_ENABLED, False)
+        async with database.async_session_maker() as session:
+            settings_service = SettingsService(session)
+            return {
+                "enabled": await settings_service.get_bool(SettingsKeys.SMS_ENABLED, False),
+                "token": await settings_service.get(SettingsKeys.NVOIP_TOKEN, "") or "",
+                "from_number": await settings_service.get(SettingsKeys.NVOIP_FROM_NUMBER, "") or "",
+            }
 
     async def send(self, phone: str, message: str) -> bool:
         """
@@ -43,11 +40,13 @@ class SMSService:
         Returns:
             True if sent successfully, False otherwise
         """
-        if not self.enabled:
+        settings = await self.get_settings()
+
+        if not settings["enabled"]:
             logger.info("SMS disabled, would send", phone=phone, message=message[:50])
             return True  # Simulate success in dev
 
-        if not self.token:
+        if not settings["token"]:
             logger.warning("SMS enabled but NVOIP_TOKEN not configured")
             return False
 
@@ -61,7 +60,7 @@ class SMSService:
                 response = await client.post(
                     f"{self.api_url}/sms/messages",
                     headers={
-                        "Authorization": f"Bearer {self.token}",
+                        "Authorization": f"Bearer {settings['token']}",
                         "Content-Type": "application/json",
                     },
                     json={

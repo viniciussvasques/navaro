@@ -18,43 +18,24 @@ class TestPushService:
     @pytest.fixture
     def mock_settings_disabled(self):
         """Mock settings with push disabled."""
-        with patch("app.services.push_service.get_cached_bool", return_value=False):
-            with patch("app.services.push_service.get_cached_setting", return_value=""):
-                yield
+        settings = {
+            "enabled": False,
+            "server_key": "",
+        }
+        with patch("app.services.push_service.PushService.get_settings", new_callable=AsyncMock) as mock_get:
+            mock_get.return_value = settings
+            yield
 
     @pytest.fixture
     def mock_settings_enabled(self):
         """Mock settings with push enabled."""
-
-        def mock_bool(key, default):
-            if key == "fcm_enabled":
-                return True
-            return default
-
-        def mock_setting(key, default):
-            if key == "fcm_server_key":
-                return "test_server_key"
-            return default
-
-        with patch("app.services.push_service.get_cached_bool", side_effect=mock_bool):
-            with patch("app.services.push_service.get_cached_setting", side_effect=mock_setting):
-                yield
-
-    # ─── Property Tests ─────────────────────────────────────────────────────────
-
-    def test_enabled_returns_false_when_disabled(self, push_service, mock_settings_disabled):
-        """Test enabled property returns False when FCM disabled."""
-        assert push_service.enabled is False
-
-    def test_enabled_returns_true_when_enabled(self, push_service, mock_settings_enabled):
-        """Test enabled property returns True when FCM enabled."""
-        assert push_service.enabled is True
-
-    def test_server_key_returns_empty_when_not_configured(
-        self, push_service, mock_settings_disabled
-    ):
-        """Test server_key returns empty string when not configured."""
-        assert push_service.server_key == ""
+        settings = {
+            "enabled": True,
+            "server_key": "test_server_key",
+        }
+        with patch("app.services.push_service.PushService.get_settings", new_callable=AsyncMock) as mock_get:
+            mock_get.return_value = settings
+            yield
 
     # ─── Send Tests ─────────────────────────────────────────────────────────────
 

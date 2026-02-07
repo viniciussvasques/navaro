@@ -4,13 +4,10 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.logging import get_logger
+from app.core.redis import get_redis
 from app.models.system_settings import SettingsKeys, SystemSettings
 
 logger = get_logger(__name__)
-
-# In-memory cache for performance
-_settings_cache: dict[str, str] = {}
-_cache_loaded: bool = False
 
 
 class SettingsService:
@@ -21,18 +18,27 @@ class SettingsService:
 
     async def get(self, key: str, default: str | None = None) -> str | None:
         """Get a setting value by key."""
-        global _settings_cache, _cache_loaded
-
-        # Check cache first
-        if _cache_loaded and key in _settings_cache:
-            return _settings_cache[key]
+        # Try Redis first
+        try:
+            redis = await get_redis()
+            cached_value = await redis.get(f"settings:{key}")
+            if cached_value is not None:
+                return cached_value
+        except Exception as e:
+            logger.warning("Redis error in settings.get", error=str(e))
 
         # Query database
         result = await self.db.execute(select(SystemSettings).where(SystemSettings.key == key))
         setting = result.scalar_one_or_none()
 
         if setting:
-            _settings_cache[key] = setting.value
+            # Cache in Redis (1 hour TTL)
+            try:
+                redis = await get_redis()
+                if setting.value:
+                    await redis.setex(f"settings:{key}", 3600, setting.value)
+            except Exception as e:
+                logger.warning("Redis set error", error=str(e))
             return setting.value
 
         return default
@@ -85,10 +91,18 @@ class SettingsService:
         await self.db.commit()
         await self.db.refresh(setting)
 
-        # Update cache
-        _settings_cache[key] = value
+        await self.db.commit()
+        await self.db.refresh(setting)
 
-        logger.info("Setting updated", key=key)
+        # Update Redis
+        try:
+            redis = await get_redis()
+            await redis.setex(f"settings:{key}", 3600, value)
+            logger.info("Setting updated in DB and Redis", key=key)
+        except Exception as e:
+            logger.warning("Redis update error", error=str(e))
+            logger.info("Setting updated in DB only", key=key)
+
         return setting
 
     async def delete(self, key: str) -> bool:
@@ -115,24 +129,7 @@ class SettingsService:
         result = await self.db.execute(query)
         return list(result.scalars().all())
 
-    async def load_cache(self) -> None:
-        """Load all settings into cache."""
-        global _settings_cache, _cache_loaded
-
-        result = await self.db.execute(select(SystemSettings))
-        settings = result.scalars().all()
-
-        _settings_cache = {s.key: s.value for s in settings if s.value}
-        _cache_loaded = True
-
-        logger.info("Settings cache loaded", count=len(_settings_cache))
-
-    @staticmethod
-    def clear_cache() -> None:
-        """Clear the settings cache."""
-        global _settings_cache, _cache_loaded
-        _settings_cache = {}
-        _cache_loaded = False
+    # Cache methods removed in favor of Redis on-demand caching
 
     async def seed_defaults(self) -> int:
         """Seed default settings if they don't exist."""
@@ -245,17 +242,3 @@ class SettingsService:
                 count += 1
 
         return count
-
-
-# Helper function to get settings without db session (uses cache)
-def get_cached_setting(key: str, default: str | None = None) -> str | None:
-    """Get setting from cache (for use in services without db access)."""
-    return _settings_cache.get(key, default)
-
-
-def get_cached_bool(key: str, default: bool = False) -> bool:
-    """Get boolean setting from cache."""
-    value = _settings_cache.get(key)
-    if value is None:
-        return default
-    return value.lower() in ("true", "1", "yes", "on")

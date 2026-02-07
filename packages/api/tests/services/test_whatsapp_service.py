@@ -18,54 +18,28 @@ class TestWhatsAppService:
     @pytest.fixture
     def mock_settings_disabled(self):
         """Mock settings with WhatsApp disabled."""
-        with patch("app.services.whatsapp_service.get_cached_bool", return_value=False):
-            with patch("app.services.whatsapp_service.get_cached_setting", return_value=""):
-                yield
+        settings = {
+            "enabled": False,
+            "api_url": "https://graph.facebook.com/v18.0",
+            "access_token": "",
+            "phone_number_id": "",
+        }
+        with patch("app.services.whatsapp_service.WhatsAppService.get_settings", new_callable=AsyncMock) as mock_get:
+            mock_get.return_value = settings
+            yield
 
     @pytest.fixture
     def mock_settings_enabled(self):
         """Mock settings with WhatsApp enabled."""
         settings = {
-            "whatsapp_api_url": "https://graph.facebook.com/v18.0",
-            "whatsapp_access_token": "test_access_token",
-            "whatsapp_phone_number_id": "123456789",
+            "enabled": True,
+            "api_url": "https://graph.facebook.com/v18.0",
+            "access_token": "test_access_token",
+            "phone_number_id": "123456789",
         }
-
-        def mock_bool(key, default):
-            if key == "whatsapp_enabled":
-                return True
-            return default
-
-        def mock_setting(key, default):
-            return settings.get(key, default)
-
-        with patch("app.services.whatsapp_service.get_cached_bool", side_effect=mock_bool):
-            with patch(
-                "app.services.whatsapp_service.get_cached_setting", side_effect=mock_setting
-            ):
-                yield
-
-    # ─── Property Tests ─────────────────────────────────────────────────────────
-
-    def test_enabled_returns_false_when_disabled(self, whatsapp_service, mock_settings_disabled):
-        """Test enabled property returns False when WhatsApp disabled."""
-        assert whatsapp_service.enabled is False
-
-    def test_enabled_returns_true_when_enabled(self, whatsapp_service, mock_settings_enabled):
-        """Test enabled property returns True when WhatsApp enabled."""
-        assert whatsapp_service.enabled is True
-
-    def test_api_url_returns_correct_value(self, whatsapp_service, mock_settings_enabled):
-        """Test api_url returns correct URL."""
-        assert whatsapp_service.api_url == "https://graph.facebook.com/v18.0"
-
-    def test_access_token_returns_correct_value(self, whatsapp_service, mock_settings_enabled):
-        """Test access_token returns correct token."""
-        assert whatsapp_service.access_token == "test_access_token"
-
-    def test_phone_number_id_returns_correct_value(self, whatsapp_service, mock_settings_enabled):
-        """Test phone_number_id returns correct value."""
-        assert whatsapp_service.phone_number_id == "123456789"
+        with patch("app.services.whatsapp_service.WhatsAppService.get_settings", new_callable=AsyncMock) as mock_get:
+            mock_get.return_value = settings
+            yield
 
     # ─── Send Text Tests ────────────────────────────────────────────────────────
 
@@ -80,10 +54,16 @@ class TestWhatsAppService:
     @pytest.mark.asyncio
     async def test_send_text_returns_false_without_token(self, whatsapp_service):
         """Test send_text returns False when not configured."""
-        with patch("app.services.whatsapp_service.get_cached_bool", return_value=True):
-            with patch("app.services.whatsapp_service.get_cached_setting", return_value=""):
-                result = await whatsapp_service.send_text(to_phone="+5511999999999", message="Test")
-                assert result is False
+        settings = {
+            "enabled": True,
+            "api_url": "https://graph.facebook.com/v18.0",
+            "access_token": "",  # Missing
+            "phone_number_id": "123",
+        }
+        with patch("app.services.whatsapp_service.WhatsAppService.get_settings", new_callable=AsyncMock) as mock_get:
+            mock_get.return_value = settings
+            result = await whatsapp_service.send_text(to_phone="+5511999999999", message="Test")
+            assert result is False
 
     @pytest.mark.asyncio
     async def test_send_text_normalizes_phone(self, whatsapp_service, mock_settings_enabled):

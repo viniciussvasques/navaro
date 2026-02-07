@@ -36,7 +36,13 @@ class AuthService:
         if settings.is_debug:
             print(f"[DEV] Verification code for {phone}: {code}")
 
-        # TODO: Send SMS via Twilio/WhatsApp
+        # Send SMS
+        from app.services.notification_service import NotificationService
+
+        notifier = NotificationService(self.db)
+        # We fire and forget or await? Ideally background task, but for now await is safer for correctness
+        # In a real heavy load, use background tasks (FastAPI BackgroundTasks or Celery)
+        await notifier.send_sms(phone, f"Seu codigo Navaro: {code}")
 
     async def verify_code(
         self, phone: str, code: str, referral_code: str | None = None

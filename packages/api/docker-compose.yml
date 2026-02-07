@@ -34,6 +34,8 @@ services:
     image: postgres:16-alpine
     container_name: navaro-db
     restart: unless-stopped
+    ports:
+      - "5432:5432"
     environment:
       - POSTGRES_USER=navaro
       - POSTGRES_PASSWORD=${DB_PASSWORD:-navaro_dev}
@@ -53,6 +55,8 @@ services:
     image: redis:7-alpine
     container_name: navaro-redis
     restart: unless-stopped
+    ports:
+      - "6379:6379"
     command: redis-server --appendonly yes
     volumes:
       - redis_data:/data

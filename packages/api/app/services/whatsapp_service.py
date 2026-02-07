@@ -4,7 +4,7 @@ import httpx
 
 from app.core.logging import get_logger
 from app.models.system_settings import SettingsKeys
-from app.services.settings_service import get_cached_bool, get_cached_setting
+from app.models.system_settings import SettingsKeys
 
 logger = get_logger(__name__)
 
@@ -12,38 +12,32 @@ logger = get_logger(__name__)
 class WhatsAppService:
     """WhatsApp Business API service (Meta Cloud API)."""
 
-    @property
-    def enabled(self) -> bool:
-        return get_cached_bool(SettingsKeys.WHATSAPP_ENABLED, False)
+    async def get_settings(self) -> dict:
+        """Get whatsapp settings from database."""
+        from app.core import database
+        from app.services.settings_service import SettingsService
 
-    @property
-    def api_url(self) -> str:
-        return (
-            get_cached_setting(SettingsKeys.WHATSAPP_API_URL, "https://graph.facebook.com/v18.0")
-            or "https://graph.facebook.com/v18.0"
-        )
-
-    @property
-    def access_token(self) -> str:
-        return get_cached_setting(SettingsKeys.WHATSAPP_ACCESS_TOKEN, "") or ""
-
-    @property
-    def phone_number_id(self) -> str:
-        return get_cached_setting(SettingsKeys.WHATSAPP_PHONE_NUMBER_ID, "") or ""
+        async with database.async_session_maker() as session:
+            settings_service = SettingsService(session)
+            return {
+                "enabled": await settings_service.get_bool(SettingsKeys.WHATSAPP_ENABLED, False),
+                "api_url": await settings_service.get(SettingsKeys.WHATSAPP_API_URL, "https://graph.facebook.com/v18.0")
+                or "https://graph.facebook.com/v18.0",
+                "access_token": await settings_service.get(SettingsKeys.WHATSAPP_ACCESS_TOKEN, "") or "",
+                "phone_number_id": await settings_service.get(SettingsKeys.WHATSAPP_PHONE_NUMBER_ID, "") or "",
+            }
 
     async def send_text(self, to_phone: str, message: str) -> bool:
         """
         Send text message via WhatsApp.
-
-        Args:
-            to_phone: Phone number with country code (e.g., 5511999999999)
-            message: Text message to send
         """
-        if not self.enabled:
+        settings = await self.get_settings()
+
+        if not settings["enabled"]:
             logger.info("WhatsApp disabled", to=to_phone, message=message[:50])
             return True
 
-        if not self.access_token or not self.phone_number_id:
+        if not settings["access_token"] or not settings["phone_number_id"]:
             logger.warning("WhatsApp enabled but not configured")
             return False
 
@@ -53,9 +47,9 @@ class WhatsAppService:
         try:
             async with httpx.AsyncClient() as client:
                 response = await client.post(
-                    f"{self.api_url}/{self.phone_number_id}/messages",
+                    f"{settings['api_url']}/{settings['phone_number_id']}/messages",
                     headers={
-                        "Authorization": f"Bearer {self.access_token}",
+                        "Authorization": f"Bearer {settings['access_token']}",
                         "Content-Type": "application/json",
                     },
                     json={
@@ -89,14 +83,10 @@ class WhatsAppService:
     ) -> bool:
         """
         Send template message via WhatsApp (for approved templates).
-
-        Args:
-            to_phone: Phone number with country code
-            template_name: Pre-approved template name
-            language_code: Template language
-            components: Template components (header, body, button params)
         """
-        if not self.enabled or not self.access_token:
+        settings = await self.get_settings()
+
+        if not settings["enabled"] or not settings["access_token"]:
             return False
 
         clean_phone = to_phone.replace("+", "").replace(" ", "").replace("-", "")
@@ -117,9 +107,9 @@ class WhatsAppService:
 
             async with httpx.AsyncClient() as client:
                 response = await client.post(
-                    f"{self.api_url}/{self.phone_number_id}/messages",
+                    f"{settings['api_url']}/{settings['phone_number_id']}/messages",
                     headers={
-                        "Authorization": f"Bearer {self.access_token}",
+                        "Authorization": f"Bearer {settings['access_token']}",
                         "Content-Type": "application/json",
                     },
                     json=payload,

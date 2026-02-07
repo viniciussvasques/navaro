@@ -56,7 +56,7 @@ async def perform_checkin(
             establishment = est_result.scalar_one_or_none()
             if establishment:
                 notif_service = NotificationService(db)
-                await notif_service.notify(
+                await notif_service.create_in_app(
                     user_id=establishment.owner_id,
                     title="Novo Check-in!",
                     message=f"O cliente {current_user.name or 'Anônimo'} acabou de fazer check-in.",

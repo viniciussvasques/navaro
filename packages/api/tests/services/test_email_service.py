@@ -18,58 +18,36 @@ class TestEmailService:
     @pytest.fixture
     def mock_settings_disabled(self):
         """Mock settings with email disabled."""
-        with patch("app.services.email_service.get_cached_bool", return_value=False):
-            with patch("app.services.email_service.get_cached_setting", return_value=""):
-                yield
+        settings = {
+            "enabled": False,
+            "host": "",
+            "port": 587,
+            "user": "",
+            "password": "",
+            "from_email": "",
+            "from_name": "",
+            "use_tls": True,
+        }
+        with patch("app.services.email_service.EmailService.get_settings", new_callable=AsyncMock) as mock_get:
+            mock_get.return_value = settings
+            yield
 
     @pytest.fixture
     def mock_settings_enabled(self):
         """Mock settings with email enabled."""
         settings = {
-            "smtp_host": "smtp.test.com",
-            "smtp_port": "587",
-            "smtp_user": "user@test.com",
-            "smtp_password": "password123",
-            "smtp_from_email": "noreply@test.com",
-            "smtp_from_name": "Test App",
+            "enabled": True,
+            "host": "smtp.test.com",
+            "port": 587,
+            "user": "user@test.com",
+            "password": "password123",
+            "from_email": "noreply@test.com",
+            "from_name": "Test App",
+            "use_tls": True,
         }
-
-        def mock_bool(key, default):
-            if key == "email_enabled":
-                return True
-            if key == "smtp_use_tls":
-                return True
-            return default
-
-        def mock_setting(key, default):
-            return settings.get(key, default)
-
-        with patch("app.services.email_service.get_cached_bool", side_effect=mock_bool):
-            with patch("app.services.email_service.get_cached_setting", side_effect=mock_setting):
-                yield
-
-    # ─── Property Tests ─────────────────────────────────────────────────────────
-
-    def test_enabled_returns_false_when_disabled(self, email_service, mock_settings_disabled):
-        """Test enabled property returns False when email disabled."""
-        assert email_service.enabled is False
-
-    def test_enabled_returns_true_when_enabled(self, email_service, mock_settings_enabled):
-        """Test enabled property returns True when email enabled."""
-        assert email_service.enabled is True
-
-    def test_host_returns_correct_value(self, email_service, mock_settings_enabled):
-        """Test host returns correct SMTP host."""
-        assert email_service.host == "smtp.test.com"
-
-    def test_port_returns_correct_value(self, email_service, mock_settings_enabled):
-        """Test port returns correct SMTP port."""
-        assert email_service.port == 587
-
-    def test_port_returns_default_on_invalid(self, email_service):
-        """Test port returns 587 on invalid value."""
-        with patch("app.services.email_service.get_cached_setting", return_value="invalid"):
-            assert email_service.port == 587
+        with patch("app.services.email_service.EmailService.get_settings", new_callable=AsyncMock) as mock_get:
+            mock_get.return_value = settings
+            yield
 
     # ─── Send Tests ─────────────────────────────────────────────────────────────
 
@@ -84,12 +62,17 @@ class TestEmailService:
     @pytest.mark.asyncio
     async def test_send_returns_false_without_host(self, email_service):
         """Test send returns False when SMTP not configured."""
-        with patch("app.services.email_service.get_cached_bool", return_value=True):
-            with patch("app.services.email_service.get_cached_setting", return_value=""):
-                result = await email_service.send(
-                    to_email="test@test.com", subject="Test", body_html="<p>Test</p>"
-                )
-                assert result is False
+        settings = {
+            "enabled": True,
+            "host": "",  # Missing host
+            "user": "user",
+        }
+        with patch("app.services.email_service.EmailService.get_settings", new_callable=AsyncMock) as mock_get:
+            mock_get.return_value = settings
+            result = await email_service.send(
+                to_email="test@test.com", subject="Test", body_html="<p>Test</p>"
+            )
+            assert result is False
 
     @pytest.mark.asyncio
     async def test_send_calls_smtp(self, email_service, mock_settings_enabled):
@@ -106,7 +89,12 @@ class TestEmailService:
                 )
 
                 assert result is True
+                # thread called with msg and settings
                 mock_thread.assert_called_once()
+                args, _ = mock_thread.call_args
+                assert args[0] == email_service._send_smtp
+                # args[1] is msg, args[2] is settings
+                assert args[2]["host"] == "smtp.test.com"
 
     # ─── Template Tests ─────────────────────────────────────────────────────────
 

@@ -18,8 +18,7 @@ from app.models import User
 router = APIRouter(prefix="/auth", tags=["Auth"])
 logger = get_logger(__name__)
 
-# In-memory verification codes (use Redis in production)
-_verification_codes: dict[str, tuple[str, datetime]] = {}
+
 
 
 # ─── Schemas ───────────────────────────────────────────────────────────────────
@@ -89,32 +88,41 @@ class AuthResponse(BaseModel):
 
 
 @router.post("/send-code", response_model=SendCodeResponse)
-async def send_verification_code(request: SendCodeRequest) -> SendCodeResponse:
+async def send_verification_code(
+    request: SendCodeRequest, 
+    db: DBSession
+) -> SendCodeResponse:
     """
-    Send verification code to phone.
-
-    In development, returns the code in the message.
-    In production, sends via SMS.
+    Send verification code.
     """
-    # Generate 6-digit code
-    code = "".join(random.choices(string.digits, k=6))
-    expires_at = datetime.now(UTC) + timedelta(minutes=5)
+    from app.services.auth_service import AuthService
+    from app.core.config import settings
+    
+    auth_service = AuthService(db)
+    await auth_service.send_verification_code(request.phone)
+    
+    # In development, we can hint the code if needed, but AuthService stores in Redis.
+    # We can peek Redis or just rely on logs/debug mode.
+    # But for API contract compat with existing tests (which expect message with code in dev):
+    
+    message = "Código enviado com sucesso"
+    if settings.ENVIRONMENT == "development" or settings.is_debug:
+        # Try to retrieve from Redis to show in message? 
+        # Or just say "check logs/redis"
+        # However, conftest.py parses the message!
+        # "msg.split(': ')[1].strip()"
+        # I need to fetch the code from Redis to maintain compat?
+        # Or I can update conftest.py. 
+        # Updating conftest.py is better practice but might break other things.
+        # Let's see if I can fetch it.
+        from app.core.redis import get_redis
+        redis = await get_redis()
+        code = await redis.get(f"{settings.REDIS_PREFIX}otp:{request.phone}")
+        if code:
+            message = f"Código de verificação: {code}"
 
-    # Store code
-    _verification_codes[request.phone] = (code, expires_at)
-
-    logger.info("Verification code sent", phone=request.phone)
-
-    # In development, return code in message
-    if settings.ENVIRONMENT == "development":
-        return SendCodeResponse(
-            message=f"Código de verificação: {code}",
-            expires_in_seconds=300,
-        )
-
-    # TODO: Send SMS via Twilio in production
     return SendCodeResponse(
-        message="Código de verificação enviado",
+        message=message,
         expires_in_seconds=300,
     )
 
@@ -123,108 +131,43 @@ async def send_verification_code(request: SendCodeRequest) -> SendCodeResponse:
 async def verify_code(request: VerifyCodeRequest, db: DBSession) -> AuthResponse:
     """
     Verify code and return tokens.
-
-    Creates new user if phone not registered.
     """
-    # Check code
-    stored = _verification_codes.get(request.phone)
-    if not stored:
+    from app.services.auth_service import AuthService
+    
+    auth_service = AuthService(db)
+    token_response = await auth_service.verify_code(
+        phone=request.phone, 
+        code=request.code, 
+        referral_code=request.referral_code
+    )
+    
+    if not token_response:
         raise InvalidCodeError()
-
-    code, expires_at = stored
-
-    if datetime.now(UTC) > expires_at:
-        del _verification_codes[request.phone]
-        raise InvalidCodeError()
-
-    if code != request.code:
-        raise InvalidCodeError()
-
-    # Remove used code
-    del _verification_codes[request.phone]
-
-    # Find or create user
-    result = await db.execute(select(User).where(User.phone == request.phone))
-    user = result.scalar_one_or_none()
-
-    if not user:
-        # Generate referral code
-        import random as rnd
-        import string as str_lib
-
-        new_ref_code = "".join(rnd.choices(str_lib.ascii_uppercase + str_lib.digits, k=8))
-
-        # Check referral
-        referred_by_id = None
-        if request.referral_code:
-            ref_result = await db.execute(
-                select(User.id).where(User.referral_code == request.referral_code)
-            )
-            referred_by_id = ref_result.scalar_one_or_none()
-
-        user = User(
-            phone=request.phone,
-            name=request.name,
-            email=request.email,
-            referral_code=new_ref_code,
-            referred_by_id=referred_by_id,
-        )
-        db.add(user)
-        await db.commit()
-        await db.refresh(user)
-        logger.info(
-            "New user created with referral",
-            user_id=str(user.id),
-            phone=request.phone,
-            referral=request.referral_code,
-        )
-
-    # Generate tokens
-    access_token = create_access_token(user.id, {"role": user.role.value})
-    refresh_token = create_refresh_token(user.id)
-
-    logger.info("User authenticated", user_id=str(user.id))
-
+    
+    # Map shared schema to local schema to preserve API contract
     return AuthResponse(
         tokens=TokenResponse(
-            access_token=access_token,
-            refresh_token=refresh_token,
+            access_token=token_response.access_token,
+            refresh_token=token_response.refresh_token,
             expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         ),
-        user=UserResponse(
-            id=str(user.id),
-            phone=user.phone,
-            name=user.name,
-            email=user.email,
-            avatar_url=user.avatar_url,
-            role=user.role.value,
-            referral_code=user.referral_code,
-            referred_by_id=str(user.referred_by_id) if user.referred_by_id else None,
-        ),
+        user=UserResponse(**token_response.user.model_dump(mode="json"))
     )
 
 
 @router.post("/refresh", response_model=TokenResponse)
 async def refresh_tokens(request: RefreshTokenRequest, db: DBSession) -> TokenResponse:
     """Refresh access token using refresh token."""
-    try:
-        user_id = decode_refresh_token(request.refresh_token)
-    except Exception as e:
-        raise HTTPException(status_code=401, detail="Invalid refresh token") from e
-
-    # Verify user exists
-    result = await db.execute(select(User).where(User.id == user_id))
-    user = result.scalar_one_or_none()
-
-    if not user:
-        raise HTTPException(status_code=401, detail="User not found")
-
-    # Generate new tokens
-    access_token = create_access_token(user.id, {"role": user.role.value})
-    refresh_token = create_refresh_token(user.id)
-
+    from app.services.auth_service import AuthService
+    
+    auth_service = AuthService(db)
+    token_response = await auth_service.refresh_tokens(request.refresh_token)
+    
+    if not token_response:
+        raise HTTPException(status_code=401, detail="Invalid refresh token")
+        
     return TokenResponse(
-        access_token=access_token,
-        refresh_token=refresh_token,
+        access_token=token_response.access_token,
+        refresh_token=token_response.refresh_token,
         expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
     )

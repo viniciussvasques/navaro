@@ -30,6 +30,8 @@ class UserResponse(BaseModel):
     email: str | None
     avatar_url: str | None
     role: UserRole
+    referral_code: str | None = None
+    referred_by_id: UUID | None = None
     created_at: datetime
 
     model_config = {"from_attributes": True}

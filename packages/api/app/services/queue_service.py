@@ -139,7 +139,7 @@ class QueueService:
             entry.called_at = now
             # Trigger notification
             notif_service = NotificationService(self.db)
-            await notif_service.notify(
+            await notif_service.create_in_app(
                 user_id=entry.user_id,
                 title="Sua vez está chegando!",
                 message="Você foi chamado na fila. Por favor, aproxime-se do atendimento.",

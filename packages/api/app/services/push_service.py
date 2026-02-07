@@ -6,7 +6,7 @@ import httpx
 
 from app.core.logging import get_logger
 from app.models.system_settings import SettingsKeys
-from app.services.settings_service import get_cached_bool, get_cached_setting
+from app.models.system_settings import SettingsKeys
 
 logger = get_logger(__name__)
 
@@ -14,13 +14,17 @@ logger = get_logger(__name__)
 class PushService:
     """Push notification service using FCM."""
 
-    @property
-    def enabled(self) -> bool:
-        return get_cached_bool(SettingsKeys.FCM_ENABLED, False)
+    async def get_settings(self) -> dict:
+        """Get push settings from database."""
+        from app.core import database
+        from app.services.settings_service import SettingsService
 
-    @property
-    def server_key(self) -> str:
-        return get_cached_setting(SettingsKeys.FCM_SERVER_KEY, "") or ""
+        async with database.async_session_maker() as session:
+            settings_service = SettingsService(session)
+            return {
+                "enabled": await settings_service.get_bool(SettingsKeys.FCM_ENABLED, False),
+                "server_key": await settings_service.get(SettingsKeys.FCM_SERVER_KEY, "") or "",
+            }
 
     async def send(
         self,
@@ -32,19 +36,14 @@ class PushService:
     ) -> bool:
         """
         Send push notification to a single device.
-
-        Args:
-            device_token: FCM device token
-            title: Notification title
-            body: Notification body text
-            data: Additional data payload
-            image: Optional image URL
         """
-        if not self.enabled:
+        settings = await self.get_settings()
+
+        if not settings["enabled"]:
             logger.info("Push disabled", title=title, body=body[:50])
             return True  # Simulate success
 
-        if not self.server_key:
+        if not settings["server_key"]:
             logger.warning("Push enabled but FCM_SERVER_KEY not configured")
             return False
 
@@ -71,7 +70,7 @@ class PushService:
                 response = await client.post(
                     "https://fcm.googleapis.com/fcm/send",
                     headers={
-                        "Authorization": f"key={self.server_key}",
+                        "Authorization": f"key={settings['server_key']}",
                         "Content-Type": "application/json",
                     },
                     json=payload,
@@ -97,11 +96,10 @@ class PushService:
     ) -> int:
         """
         Send push notification to multiple devices.
-
-        Returns:
-            Number of successful sends
         """
-        if not self.enabled or not self.server_key:
+        settings = await self.get_settings()
+
+        if not settings["enabled"] or not settings["server_key"]:
             return 0
 
         if not device_tokens:
@@ -119,7 +117,7 @@ class PushService:
                 response = await client.post(
                     "https://fcm.googleapis.com/fcm/send",
                     headers={
-                        "Authorization": f"key={self.server_key}",
+                        "Authorization": f"key={settings['server_key']}",
                         "Content-Type": "application/json",
                     },
                     json=payload,
@@ -141,7 +139,9 @@ class PushService:
         self, topic: str, title: str, body: str, data: dict[str, Any] | None = None
     ) -> bool:
         """Send push notification to a topic (e.g., all users of an establishment)."""
-        if not self.enabled or not self.server_key:
+        settings = await self.get_settings()
+
+        if not settings["enabled"] or not settings["server_key"]:
             return False
 
         try:
@@ -155,7 +155,7 @@ class PushService:
                 response = await client.post(
                     "https://fcm.googleapis.com/fcm/send",
                     headers={
-                        "Authorization": f"key={self.server_key}",
+                        "Authorization": f"key={settings['server_key']}",
                         "Content-Type": "application/json",
                     },
                     json=payload,

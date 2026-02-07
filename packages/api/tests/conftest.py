@@ -109,11 +109,10 @@ async def auth_headers(client: AsyncClient) -> dict:
     # In test env, code is mocked or predictable if we check logic,
     # but based on test_appointments, we fetch it from response message
     # Re-trigger to get the code
-    resp = await client.post("/api/v1/auth/send-code", json={"phone": phone})
-    msg = resp.json()["message"]
-    code = msg.split(": ")[1].strip()
-
+    # Use debug code directly
+    code = "123456"
     resp = await client.post("/api/v1/auth/verify", json={"phone": phone, "code": code})
+    assert resp.status_code == 200, f"Auth verify failed: {resp.text}"
     token = resp.json()["tokens"]["access_token"]
     return {"Authorization": f"Bearer {token}"}
 
@@ -123,11 +122,10 @@ async def auth_headers_second_user(client: AsyncClient) -> dict:
     """Create a second user and return auth headers."""
     phone = "+5511977777777"
     await client.post("/api/v1/auth/send-code", json={"phone": phone})
-    resp = await client.post("/api/v1/auth/send-code", json={"phone": phone})
-    msg = resp.json()["message"]
-    code = msg.split(": ")[1].strip()
-
+    # Use debug code directly
+    code = "123456"
     resp = await client.post("/api/v1/auth/verify", json={"phone": phone, "code": code})
+    assert resp.status_code == 200, f"Auth verify failed (2nd user): {resp.text}"
     token = resp.json()["tokens"]["access_token"]
     return {"Authorization": f"Bearer {token}"}
 

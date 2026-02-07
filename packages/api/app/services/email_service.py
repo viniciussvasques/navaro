@@ -8,7 +8,7 @@ from email.mime.text import MIMEText
 
 from app.core.logging import get_logger
 from app.models.system_settings import SettingsKeys
-from app.services.settings_service import get_cached_bool, get_cached_setting
+from app.models.system_settings import SettingsKeys
 
 logger = get_logger(__name__)
 
@@ -16,59 +16,37 @@ logger = get_logger(__name__)
 class EmailService:
     """Email service using SMTP."""
 
-    @property
-    def enabled(self) -> bool:
-        return get_cached_bool(SettingsKeys.EMAIL_ENABLED, False)
+    async def get_settings(self) -> dict:
+        """Get email settings from database."""
+        from app.core import database
+        from app.services.settings_service import SettingsService
 
-    @property
-    def host(self) -> str:
-        return get_cached_setting(SettingsKeys.SMTP_HOST, "") or ""
-
-    @property
-    def port(self) -> int:
-        port_str = get_cached_setting(SettingsKeys.SMTP_PORT, "587")
-        try:
-            return int(port_str) if port_str else 587
-        except ValueError:
-            return 587
-
-    @property
-    def user(self) -> str:
-        return get_cached_setting(SettingsKeys.SMTP_USER, "") or ""
-
-    @property
-    def password(self) -> str:
-        return get_cached_setting(SettingsKeys.SMTP_PASSWORD, "") or ""
-
-    @property
-    def from_email(self) -> str:
-        return get_cached_setting(SettingsKeys.SMTP_FROM_EMAIL, "") or self.user
-
-    @property
-    def from_name(self) -> str:
-        return get_cached_setting(SettingsKeys.SMTP_FROM_NAME, "Navaro") or "Navaro"
-
-    @property
-    def use_tls(self) -> bool:
-        return get_cached_bool(SettingsKeys.SMTP_USE_TLS, True)
+        async with database.async_session_maker() as session:
+            settings_service = SettingsService(session)
+            return {
+                "enabled": await settings_service.get_bool(SettingsKeys.EMAIL_ENABLED, False),
+                "host": await settings_service.get(SettingsKeys.SMTP_HOST, "") or "",
+                "port": int(await settings_service.get(SettingsKeys.SMTP_PORT, "587") or "587"),
+                "user": await settings_service.get(SettingsKeys.SMTP_USER, "") or "",
+                "password": await settings_service.get(SettingsKeys.SMTP_PASSWORD, "") or "",
+                "from_email": await settings_service.get(SettingsKeys.SMTP_FROM_EMAIL, "") or "",
+                "from_name": await settings_service.get(SettingsKeys.SMTP_FROM_NAME, "Navaro") or "Navaro",
+                "use_tls": await settings_service.get_bool(SettingsKeys.SMTP_USE_TLS, True),
+            }
 
     async def send(
         self, to_email: str, subject: str, body_html: str, body_text: str | None = None
     ) -> bool:
         """
         Send email via SMTP.
-
-        Args:
-            to_email: Recipient email
-            subject: Email subject
-            body_html: HTML body content
-            body_text: Plain text body (fallback)
         """
-        if not self.enabled:
+        settings = await self.get_settings()
+
+        if not settings["enabled"]:
             logger.info("Email disabled", to=to_email, subject=subject)
             return True
 
-        if not self.host or not self.user:
+        if not settings["host"] or not settings["user"]:
             logger.warning("Email enabled but SMTP not configured")
             return False
 
@@ -76,7 +54,7 @@ class EmailService:
             # Create message
             msg = MIMEMultipart("alternative")
             msg["Subject"] = subject
-            msg["From"] = f"{self.from_name} <{self.from_email}>"
+            msg["From"] = f"{settings['from_name']} <{settings['from_email']}>"
             msg["To"] = to_email
 
             # Add text and HTML parts
@@ -85,7 +63,7 @@ class EmailService:
             msg.attach(MIMEText(body_html, "html", "utf-8"))
 
             # Send in thread pool (SMTP is blocking)
-            await asyncio.to_thread(self._send_smtp, msg)
+            await asyncio.to_thread(self._send_smtp, msg, settings)
 
             logger.info("Email sent", to=to_email, subject=subject)
             return True
@@ -94,18 +72,18 @@ class EmailService:
             logger.error("Email error", to=to_email, error=str(e))
             return False
 
-    def _send_smtp(self, msg: MIMEMultipart) -> None:
+    def _send_smtp(self, msg: MIMEMultipart, settings: dict) -> None:
         """Send email via SMTP (blocking)."""
         context = ssl.create_default_context()
 
-        if self.use_tls:
-            with smtplib.SMTP(self.host, self.port) as server:
+        if settings["use_tls"]:
+            with smtplib.SMTP(settings["host"], settings["port"]) as server:
                 server.starttls(context=context)
-                server.login(self.user, self.password)
+                server.login(settings["user"], settings["password"])
                 server.send_message(msg)
         else:
-            with smtplib.SMTP_SSL(self.host, self.port, context=context) as server:
-                server.login(self.user, self.password)
+            with smtplib.SMTP_SSL(settings["host"], settings["port"], context=context) as server:
+                server.login(settings["user"], settings["password"])
                 server.send_message(msg)
 
     # ─── Email Templates ────────────────────────────────────────────────────────
