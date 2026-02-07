@@ -232,6 +232,9 @@ class SettingsService:
             (SettingsKeys.SUPPORT_PHONE, "", "Telefone de suporte", False, "general"),
             (SettingsKeys.TERMS_URL, "", "URL dos Termos de Uso", False, "general"),
             (SettingsKeys.PRIVACY_URL, "", "URL da Política de Privacidade", False, "general"),
+            # Loyalty
+            (SettingsKeys.CASHBACK_ENABLED, "false", "Ativar cashback global", False, "loyalty"),
+            (SettingsKeys.CASHBACK_PERCENT, "2.0", "Percentual de cashback (%)", False, "loyalty"),
         ]
 
         count = 0

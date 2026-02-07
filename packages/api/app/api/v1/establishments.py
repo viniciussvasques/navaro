@@ -1,11 +1,12 @@
 """Establishment endpoints."""
 
+from datetime import datetime
 from uuid import UUID
 
 from fastapi import APIRouter, Query
 from pydantic import BaseModel, ConfigDict, Field
 from slugify import slugify
-from sqlalchemy import func, select
+from sqlalchemy import case, func, select
 
 from app.api.deps import CurrentUser, DBSession
 from app.core.exceptions import ForbiddenError, NotFoundError
@@ -62,6 +63,9 @@ class EstablishmentUpdate(BaseModel):
     cancellation_fee_fixed: float | None = None
     no_show_fee_percent: float | None = None
     deposit_percent: float | None = None
+    subscription_tier: SubscriptionTier | None = None
+    is_sponsored: bool | None = None
+    sponsored_until: datetime | None = None
 
 
 class EstablishmentResponse(BaseModel):
@@ -70,6 +74,7 @@ class EstablishmentResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: str
+    owner_id: str
     name: str
     slug: str
     category: str
@@ -92,6 +97,9 @@ class EstablishmentResponse(BaseModel):
     cancellation_fee_fixed: float
     no_show_fee_percent: float
     deposit_percent: float
+    is_sponsored: bool
+    created_at: datetime
+    updated_at: datetime
 
 
 class EstablishmentListResponse(BaseModel):
@@ -124,6 +132,7 @@ def establishment_to_response(est: Establishment) -> EstablishmentResponse:
     """Convert establishment to response."""
     return EstablishmentResponse(
         id=str(est.id),
+        owner_id=str(est.owner_id),
         name=est.name,
         slug=est.slug,
         category=est.category.value,
@@ -146,6 +155,9 @@ def establishment_to_response(est: Establishment) -> EstablishmentResponse:
         cancellation_fee_fixed=float(est.cancellation_fee_fixed),
         no_show_fee_percent=float(est.no_show_fee_percent),
         deposit_percent=float(est.deposit_percent),
+        is_sponsored=est.is_sponsored,
+        created_at=est.created_at,
+        updated_at=est.updated_at,
     )
 
 
@@ -227,17 +239,76 @@ async def list_establishments(
             + func.sin(lat_rad) * func.sin(est_lat_rad)
         )
 
-        # Label the distance for access and sorting
         distance_col = distance_expression.label("distance")
-
-        # Add to query
         query = query.add_columns(distance_col)
 
         if radius:
             query = query.where(distance_expression <= radius)
 
-        # Default sort by distance when coordinates are provided
-        query = query.order_by(distance_col.asc())
+    # ─── Ordering Logic ───────────────────────────────────────────────────────
+    # We want to limit the "Sponsored Boost" to the TOP 4 sponsored establishments.
+    # To do this cleanly in SQLAlchemy with pagination, we use a window function.
+    
+    sponsored_rank = func.row_number().over(
+        partition_by=Establishment.is_sponsored,
+        order_by=[
+            case(
+                (Establishment.subscription_tier == "platinum", 5),
+                (Establishment.subscription_tier == "gold", 4),
+                (Establishment.subscription_tier == "silver", 3),
+                (Establishment.subscription_tier == "bronze", 2),
+                (Establishment.subscription_tier == "free", 1),
+                else_=0
+            ).desc(),
+            Establishment.name.asc()
+        ]
+    )
+
+    # If geo searching, distance is the third tie-breaker for sponsored rank
+    if distance_col is not None:
+        sponsored_rank = func.row_number().over(
+            partition_by=Establishment.is_sponsored,
+            order_by=[
+                case(
+                    (Establishment.subscription_tier == "platinum", 5),
+                    (Establishment.subscription_tier == "gold", 4),
+                    (Establishment.subscription_tier == "silver", 3),
+                    (Establishment.subscription_tier == "bronze", 2),
+                    (Establishment.subscription_tier == "free", 1),
+                    else_=0
+                ).desc(),
+                distance_col.asc(),
+                Establishment.name.asc()
+            ]
+        )
+
+    # A "Prime Sponsored" is someone who is_sponsored=True AND is within the top 4
+    is_prime_sponsored = case(
+        ((Establishment.is_sponsored == True) & (sponsored_rank <= 4), 1),
+        else_=0
+    )
+
+    tier_priority = case(
+        (Establishment.subscription_tier == "platinum", 5),
+        (Establishment.subscription_tier == "gold", 4),
+        (Establishment.subscription_tier == "silver", 3),
+        (Establishment.subscription_tier == "bronze", 2),
+        (Establishment.subscription_tier == "free", 1),
+        else_=0
+    )
+
+    if distance_col is not None:
+        query = query.order_by(
+            is_prime_sponsored.desc(),
+            tier_priority.desc(),
+            distance_col.asc()
+        )
+    else:
+        query = query.order_by(
+            is_prime_sponsored.desc(),
+            tier_priority.desc(),
+            Establishment.name.asc()
+        )
 
     # ─── Other Filters ─────────────────────────────────────────────────────────
     if city:

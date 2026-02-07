@@ -44,6 +44,15 @@ async def run_test():
             "city": "Sao Paulo",
             "state": "SP",
             "phone": "+5511999999999",
+            "business_hours": {
+                "mon": {"open": "08:00", "close": "20:00"},
+                "tue": {"open": "08:00", "close": "20:00"},
+                "wed": {"open": "08:00", "close": "20:00"},
+                "thu": {"open": "08:00", "close": "20:00"},
+                "fri": {"open": "08:00", "close": "20:00"},
+                "sat": {"open": "08:00", "close": "20:00"},
+                "sun": {"open": "08:00", "close": "20:00"},
+            }
         }
 
         try:
@@ -88,7 +97,9 @@ async def run_test():
 
         # 5. Appointment Management
         print("\n📅 Testing Appointments...")
-        scheduled_at = (datetime.now(UTC) + timedelta(days=2)).isoformat()
+        future_date = datetime.now(UTC) + timedelta(days=2)
+        # Set to 14:00
+        scheduled_at = future_date.replace(hour=14, minute=0, second=0, microsecond=0).isoformat()
         appt_data = {
             "establishment_id": est_id,
             "service_id": service_id,
@@ -117,7 +128,46 @@ async def run_test():
         except Exception as e:
             print(f"  🔴 List Appointments: Failed ({e})")
 
-    print("\n✅ Verification Complete!")
+        # 6. Product Management
+        print("\n📦 Testing Products...")
+        product_data = {"name": "Pomada Modeladora", "price": 35.0, "stock_quantity": 100}
+        try:
+            resp = await client.post(
+                f"{BASE_URL}/establishments/{est_id}/products", json=product_data, headers=headers
+            )
+            resp.raise_for_status()
+            product_id = resp.json()["id"]
+            print(f"  🟢 Create Product: Success (ID: {product_id})")
+        except Exception as e:
+            print(f"  🔴 Create Product: Failed ({e})")
+        
+        # 7. Payments (Simulate)
+        print("\n💳 Testing Payments...")
+        # Create Payment Intent
+        pay_data = {"appointment_id": appt_id, "provider": "stripe"}
+        try:
+            resp = await client.post(f"{BASE_URL}/payments/create-intent", json=pay_data, headers=headers)
+            if resp.status_code in [200, 201]:
+                print(f"  🟢 Create Payment Intent: Success")
+            else:
+                # Expect 500 or 400 if stripe keys missing, but that confirms logic flow
+                print(f"  🟡 Create Payment Intent: Response {resp.status_code} ({resp.text})")
+        except Exception as e:
+            print(f"  🔴 Create Payment Intent: Error ({e})")
+
+        # 8. Queue (Extra Check)
+        print("\ntest Testing Queue...")
+        try:
+           queue_data = {"service_id": service_id, "establishment_id": est_id}
+           resp = await client.post(f"{BASE_URL}/queue", json=queue_data, headers=headers)
+           if resp.status_code == 201:
+               print(f"  🟢 Join Queue: Success")
+           else:
+               print(f"  🔴 Join Queue: Failed ({resp.text})")
+        except Exception as e:
+            print(f"  🔴 Join Queue: Error ({e})")
+
+        print("\n✅ Verification Complete!")
 
 
 if __name__ == "__main__":

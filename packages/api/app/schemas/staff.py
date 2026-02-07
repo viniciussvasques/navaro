@@ -20,6 +20,7 @@ class StaffBase(BaseModel):
     name: str = Field(..., max_length=200)
     phone: str | None = Field(None, max_length=20)
     role: str = Field(..., max_length=100, examples=["barbeiro", "cabeleireiro"])
+    bio: str | None = Field(None, max_length=1000)
 
 
 class StaffCreate(StaffBase):
@@ -35,6 +36,7 @@ class StaffUpdate(BaseModel):
     name: str | None = Field(None, max_length=200)
     phone: str | None = Field(None, max_length=20)
     role: str | None = Field(None, max_length=100)
+    bio: str | None = Field(None, max_length=1000)
     avatar_url: str | None = None
     work_schedule: dict | None = None
     commission_rate: float | None = Field(None, ge=0, le=100)
@@ -49,6 +51,7 @@ class StaffResponse(BaseModel):
     name: str
     phone: str | None
     role: str
+    bio: str | None
     avatar_url: str | None
     work_schedule: dict
     commission_rate: float | None

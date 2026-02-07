@@ -13,6 +13,7 @@ class ServiceBase(BaseModel):
     description: str | None = Field(None, max_length=1000)
     price: float = Field(..., gt=0)
     duration_minutes: int = Field(..., ge=15, le=240)
+    is_at_home: bool = False
 
 
 class ServiceCreate(ServiceBase):
@@ -31,6 +32,7 @@ class ServiceUpdate(BaseModel):
     description: str | None = Field(None, max_length=1000)
     price: float | None = Field(None, gt=0)
     duration_minutes: int | None = Field(None, ge=15, le=240)
+    is_at_home: bool | None = None
     active: bool | None = None
     staff_ids: list[UUID] | None = None
 
@@ -44,6 +46,7 @@ class ServiceResponse(BaseModel):
     description: str | None
     price: float
     duration_minutes: int
+    is_at_home: bool
     active: bool
     created_at: datetime
 

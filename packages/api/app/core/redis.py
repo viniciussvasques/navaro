@@ -26,5 +26,5 @@ async def close_redis() -> None:
     """Close Redis client."""
     global redis_client
     if redis_client:
-        await redis_client.close()
+        await redis_client.aclose()
         redis_client = None

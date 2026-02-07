@@ -36,14 +36,19 @@ class WalletService:
         return wallet
 
     async def add_balance(
-        self, user_id: UUID, amount: float, description: str, reference_id: str | None = None
+        self,
+        user_id: UUID,
+        amount: float,
+        description: str,
+        reference_id: str | None = None,
+        tx_type: TransactionType = TransactionType.deposit,
     ) -> UserWallet:
         """Add balance to user wallet."""
         wallet = await self.get_wallet(user_id)
 
         transaction = WalletTransaction(
             wallet_id=wallet.id,
-            type=TransactionType.deposit,
+            type=tx_type,
             amount=amount,
             status=TransactionStatus.completed,
             description=description,

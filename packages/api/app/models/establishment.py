@@ -1,10 +1,11 @@
 """Establishment model."""
 
 import enum
+from datetime import datetime
 from typing import TYPE_CHECKING
 from uuid import UUID
 
-from sqlalchemy import JSON, Boolean, Enum, ForeignKey, Index, Numeric, String
+from sqlalchemy import JSON, Boolean, DateTime, Enum, ForeignKey, Index, Numeric, String
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -20,6 +21,11 @@ class EstablishmentCategory(str, enum.Enum):
     barbershop = "barbershop"
     salon = "salon"
     barber_salon = "barber_salon"
+    beauty_salon = "beauty_salon"
+    esthetics = "esthetics"
+    clinic = "clinic"
+    spa = "spa"
+    other = "other"
 
 
 class EstablishmentStatus(str, enum.Enum):
@@ -34,8 +40,13 @@ class EstablishmentStatus(str, enum.Enum):
 class SubscriptionTier(str, enum.Enum):
     """Platform subscription tier."""
 
+    free = "free"
+    bronze = "bronze"
+    silver = "silver"
+    gold = "gold"
+    platinum = "platinum"
     trial = "trial"
-    active = "active"
+    active = "active"  # Legacy/Generic
     cancelled = "cancelled"
 
 
@@ -186,9 +197,21 @@ class Establishment(BaseModel):
 
     subscription_tier: Mapped[SubscriptionTier] = mapped_column(
         Enum(SubscriptionTier),
-        default=SubscriptionTier.trial,
+        default=SubscriptionTier.free,
         nullable=False,
         doc="Platform subscription tier",
+    )
+
+    is_sponsored: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        nullable=False,
+        doc="Is this establishment featured in listings",
+    )
+
+    sponsored_until: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        doc="Expiration date for sponsorship",
     )
 
     # ─── Stripe ────────────────────────────────────────────────────────────────

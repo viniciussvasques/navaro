@@ -22,6 +22,8 @@ class TransactionType(str, enum.Enum):
     refund = "refund"  # Money back
     cashback = "cashback"  # Platform loyalty
     fee = "fee"  # System or penalty fee
+    commission = "commission"  # Staff earning
+    referral = "referral"  # Reward for inviting others
 
 
 class TransactionStatus(str, enum.Enum):

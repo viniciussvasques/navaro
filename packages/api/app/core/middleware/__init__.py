@@ -161,9 +161,10 @@ class RateLimitMiddleware:
             await self.app(scope, receive, send)
             return
 
-        if not settings.RATE_LIMIT_ENABLED:
+        if not settings.RATE_LIMIT_ENABLED or settings.TESTING:
             await self.app(scope, receive, send)
             return
+
 
         # Skip rate limiting for health checks
         path = scope["path"]

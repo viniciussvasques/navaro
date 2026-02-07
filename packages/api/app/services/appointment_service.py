@@ -9,14 +9,17 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.models.appointment import Appointment, AppointmentProduct, AppointmentStatus
-from app.models.establishment import Establishment
+from app.models.appointment import Appointment, AppointmentProduct, AppointmentStatus, PaymentMethod
+from app.models.establishment import Establishment, SubscriptionTier
 from app.models.product import Product
 from app.models.service import Service
 from app.models.staff import StaffMember
 from app.models.staff_block import StaffBlock
+from app.models.system_settings import SettingsKeys
 from app.models.user_debt import DebtStatus, UserDebt
 from app.schemas.appointment import AppointmentCreate, AppointmentUpdate
+from app.services.settings_service import SettingsService
+from app.services.wallet_service import WalletService
 
 
 class AppointmentService:
@@ -201,6 +204,18 @@ class AppointmentService:
 
                 appointment.total_price = float(service.price) + total_prod_price
 
+            # ─── Wallet Payment ──────────────────────────────────────────────────
+            if data.payment_method == PaymentMethod.wallet:
+                wallet_service = WalletService(self.db)
+                await wallet_service.withdraw_balance(
+                    user_id=user_id,
+                    amount=appointment.total_price,
+                    description=f"Pagamento de agendamento: {service.name}",
+                    reference_id=str(appointment.id)
+                )
+                # If paid with wallet, it's already confirmed/confirmed pending
+                appointment.status = AppointmentStatus.confirmed
+
             await self.db.commit()
 
             # Reload with products
@@ -234,12 +249,16 @@ class AppointmentService:
         data: AppointmentUpdate,
     ) -> Appointment | None:
         """Update appointment."""
+        print(f"DEBUG: AppointmentService.update called for {appointment_id} with data {data}")
         from app.core.metrics import metrics
 
         query = (
             select(Appointment)
             .where(Appointment.id == appointment_id)
-            .options(selectinload(Appointment.products).selectinload(AppointmentProduct.product))
+            .options(
+                selectinload(Appointment.products).selectinload(AppointmentProduct.product),
+                selectinload(Appointment.service)
+            )
         )
         result = await self.db.execute(query)
         appointment = result.scalar_one_or_none()
@@ -258,25 +277,100 @@ class AppointmentService:
                     tags={"establishment_id": str(appointment.establishment_id)},
                 )
 
-            # If transitioning to COMPLETED and paid in CASH, accrued 5% platform fee
+            # If transitioning to COMPLETED and paid in CASH, accrued dynamic platform fee
             from app.models.appointment import PaymentMethod
+            from app.models.establishment import SubscriptionTier
 
             if (
                 data.status == AppointmentStatus.completed
                 and appointment.status != AppointmentStatus.completed
             ):
                 if appointment.payment_method == PaymentMethod.cash:
-                    # Accrue 5% fee to establishment
-                    fee = float(appointment.total_price or 0) * 0.05
-                    # Load establishment to update fees
+                    # Load establishment to update fees and check tier
                     est_query = select(Establishment).where(
                         Establishment.id == appointment.establishment_id
                     )
                     est_res = await self.db.execute(est_query)
                     establishment = est_res.scalar_one()
+
+                    # Dynamic fee mapping
+                    tier_fees = {
+                        SubscriptionTier.free: 0.06,
+                        SubscriptionTier.trial: 0.05,
+                        SubscriptionTier.bronze: 0.05,
+                        SubscriptionTier.silver: 0.04,
+                        SubscriptionTier.gold: 0.03,
+                        SubscriptionTier.platinum: 0.02,
+                    }
+                    fee_percent = tier_fees.get(establishment.subscription_tier, 0.05)
+
+                    fee = float(appointment.total_price or 0) * fee_percent
                     establishment.pending_platform_fees = (
                         float(establishment.pending_platform_fees or 0) + fee
                     )
+
+            if data.status == AppointmentStatus.completed and appointment.status != AppointmentStatus.completed:
+                # Check for cashback
+                settings_service = SettingsService(self.db)
+                cashback_enabled = await settings_service.get_bool(SettingsKeys.CASHBACK_ENABLED)
+                
+                if cashback_enabled:
+                    cashback_percent = await settings_service.get_float(SettingsKeys.CASHBACK_PERCENT, 2.0)
+                    cashback_amount = float(appointment.total_price or 0) * (cashback_percent / 100.0)
+                    
+                    if cashback_amount > 0:
+                        wallet_service = WalletService(self.db)
+                        from app.models.wallet import TransactionType
+                        await wallet_service.add_balance(
+                            user_id=appointment.user_id,
+                            amount=cashback_amount,
+                            description=f"Cashback: {appointment.service.name if appointment.service else 'Agendamento'}",
+                            reference_id=str(appointment.id),
+                            tx_type=TransactionType.cashback
+                        )
+
+                # --- Staff Commissions and Goals ---
+                from app.services.staff_service import StaffService
+                staff_service = StaffService(self.db)
+                await staff_service.record_service_completion(
+                    staff_id=appointment.staff_id,
+                    establishment_id=appointment.establishment_id,
+                    amount=float(appointment.total_price),
+                    appointment_id=appointment.id
+                )
+
+                # --- Referral Reward ---
+                # Check if this is the user's first completed appointment
+                from sqlalchemy import and_, func
+                from app.models.user import User
+                first_appt_query = select(func.count(Appointment.id)).where(
+                    and_(
+                        Appointment.user_id == appointment.user_id,
+                        Appointment.status == AppointmentStatus.completed,
+                        Appointment.id != appointment.id
+                    )
+                )
+                first_appt_res = await self.db.execute(first_appt_query)
+                completed_count = first_appt_res.scalar() or 0
+
+                if completed_count == 0:
+                    # Reward the referrer
+                    user_query = select(User).where(User.id == appointment.user_id)
+                    user_res = await self.db.execute(user_query)
+                    user = user_res.scalar_one()
+
+                    if user.referred_by_id:
+                        # Get referral bonus from settings
+                        referral_bonus = await settings_service.get_float("referral_bonus_amount", 5.0)
+                        wallet_service = WalletService(self.db)
+                        from app.models.wallet import TransactionType
+                        await wallet_service.add_balance(
+                            user_id=user.referred_by_id,
+                            amount=referral_bonus,
+                            description=f"Bônus de indicação: {user.name or user.phone}",
+                            reference_id=str(user.id),
+                            tx_type=TransactionType.referral
+                        )
 
             appointment.status = data.status
 

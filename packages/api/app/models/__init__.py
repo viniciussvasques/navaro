@@ -55,7 +55,8 @@ from app.models.service import (
 )
 
 # Staff
-from app.models.staff import StaffMember
+from app.models.staff import StaffContractType, StaffMember
+from app.models.staff_goal import GoalPeriod, GoalType, StaffGoal
 from app.models.staff_block import StaffBlock
 
 # Subscription
@@ -97,6 +98,10 @@ __all__ = [
     "service_staff",
     # Staff
     "StaffMember",
+    "StaffContractType",
+    "StaffGoal",
+    "GoalPeriod",
+    "GoalType",
     "StaffBlock",
     # Subscription
     "SubscriptionPlan",

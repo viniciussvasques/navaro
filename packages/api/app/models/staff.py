@@ -1,9 +1,8 @@
-"""Staff member model."""
-
+import enum
 from typing import TYPE_CHECKING
 from uuid import UUID
 
-from sqlalchemy import JSON, Boolean, ForeignKey, Numeric, String
+from sqlalchemy import JSON, Boolean, Enum, ForeignKey, Numeric, String
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -11,6 +10,15 @@ from app.models.base import BaseModel
 
 if TYPE_CHECKING:
     from app.models.establishment import Establishment
+
+
+class StaffContractType(str, enum.Enum):
+    """Staff contract type."""
+
+    salary = "salary"  # Fixed salary (CLT)
+    chair_rental = "chair_rental"  # Chair rental fee
+    commission_only = "commission_only"  # Commission only
+    hybrid = "hybrid"  # Fixed + Commission
 
 
 class StaffMember(BaseModel):
@@ -63,6 +71,11 @@ class StaffMember(BaseModel):
         doc="Profile picture URL",
     )
 
+    bio: Mapped[str | None] = mapped_column(
+        String(1000),
+        doc="Staff member biography/description",
+    )
+
     # ─── Schedule & Commission ─────────────────────────────────────────────────
 
     work_schedule: Mapped[dict] = mapped_column(
@@ -70,6 +83,18 @@ class StaffMember(BaseModel):
         default=dict,
         nullable=False,
         doc="Work schedule by day of week",
+    )
+
+    contract_type: Mapped[StaffContractType] = mapped_column(
+        Enum(StaffContractType),
+        default=StaffContractType.commission_only,
+        nullable=False,
+        doc="Type of contract with the establishment",
+    )
+
+    base_salary: Mapped[float | None] = mapped_column(
+        Numeric(10, 2),
+        doc="Fixed base salary or chair rental fee",
     )
 
     commission_rate: Mapped[float | None] = mapped_column(

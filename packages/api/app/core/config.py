@@ -31,6 +31,7 @@ class Settings(BaseSettings):
     APP_VERSION: str = "1.0.0"
     APP_MODE: AppMode = AppMode.PRODUCTION
     ENVIRONMENT: Literal["development", "staging", "production"] = "development"
+    TESTING: bool = False
 
     # ─── Server ────────────────────────────────────────────────────────────────
     HOST: str = "0.0.0.0"

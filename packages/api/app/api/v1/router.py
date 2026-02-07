@@ -16,10 +16,12 @@ from app.api.v1 import (
     payouts,
     portfolio,
     products,
+    profile,
     queue,
     reviews,
     services,
     staff,
+    staff_goals,
     subscriptions,
     tips,
     users,
@@ -34,6 +36,7 @@ router.include_router(users.router)
 router.include_router(establishments.router)
 router.include_router(services.router)
 router.include_router(staff.router)
+router.include_router(staff_goals.router)
 router.include_router(appointments.router)
 router.include_router(queue.router)
 router.include_router(reviews.router)
@@ -44,6 +47,7 @@ router.include_router(checkins.router, prefix="/checkins", tags=["Check-ins"])
 router.include_router(bundles.router)
 router.include_router(subscriptions.router)
 router.include_router(products.router)
+router.include_router(profile.router)
 router.include_router(tips.router)
 router.include_router(payments.router, prefix="/payments", tags=["Payments"])
 router.include_router(payouts.router, prefix="/payouts", tags=["Payouts"])

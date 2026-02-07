@@ -90,6 +90,13 @@ class Service(BaseModel):
         doc="Is deposit required for this service",
     )
 
+    is_at_home: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        nullable=False,
+        doc="Is this a home service",
+    )
+
     # ─── Relationships ─────────────────────────────────────────────────────────
 
     establishment: Mapped["Establishment"] = relationship(

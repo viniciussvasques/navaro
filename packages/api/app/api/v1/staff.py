@@ -8,7 +8,7 @@ from sqlalchemy import select
 
 from app.api.deps import CurrentUser, DBSession
 from app.core.exceptions import ForbiddenError, NotFoundError
-from app.models import Establishment, StaffBlock, StaffMember, UserRole
+from app.models import Establishment, StaffBlock, StaffContractType, StaffMember, UserRole
 from app.schemas.staff import StaffBlockCreate, StaffBlockResponse
 
 router = APIRouter(prefix="/establishments/{establishment_id}/staff", tags=["Staff"])
@@ -24,8 +24,12 @@ class StaffCreate(BaseModel):
     phone: str | None = Field(None, max_length=20)
     role: str = Field("barbeiro", max_length=100)
     avatar_url: str | None = Field(None, max_length=500)
+    bio: str | None = Field(None, max_length=1000)
+    contract_type: StaffContractType = StaffContractType.commission_only
+    base_salary: float | None = Field(None, ge=0)
     commission_rate: float | None = Field(None, ge=0, le=100)
     work_schedule: dict | None = Field(default_factory=dict)
+    user_id: UUID | None = None
 
 
 class StaffUpdate(BaseModel):
@@ -35,9 +39,13 @@ class StaffUpdate(BaseModel):
     phone: str | None = Field(None, max_length=20)
     role: str | None = Field(None, max_length=100)
     avatar_url: str | None = Field(None, max_length=500)
+    bio: str | None = Field(None, max_length=1000)
+    contract_type: StaffContractType | None = None
+    base_salary: float | None = Field(None, ge=0)
     commission_rate: float | None = Field(None, ge=0, le=100)
     work_schedule: dict | None = None
     active: bool | None = None
+    user_id: UUID | None = None
 
 
 class StaffResponse(BaseModel):
@@ -49,9 +57,13 @@ class StaffResponse(BaseModel):
     name: str
     phone: str | None
     role: str
+    bio: str | None
     avatar_url: str | None
+    contract_type: str
+    base_salary: float | None
     work_schedule: dict
     commission_rate: float | None
+    user_id: str | None
     active: bool
 
 
@@ -99,9 +111,13 @@ async def list_staff(
             name=s.name,
             phone=s.phone,
             role=s.role,
+            bio=s.bio,
             avatar_url=s.avatar_url,
+            contract_type=s.contract_type.value,
+            base_salary=float(s.base_salary) if s.base_salary else None,
             work_schedule=s.work_schedule,
             commission_rate=float(s.commission_rate) if s.commission_rate else None,
+            user_id=str(s.user_id) if s.user_id else None,
             active=s.active,
         )
         for s in staff
@@ -124,9 +140,13 @@ async def create_staff(
         name=request.name,
         phone=request.phone,
         role=request.role,
+        bio=request.bio,
+        contract_type=request.contract_type,
+        base_salary=request.base_salary,
         avatar_url=request.avatar_url,
         commission_rate=request.commission_rate,
         work_schedule=request.work_schedule or {},
+        user_id=request.user_id,
     )
 
     db.add(staff)
@@ -138,9 +158,13 @@ async def create_staff(
         name=staff.name,
         phone=staff.phone,
         role=staff.role,
+        bio=staff.bio,
+        contract_type=staff.contract_type.value,
+        base_salary=float(staff.base_salary) if staff.base_salary else None,
         avatar_url=staff.avatar_url,
         work_schedule=staff.work_schedule,
         commission_rate=float(staff.commission_rate) if staff.commission_rate else None,
+        user_id=str(staff.user_id) if staff.user_id else None,
         active=staff.active,
     )
 
@@ -168,9 +192,13 @@ async def get_staff(
         name=staff.name,
         phone=staff.phone,
         role=staff.role,
+        bio=staff.bio,
+        contract_type=staff.contract_type.value,
+        base_salary=float(staff.base_salary) if staff.base_salary else None,
         avatar_url=staff.avatar_url,
         work_schedule=staff.work_schedule,
         commission_rate=float(staff.commission_rate) if staff.commission_rate else None,
+        user_id=str(staff.user_id) if staff.user_id else None,
         active=staff.active,
     )
 
@@ -209,9 +237,13 @@ async def update_staff(
         name=staff.name,
         phone=staff.phone,
         role=staff.role,
+        bio=staff.bio,
+        contract_type=staff.contract_type.value,
+        base_salary=float(staff.base_salary) if staff.base_salary else None,
         avatar_url=staff.avatar_url,
         work_schedule=staff.work_schedule,
         commission_rate=float(staff.commission_rate) if staff.commission_rate else None,
+        user_id=str(staff.user_id) if staff.user_id else None,
         active=staff.active,
     )
 

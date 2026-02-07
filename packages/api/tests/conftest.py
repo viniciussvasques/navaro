@@ -74,6 +74,9 @@ def app(db_engine):
     from app.core import database
     from sqlalchemy.ext.asyncio import async_sessionmaker
 
+    from app.core.config import settings
+    settings.RATE_LIMIT_ENABLED = False
+    settings.TESTING = True
     _app = create_app()
 
     # Create a completely fresh sessionmaker bound to the test engine
@@ -105,12 +108,11 @@ async def client(app) -> AsyncGenerator[AsyncClient, None]:
 async def auth_headers(client: AsyncClient) -> dict:
     """Create a user and return auth headers."""
     phone = "+5511988888888"
-    await client.post("/api/v1/auth/send-code", json={"phone": phone})
-    # In test env, code is mocked or predictable if we check logic,
-    # but based on test_appointments, we fetch it from response message
-    # Re-trigger to get the code
-    # Use debug code directly
-    code = "123456"
+    resp = await client.post("/api/v1/auth/send-code", json={"phone": phone})
+    assert resp.status_code == 200, f"Send Code Failed: {resp.text}"
+    message = resp.json()["message"]
+    # In dev mode, message format is "Código de verificação: XXXXXX"
+    code = message.split(": ")[1].strip()
     resp = await client.post("/api/v1/auth/verify", json={"phone": phone, "code": code})
     assert resp.status_code == 200, f"Auth verify failed: {resp.text}"
     token = resp.json()["tokens"]["access_token"]
@@ -121,9 +123,11 @@ async def auth_headers(client: AsyncClient) -> dict:
 async def auth_headers_second_user(client: AsyncClient) -> dict:
     """Create a second user and return auth headers."""
     phone = "+5511977777777"
-    await client.post("/api/v1/auth/send-code", json={"phone": phone})
-    # Use debug code directly
-    code = "123456"
+    resp = await client.post("/api/v1/auth/send-code", json={"phone": phone})
+    assert resp.status_code == 200, f"Send Code Failed (2nd user): {resp.text}"
+    message = resp.json()["message"]
+    # In dev mode, message format is "Código de verificação: XXXXXX"
+    code = message.split(": ")[1].strip()
     resp = await client.post("/api/v1/auth/verify", json={"phone": phone, "code": code})
     assert resp.status_code == 200, f"Auth verify failed (2nd user): {resp.text}"
     token = resp.json()["tokens"]["access_token"]

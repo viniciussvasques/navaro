@@ -2,7 +2,7 @@
 
 from uuid import UUID
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import select
 
 from app.api.deps import CurrentUser, DBSession
@@ -63,7 +63,26 @@ async def create_product(
     establishment = await get_establishment_or_404(db, establishment_id)
     check_ownership(establishment, current_user)
 
-    product = Product(establishment_id=establishment_id, **request.model_dump())
+    data = request.model_dump()
+    
+    # Calculate price if not provided but cost and markup are
+    if data.get("price") is None:
+        cost = data.get("cost_price")
+        markup = data.get("markup_percentage")
+        if cost is not None and markup is not None:
+             data["price"] = float(cost) * (1 + float(markup) / 100)
+    
+    if data.get("price") is None:
+         # Fallback default if still None (though schema requires price or calc)
+         # If Schema definition of ProductBase has price as required, request.price will be present.
+         # But in ProductCreate we made it optional.
+         # So we must ensure it is set.
+         raise HTTPException(
+             status_code=status.HTTP_400_BAD_REQUEST, 
+             detail="Preço de venda é obrigatório se não houver custo e margem."
+         )
+
+    product = Product(establishment_id=establishment_id, **data)
 
     db.add(product)
     await db.commit()
@@ -114,7 +133,20 @@ async def update_product(
     if not product:
         raise NotFoundError("Produto")
 
-    for field, value in request.model_dump(exclude_unset=True).items():
+    data = request.model_dump(exclude_unset=True)
+    
+    # Check if we need to recalculate price
+    cost = data.get("cost_price", product.cost_price)
+    markup = data.get("markup_percentage", product.markup_percentage)
+    original_price = product.price
+    new_price = data.get("price")
+
+    # If user didn't provide new price, but changed cost or markup, recalculate
+    if new_price is None and (data.get("cost_price") is not None or data.get("markup_percentage") is not None):
+        if cost is not None and markup is not None:
+             data["price"] = float(cost) * (1 + float(markup) / 100)
+
+    for field, value in data.items():
         setattr(product, field, value)
 
     await db.commit()

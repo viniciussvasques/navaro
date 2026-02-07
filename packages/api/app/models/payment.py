@@ -124,7 +124,7 @@ class Payment(BaseModel):
         String(50),
         default="stripe",
         nullable=False,
-        doc="Payment provider name (stripe, mercadopago, etc)",
+        doc="Payment provider name (stripe, mercadopago, pix, cash, etc)",
     )
 
     provider_payment_id: Mapped[str | None] = mapped_column(
