@@ -215,6 +215,24 @@
 
 ---
 
+## 🌐 App Web Estabelecimento (Navaro Pro Web)
+
+> Versão web do app para estabelecimentos. Mesmas funcionalidades do App Barbeiro (mobile), acessíveis pelo navegador para uso em desktop/tablet.
+
+### Escopo
+- Todas as features do **App Barbeiro (Navaro Pro)** (B01–B121) disponíveis na interface web.
+- Foco em uso em computador/tablet na barbearia (agenda, fila, check-in, financeiro, etc.).
+- Autenticação e permissões alinhadas ao app mobile (mesma API e roles).
+
+### Diferenciais Web
+| Aspecto | Descrição |
+|---------|-----------|
+| **Uso** | Gestão do estabelecimento no navegador, sem instalar app no PC |
+| **Responsivo** | Layout adaptado para desktop e tablet |
+| **Stack** | Next.js (consistente com Admin) |
+
+---
+
 ## 🖥️ Admin Web
 
 ### Dashboard

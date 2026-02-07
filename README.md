@@ -5,7 +5,8 @@
 ## 📱 Apps
 
 - **Navaro** - App para clientes (React Native/Expo)
-- **Navaro Pro** - App para barbeiros (React Native/Expo)
+- **Navaro Pro** - App para estabelecimentos (React Native/Expo)
+- **Navaro Pro Web** - App web para estabelecimentos (Next.js)
 - **Admin** - Painel administrativo (Next.js)
 
 ## 🏗️ Arquitetura
@@ -13,9 +14,10 @@
 ```
 navaro/
 ├── apps/
-│   ├── cliente/          # App Cliente (Expo)
-│   ├── barbeiro/         # App Barbeiro (Expo)
-│   └── admin/            # Painel Admin (Next.js)
+│   ├── cliente/              # App Cliente (Expo)
+│   ├── barbeiro/             # App Estabelecimento mobile (Expo)
+│   ├── estabelecimento-web/  # App Estabelecimento web (Next.js)
+│   └── admin/                # Painel Admin (Next.js)
 ├── packages/
 │   ├── api/              # Backend (FastAPI)
 │   ├── database/         # Models + Migrations
@@ -56,6 +58,7 @@ pnpm dev:api
 # Inicie os apps (em outro terminal)
 pnpm dev:cliente
 pnpm dev:barbeiro
+pnpm dev:estabelecimento-web
 pnpm dev:admin
 ```
 

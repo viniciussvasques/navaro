@@ -1,7 +1,7 @@
 """User endpoints."""
 
 from fastapi import APIRouter
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 from sqlalchemy import select
 
 from app.api.deps import AdminUser, CurrentUser, DBSession
@@ -16,6 +16,8 @@ router = APIRouter(prefix="/users", tags=["Users"])
 class UserResponse(BaseModel):
     """User response."""
 
+    model_config = ConfigDict(from_attributes=True)
+
     id: str
     phone: str
     name: str | None
@@ -24,9 +26,6 @@ class UserResponse(BaseModel):
     role: str
     referral_code: str | None
     referred_by_id: str | None
-
-    class Config:
-        from_attributes = True
 
 
 class UserUpdateRequest(BaseModel):

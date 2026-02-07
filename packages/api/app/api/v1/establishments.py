@@ -3,7 +3,7 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Query
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from slugify import slugify
 from sqlalchemy import func, select
 
@@ -67,6 +67,8 @@ class EstablishmentUpdate(BaseModel):
 class EstablishmentResponse(BaseModel):
     """Establishment response."""
 
+    model_config = ConfigDict(from_attributes=True)
+
     id: str
     name: str
     slug: str
@@ -90,9 +92,6 @@ class EstablishmentResponse(BaseModel):
     cancellation_fee_fixed: float
     no_show_fee_percent: float
     deposit_percent: float
-
-    class Config:
-        from_attributes = True
 
 
 class EstablishmentListResponse(BaseModel):

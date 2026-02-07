@@ -3,7 +3,7 @@
 from uuid import UUID
 
 from fastapi import APIRouter
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
 
 from app.api.deps import CurrentUser, DBSession
@@ -41,6 +41,8 @@ class ServiceUpdate(BaseModel):
 class ServiceResponse(BaseModel):
     """Service response."""
 
+    model_config = ConfigDict(from_attributes=True)
+
     id: str
     name: str
     description: str | None
@@ -49,9 +51,6 @@ class ServiceResponse(BaseModel):
     active: bool
     sort_order: int
     deposit_required: bool
-
-    class Config:
-        from_attributes = True
 
 
 # ─── Helpers ───────────────────────────────────────────────────────────────────

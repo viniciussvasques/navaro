@@ -9,7 +9,7 @@ from jose import jwt
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.config import settings
+from app.core.config import settings
 from app.models.user import User, UserRole
 from app.schemas.auth import TokenResponse
 from app.schemas.user import UserResponse
@@ -20,41 +20,42 @@ class AuthService:
 
     def __init__(self, db: AsyncSession):
         self.db = db
-        # In-memory code storage (use Redis in production)
-        self._codes: dict[str, tuple[str, datetime]] = {}
 
     async def send_verification_code(self, phone: str) -> None:
         """Send verification code to phone number."""
+        import app.core.redis as redis_module
+
         # Generate 6-digit code
         code = "".join(random.choices(string.digits, k=6))
 
-        # Store code with expiration
-        expires_at = datetime.now(UTC) + timedelta(minutes=5)
-        self._codes[phone] = (code, expires_at)
+        # Store code with expiration in Redis
+        redis = await redis_module.get_redis()
+        key = f"{settings.REDIS_PREFIX}otp:{phone}"
+        await redis.setex(key, 300, code)
+
+        if settings.is_debug:
+            print(f"[DEV] Verification code for {phone}: {code}")
 
         # TODO: Send SMS via Twilio/WhatsApp
-        # For development, log the code
-        print(f"[DEV] Verification code for {phone}: {code}")
 
     async def verify_code(
         self, phone: str, code: str, referral_code: str | None = None
     ) -> TokenResponse | None:
         """Verify code and return tokens."""
-        # Check code (in dev, allow "123456" as bypass)
-        stored = self._codes.get(phone)
+        import app.core.redis as redis_module
 
-        if settings.DEBUG and code == "123456":
+        redis = await redis_module.get_redis()
+        key = f"{settings.REDIS_PREFIX}otp:{phone}"
+        stored_code = await redis.get(key)
+
+        if settings.is_debug and code == "123456":
             # Development bypass
             pass
-        elif not stored or stored[0] != code:
-            return None
-        elif stored[1] < datetime.now(UTC):
-            # Code expired
-            del self._codes[phone]
+        elif not stored_code or stored_code != code:
             return None
         else:
             # Valid code, remove it
-            del self._codes[phone]
+            await redis.delete(key)
 
         # Get or create user
         result = await self.db.execute(select(User).where(User.phone == phone))

@@ -8,6 +8,7 @@ from fastapi.responses import ORJSONResponse
 
 from app.core import (
     close_db,
+    close_redis,
     get_logger,
     init_db,
     settings,
@@ -41,6 +42,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info("Shutting down application")
     await close_db()
     logger.info("Database connections closed")
+    await close_redis()
+    logger.info("Redis connections closed")
 
 
 # ─── Application Factory ───────────────────────────────────────────────────────

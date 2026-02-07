@@ -12,6 +12,7 @@ Este documento define o plano de implementação do MVP 1.0 do Navaro.
 - [x] Configurar Turborepo
 - [ ] Setup apps/cliente (Expo)
 - [ ] Setup apps/barbeiro (Expo)
+- [ ] Setup apps/estabelecimento-web (Next.js)
 - [ ] Setup apps/admin (Next.js)
 - [ ] Setup packages/api (FastAPI)
 - [ ] Setup packages/database (SQLAlchemy)
@@ -34,81 +35,96 @@ Este documento define o plano de implementação do MVP 1.0 do Navaro.
 ## Fase 2: Backend Core (Semanas 2-3)
 
 ### 2.1 Auth
-- [ ] Endpoint send-code
-- [ ] Endpoint verify
-- [ ] JWT + Refresh tokens
-- [ ] Middleware de auth
-- [ ] Twilio/WhatsApp integration
+- [x] Endpoint send-code
+- [x] Endpoint verify
+- [x] JWT + Refresh tokens
+- [x] Middleware de auth
+- [ ] Twilio/WhatsApp/SMS real (OTP em Redis para produção)
 
 ### 2.2 Users
-- [ ] CRUD usuários
+- [x] CRUD usuários
 - [ ] Upload avatar (R2)
-- [ ] Roles e permissões
+- [x] Roles e permissões (owner/admin/staff)
 
 ### 2.3 Establishments
-- [ ] CRUD estabelecimentos
-- [ ] Upload logo/cover
-- [ ] Horários de funcionamento
-- [ ] Validações de negócio
+- [x] CRUD estabelecimentos
+- [x] Upload logo/cover
+- [x] Horários de funcionamento
+- [x] Validações de negócio
 
 ### 2.4 Services & Staff
-- [ ] CRUD serviços
-- [ ] CRUD funcionários
-- [ ] Vínculo serviço-funcionário
-- [ ] Agenda de trabalho
+- [x] CRUD serviços
+- [x] CRUD funcionários
+- [x] Vínculo serviço-funcionário
+- [x] Agenda de trabalho
 
 ---
 
 ## Fase 3: Agendamento (Semana 4)
 
 ### 3.1 Disponibilidade
-- [ ] Calcular slots disponíveis
-- [ ] Considerar duração do serviço
-- [ ] Considerar agenda funcionário
-- [ ] Considerar horário estabelecimento
+- [x] Calcular slots disponíveis
+- [x] Considerar duração do serviço
+- [x] Considerar agenda funcionário (com fallback horário estabelecimento)
+- [x] Considerar horário estabelecimento
 
 ### 3.2 Appointments
-- [ ] CRUD agendamentos
-- [ ] Validações de conflito
-- [ ] Status transitions
-- [ ] Notificações push
+- [x] CRUD agendamentos
+- [x] Validações de conflito
+- [x] Status transitions
+- [x] Notificações push
 
 ---
 
 ## Fase 4: Assinaturas (Semanas 5-6)
 
 ### 4.1 Planos
-- [ ] CRUD planos
-- [ ] Vincular serviços
-- [ ] Limites semanais/diários
+- [x] CRUD planos (products/bundles)
+- [x] Vincular serviços
+- [x] Limites semanais/diários
 
 ### 4.2 Subscriptions
-- [ ] Stripe Connect setup
-- [ ] Criar assinatura
-- [ ] Renovação automática
-- [ ] Cancelamento
-- [ ] Controle de uso
+- [x] Stripe (e Mercado Pago) setup
+- [x] Criar assinatura
+- [x] Renovação automática
+- [x] Cancelamento
+- [x] Controle de uso
 
 ### 4.3 Check-in
-- [ ] Gerar QR code JWT
-- [ ] Validar check-in
-- [ ] Consumir crédito
-- [ ] Anti-fraude (1/dia)
+- [x] Gerar QR code JWT (owner/admin/staff)
+- [x] Validar check-in
+- [x] Consumir crédito
+- [ ] Anti-fraude (1/dia) — reforçar se necessário
 
 ---
 
 ## Fase 5: Pagamentos (Semana 6)
 
 ### 5.1 Pagamento Avulso
-- [ ] Create payment intent
-- [ ] Confirm payment
-- [ ] Webhooks Stripe
-- [ ] Split automático
+- [x] Create payment intent
+- [x] Confirm payment
+- [x] Webhooks Stripe
+- [x] Split automático
 
 ### 5.2 Repasses
-- [ ] Calcular líquido
-- [ ] Agendar payout
-- [ ] Histórico de repasses
+- [x] Calcular líquido / payouts
+- [x] Agendar payout
+- [x] Histórico de repasses (endpoint payouts)
+
+---
+
+## Backend — o que ainda falta (pendências)
+
+A API já cobre a maior parte do MVP (auth, establishments, services, staff, appointments, queue, check-ins, subscriptions, payments, payouts, reviews, favorites, portfolio, notifications, analytics). O que falta é principalmente **endurecer para produção** e **observabilidade**. Ver detalhes em [BACKEND_REVIEW.md](BACKEND_REVIEW.md).
+
+| Prioridade | Item | Status |
+|------------|------|--------|
+| Alta | **Config única** — unificar `app.config` e `app.core.config` | Pendente |
+| Alta | **Auth/OTP produção** — persistir OTP em Redis, SMS real, remover bypass debug | Pendente |
+| Alta | **CI estável** — fixtures async, smoke tests por domínio (auth, appointments, queue, check-ins) | Pendente |
+| Alta | **RBAC** — matriz de permissões por endpoint, testes 200/403 por perfil | Pendente |
+| Média | **Observabilidade** — request_id, user_id em logs; métricas 4xx/5xx; trilha auditoria (fila, pagamentos, check-in) | Pendente |
+| Média | **Upload avatar (R2)** — endpoint e storage | Pendente |
 
 ---
 
@@ -124,7 +140,7 @@ Este documento define o plano de implementação do MVP 1.0 do Navaro.
 - [ ] Histórico
 - [ ] Perfil
 
-### 6.2 App Barbeiro
+### 6.2 App Barbeiro (mobile)
 - [ ] Screens de auth
 - [ ] Cadastro estabelecimento
 - [ ] Dashboard
@@ -135,6 +151,16 @@ Este documento define o plano de implementação do MVP 1.0 do Navaro.
 - [ ] Gerar QR check-in
 - [ ] Assinantes
 - [ ] Financeiro
+
+### 6.3 App Web Estabelecimento (Navaro Pro Web)
+- [ ] Setup Next.js em apps/estabelecimento-web
+- [ ] Auth (login/cadastro) reutilizando API do app barbeiro
+- [ ] Dashboard (métricas, agenda do dia)
+- [ ] Gestão serviços, funcionários, pacotes, planos
+- [ ] Agenda (visualização e bloqueios)
+- [ ] Modo fila, check-in (QR), avaliações
+- [ ] Financeiro e relatórios
+- [ ] Layout responsivo (desktop/tablet)
 
 ---
 
@@ -207,9 +233,10 @@ Este documento define o plano de implementação do MVP 1.0 do Navaro.
 | Assinaturas | 2 semanas |
 | Pagamentos | 1 semana |
 | Apps Mobile | 4 semanas |
+| App Web Estabelecimento | 1–2 semanas |
 | Admin Web | 1 semana |
 | Testes & Deploy | 1 semana |
-| **Total** | **13 semanas** |
+| **Total** | **14–15 semanas** |
 
 ---
 

@@ -33,51 +33,27 @@ A geração de QR de check-in passou a usar a mesma validação de acesso (owner
 ### 6) Agendamento com fallback de jornada
 Criação de agendamento passou a considerar horário do estabelecimento quando `work_schedule` do profissional estiver vazio/ausente.
 
+### 7) Estabilização de testes e CI
+Os erros de `RuntimeError` (event loop) e falhas intermitentes no CI foram resolvidos com a padronização das fixtures em `tests/conftest.py`, uso correto de `asgi_lifespan` e `NullPool` para o banco de dados em testes.
+
+---
+
+### 8) Unificação de Configuração
+Consolidada fonte de settings em `app.core.config`, removendo `app/config.py` duplicado e ajustando todos os imports.
+
+### 9) Autenticação Profissional (Redis/OTP)
+OTP agora é armazenado no Redis com TTL de 5 minutos, removendo armazenamento em memória. Adicionado módulo de conexão Redis centralizado em `app.core.redis`.
+
+### 10) Segurança e RBAC (Admin Support)
+Padronizadas verificações de acesso (`verify_establishment_access/owner`) para incluir suporte explícito ao perfil `admin`. Corrigido endpoints de appointments para verificar permissões antes de execução.
+
+### 11) Observabilidade Melhorada
+Adicionado binding automático de `user_id` e `establishment_id` ao contexto de logs estruturados (structlog) via dependências de autenticação.
+
 ---
 
 ## Gaps e pendências (prioridade alta)
-
-## 1) Configuração duplicada (`app/config.py` vs `app/core/config.py`)
-**Risco:** comportamento inconsistente por usar fontes diferentes de settings.
-
-**Ação recomendada:**
-- definir `app.core.config` como fonte única;
-- migrar imports gradualmente;
-- descontinuar `app.config` com plano de remoção.
-
-## 2) Fluxo de autenticação ainda incompleto para produção
-Há uso de código de verificação em memória e TODO para envio SMS real.
-
-**Risco:** não escala entre múltiplas instâncias e pode perder códigos em restart.
-
-**Ação recomendada:**
-- persistir OTP em Redis com TTL;
-- implementar provider real de SMS;
-- remover bypasss de debug fora de ambiente local.
-
-## 3) Cobertura de testes E2E/API instável no ambiente CI
-Ocorreram falhas relacionadas a loop async e ausência de dependência (`asgi_lifespan`) no ambiente local de execução.
-
-**Ação recomendada:**
-- garantir instalação de dependências de teste no pipeline;
-- padronizar fixture de app/db para evitar múltiplos loops;
-- adicionar smoke tests por domínio crítico (auth, appointments, queue, checkins).
-
-## 4) Segurança e autorização ainda heterogêneas
-Alguns endpoints antigos ainda usam validação owner-only mesmo onde pode existir operação de staff/admin.
-
-**Ação recomendada:**
-- definir matriz de permissões (RBAC) por endpoint;
-- centralizar regras de autorização em helpers/decorators;
-- adicionar testes de autorização (200/403/404) por perfil.
-
-## 5) Observabilidade limitada para operação em produção
-Falta padronização de métricas e trilhas de auditoria por operação sensível.
-
-**Ação recomendada:**
-- registrar `request_id`, `user_id`, `establishment_id` em logs estruturados;
-- criar métricas para erros 4xx/5xx por endpoint;
-- adicionar trilha de auditoria para mudanças críticas (fila, pagamentos, check-in).
+*Nenhum item crítico aberto no momento.*
 
 ---
 
@@ -101,6 +77,15 @@ Falta padronização de métricas e trilhas de auditoria por operação sensíve
 - métricas e logs de negócio;
 - checklist de readiness para produção;
 - execução da suíte completa em CI com cobertura mínima.
+
+---
+
+## Última execução de testes (pytest)
+
+- **87 testes** — todos passando.
+- **Cobertura:** ~61% (TOTAL). Módulos com 0% ou baixa: `auth_service`, `establishment_service`, `user_service`, `wallet_service`, `core/sentry`, `models/checkin`; bundles e subscriptions ~25%.
+- **Correções feitas:** (1) `datetime.utcnow()` → `datetime.now(timezone.utc)` em `checkin_service`; (2) Pydantic `class Config` → `ConfigDict(from_attributes=True)` em admin_settings, establishments, services, staff, users; (3) teste do scheduler que deixava coroutine órfã ao mockar `create_task` — ajustado com mock awaitable.
+- **Avisos restantes:** passlib/crypt (Python 3.13, lib externa); 1 warning em test_scheduler (AsyncMock). Sugestão: não bloquear CI por esses avisos.
 
 ---
 

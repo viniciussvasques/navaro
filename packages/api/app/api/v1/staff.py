@@ -3,7 +3,7 @@
 from uuid import UUID
 
 from fastapi import APIRouter
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
 
 from app.api.deps import CurrentUser, DBSession
@@ -43,6 +43,8 @@ class StaffUpdate(BaseModel):
 class StaffResponse(BaseModel):
     """Staff response."""
 
+    model_config = ConfigDict(from_attributes=True)
+
     id: str
     name: str
     phone: str | None
@@ -51,9 +53,6 @@ class StaffResponse(BaseModel):
     work_schedule: dict
     commission_rate: float | None
     active: bool
-
-    class Config:
-        from_attributes = True
 
 
 # ─── Helpers ───────────────────────────────────────────────────────────────────

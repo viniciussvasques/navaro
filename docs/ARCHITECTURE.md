@@ -1,5 +1,16 @@
 # 🏗️ Navaro - Arquitetura para Escalabilidade
 
+## Aplicações
+
+| App | Plataforma | Stack | Público |
+|-----|------------|-------|---------|
+| **Navaro** | Mobile | Expo (React Native) | Clientes |
+| **Navaro Pro** | Mobile | Expo (React Native) | Estabelecimentos |
+| **Navaro Pro Web** | Web | Next.js | Estabelecimentos (desktop/tablet) |
+| **Admin** | Web | Next.js | Equipe Navaro |
+
+---
+
 ## Opções de Backend
 
 ### Comparativo de Tecnologias

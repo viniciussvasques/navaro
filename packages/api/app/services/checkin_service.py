@@ -1,7 +1,7 @@
 """Check-in service."""
 
 import base64
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from io import BytesIO
 from uuid import UUID
 
@@ -29,7 +29,7 @@ class CheckinService:
 
         from app.core.config import settings
 
-        expires_at = datetime.utcnow() + timedelta(minutes=15)
+        expires_at = datetime.now(timezone.utc) + timedelta(minutes=15)
 
         # Create JWT token with establishment info
         payload = {"sub": str(establishment_id), "type": "checkin", "exp": expires_at}
@@ -137,7 +137,7 @@ class CheckinService:
             user_id=user_id,
             establishment_id=establishment_id,
             appointment_id=appointment.id,
-            checked_in_at=datetime.utcnow(),
+            checked_in_at=datetime.now(timezone.utc),
         )
         self.db.add(checkin)
         await self.db.commit()

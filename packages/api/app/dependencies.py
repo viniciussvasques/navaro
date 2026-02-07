@@ -9,7 +9,8 @@ from jose import JWTError, jwt
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.config import settings
+from app.core.config import settings
+from app.core.logging import bind_context
 from app.database import get_db
 from app.models.establishment import Establishment
 from app.models.staff import StaffMember
@@ -47,15 +48,17 @@ async def get_current_user(
     if user is None:
         raise credentials_exception
 
+    bind_context(user_id=str(user.id))
     return user
 
 
 async def verify_establishment_owner(
     db: AsyncSession,
     establishment_id: UUID,
-    user_id: UUID,
+    user: User,
 ) -> Establishment:
-    """Verify that user is the owner of the establishment."""
+    """Verify that user is the owner of the establishment or admin."""
+    bind_context(establishment_id=str(establishment_id))
     result = await db.execute(select(Establishment).where(Establishment.id == establishment_id))
     establishment = result.scalar_one_or_none()
 
@@ -65,7 +68,10 @@ async def verify_establishment_owner(
             detail={"code": "NOT_FOUND", "message": "Estabelecimento não encontrado"},
         )
 
-    if establishment.owner_id != user_id:
+    if user.role == UserRole.admin:
+        return establishment
+
+    if establishment.owner_id != user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail={"code": "FORBIDDEN", "message": "Sem permissão"},
@@ -80,6 +86,7 @@ async def verify_establishment_access(
     user: User,
 ) -> Establishment:
     """Verify owner/admin/staff access to an establishment."""
+    bind_context(establishment_id=str(establishment_id))
     result = await db.execute(select(Establishment).where(Establishment.id == establishment_id))
     establishment = result.scalar_one_or_none()
 

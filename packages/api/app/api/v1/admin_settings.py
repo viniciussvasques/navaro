@@ -1,7 +1,7 @@
 """Admin settings endpoints."""
 
 from fastapi import APIRouter, HTTPException, status
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
 
 from app.api.deps import AdminUser, DBSession
@@ -17,14 +17,13 @@ router = APIRouter(prefix="/admin/settings", tags=["Admin Settings"])
 class SettingResponse(BaseModel):
     """Setting response."""
 
+    model_config = ConfigDict(from_attributes=True)
+
     key: str
     value: str | None = None
     description: str | None = None
     is_secret: bool = False
     category: str = "general"
-
-    class Config:
-        from_attributes = True
 
 
 class SettingUpdate(BaseModel):

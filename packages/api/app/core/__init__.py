@@ -21,6 +21,7 @@ from app.core.security import (
     decode_access_token,
     decode_refresh_token,
 )
+from app.core.redis import close_redis, get_redis
 
 __all__ = [
     # Config
@@ -52,4 +53,7 @@ __all__ = [
     "decode_refresh_token",
     # Middleware
     "setup_middlewares",
+    # Redis
+    "get_redis",
+    "close_redis",
 ]

@@ -5,7 +5,7 @@ from uuid import UUID
 
 import stripe
 
-from app.config import settings
+from app.core.config import settings
 from app.services.payment_providers.base import PaymentProvider
 
 

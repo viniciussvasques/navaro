@@ -24,7 +24,7 @@ async def get_dashboard(
     end_date: date = Query(default_factory=lambda: date.today()),
 ):
     """Get dashboard analytics for an establishment."""
-    await verify_establishment_owner(db, establishment_id, current_user.id)
+    await verify_establishment_owner(db, establishment_id, current_user)
 
     service = AnalyticsService(db)
     return await service.get_establishment_dashboard(establishment_id, start_date, end_date)
