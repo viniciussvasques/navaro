@@ -1,4 +1,4 @@
-# 🔌 Navaro API
+# 🔌 DUNNAA API
 
 Backend profissional em FastAPI para sistema de agendamento de barbearias e salões.
 

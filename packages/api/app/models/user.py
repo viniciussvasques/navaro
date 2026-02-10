@@ -17,6 +17,7 @@ class UserRole(str, enum.Enum):
     owner = "owner"
     staff = "staff"
     admin = "admin"
+    support = "support"
 
 
 class User(BaseModel):
@@ -48,6 +49,11 @@ class User(BaseModel):
         unique=True,
         index=True,
         doc="Email address",
+    )
+
+    hashed_password: Mapped[str | None] = mapped_column(
+        String(255),
+        doc="Hashed password for admin/staff login",
     )
 
     avatar_url: Mapped[str | None] = mapped_column(

@@ -44,8 +44,19 @@ class ProductResponse(ProductBase):
 
     id: UUID
     establishment_id: UUID
+    stock: int = Field(..., alias="stock_quantity")
     profit_margin: float | None = None
     created_at: datetime
     updated_at: datetime
 
-    model_config = {"from_attributes": True}
+    model_config = {
+        "from_attributes": True,
+        "populate_by_name": True
+    }
+
+
+class ProductListResponse(BaseModel):
+    """Product list response schema."""
+
+    items: list[ProductResponse]
+    total: int

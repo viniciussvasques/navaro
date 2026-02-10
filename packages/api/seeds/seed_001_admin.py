@@ -24,7 +24,7 @@ async def seed(db: AsyncSession) -> None:
     admin = User(
         phone="+5511999999999",
         name="Administrador",
-        email="admin@navaro.app",
+        email="admin@dunnaa.app",
         role=UserRole.ADMIN,
         referral_code="ADMIN2024",
     )

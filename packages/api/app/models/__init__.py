@@ -80,6 +80,15 @@ from app.models.user_debt import DebtStatus, UserDebt
 # Wallet
 from app.models.wallet import TransactionStatus, TransactionType, UserWallet, WalletTransaction
 
+# Support
+from app.models.support import (
+    Ticket,
+    TicketMessage,
+    TicketStatus,
+    TicketPriority,
+    TicketCategory,
+)
+
 __all__ = [
     # Base
     "BaseModel",
@@ -141,4 +150,10 @@ __all__ = [
     "WalletTransaction",
     "TransactionType",
     "TransactionStatus",
+    # Support
+    "Ticket",
+    "TicketMessage",
+    "TicketStatus",
+    "TicketPriority",
+    "TicketCategory",
 ]

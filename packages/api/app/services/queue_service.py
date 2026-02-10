@@ -8,10 +8,13 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.models.establishment import Establishment
 from app.models.notification import NotificationType
 from app.models.queue import QueueEntry, QueueStatus
+from app.models.user import User
 from app.schemas.queue import QueueEntryCreate
 from app.services.notification_service import NotificationService
+from app.services.whatsapp_service import get_whatsapp_service
 
 
 class QueueService:
@@ -117,6 +120,17 @@ class QueueService:
         await self.db.commit()
         await self.db.refresh(entry)
 
+        # WhatsApp: aviso de entrada na fila
+        try:
+            user = await self.db.get(User, entry.user_id)
+            establishment = await self.db.get(Establishment, entry.establishment_id)
+            if user and getattr(user, "phone", None) and establishment:
+                await get_whatsapp_service().send_queue_joined(
+                    user.phone, establishment.name, entry.position
+                )
+        except Exception:
+            pass
+
         return entry
 
     async def update_status(
@@ -137,7 +151,6 @@ class QueueService:
 
         if status == QueueStatus.called:
             entry.called_at = now
-            # Trigger notification
             notif_service = NotificationService(self.db)
             await notif_service.create_in_app(
                 user_id=entry.user_id,
@@ -146,11 +159,28 @@ class QueueService:
                 type=NotificationType.queue,
                 data={"establishment_id": str(entry.establishment_id), "entry_id": str(entry.id)},
             )
+            # WhatsApp: você foi chamado na fila
+            try:
+                user = await self.db.get(User, entry.user_id)
+                establishment = await self.db.get(Establishment, entry.establishment_id)
+                if user and getattr(user, "phone", None) and establishment:
+                    await get_whatsapp_service().send_queue_called(
+                        user.phone, establishment.name
+                    )
+            except Exception:
+                pass
         elif status == QueueStatus.serving:
             entry.started_at = now
-            # When serving starts, remove from 'waiting' position logic?
-            # Or keep it until completed?
-            # Strategy: Keep in list until completed/left
+            # WhatsApp: atendimento iniciado
+            try:
+                user = await self.db.get(User, entry.user_id)
+                establishment = await self.db.get(Establishment, entry.establishment_id)
+                if user and getattr(user, "phone", None) and establishment:
+                    await get_whatsapp_service().send_queue_serving(
+                        user.phone, establishment.name
+                    )
+            except Exception:
+                pass
         elif status in [QueueStatus.completed, QueueStatus.left]:
             entry.completed_at = now
             # Reorder remaining queue

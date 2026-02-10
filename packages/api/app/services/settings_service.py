@@ -69,8 +69,6 @@ class SettingsService:
         category: str = "general",
     ) -> SystemSettings:
         """Set a setting value (create or update)."""
-        global _settings_cache
-
         result = await self.db.execute(select(SystemSettings).where(SystemSettings.key == key))
         setting = result.scalar_one_or_none()
 
@@ -91,9 +89,6 @@ class SettingsService:
         await self.db.commit()
         await self.db.refresh(setting)
 
-        await self.db.commit()
-        await self.db.refresh(setting)
-
         # Update Redis
         try:
             redis = await get_redis()
@@ -107,15 +102,17 @@ class SettingsService:
 
     async def delete(self, key: str) -> bool:
         """Delete a setting."""
-        global _settings_cache
-
         result = await self.db.execute(select(SystemSettings).where(SystemSettings.key == key))
         setting = result.scalar_one_or_none()
 
         if setting:
             await self.db.delete(setting)
             await self.db.commit()
-            _settings_cache.pop(key, None)
+            try:
+                redis = await get_redis()
+                await redis.delete(f"settings:{key}")
+            except Exception as e:
+                logger.warning("Redis delete error on setting", key=key, error=str(e))
             return True
         return False
 
@@ -134,10 +131,11 @@ class SettingsService:
     async def seed_defaults(self) -> int:
         """Seed default settings if they don't exist."""
         defaults = [
-            # SMS
-            (SettingsKeys.SMS_ENABLED, "false", "Ativar envio de SMS via nVoIP", False, "sms"),
-            (SettingsKeys.NVOIP_TOKEN, "", "Token de acesso da nVoIP", True, "sms"),
-            (SettingsKeys.NVOIP_FROM_NUMBER, "", "Número de origem para SMS", False, "sms"),
+            # SMS (nVoIP ou Twilio)
+            (SettingsKeys.SMS_ENABLED, "false", "Ativar envio de SMS", False, "sms"),
+            (SettingsKeys.SMS_PROVIDER, "twilio", "Provedor SMS: twilio ou nvoip", False, "sms"),
+            (SettingsKeys.NVOIP_TOKEN, "", "nVoIP: Napikey (so quando sms_provider=nvoip)", True, "sms"),
+            (SettingsKeys.NVOIP_FROM_NUMBER, "", "nVoIP: numero de origem (opcional)", False, "sms"),
             # Payments: Stripe
             (
                 SettingsKeys.STRIPE_ENABLED,
@@ -156,6 +154,9 @@ class SettingsService:
                 False,
                 "payments",
             ),
+            (SettingsKeys.COMMISSION_FREE, "6.0", "Taxa Plano Free (%)", False, "finance"),
+            (SettingsKeys.COMMISSION_SILVER, "4.0", "Taxa Plano Prata (%)", False, "finance"),
+            (SettingsKeys.COMMISSION_GOLD, "3.0", "Taxa Plano Ouro (%)", False, "finance"),
             # Payments: Mercado Pago
             (
                 SettingsKeys.MERCADOPAGO_ENABLED,
@@ -186,7 +187,7 @@ class SettingsService:
             (SettingsKeys.SMTP_USER, "", "Usuário SMTP", False, "email"),
             (SettingsKeys.SMTP_PASSWORD, "", "Senha SMTP", True, "email"),
             (SettingsKeys.SMTP_FROM_EMAIL, "", "Email de origem", False, "email"),
-            (SettingsKeys.SMTP_FROM_NAME, "Navaro", "Nome de origem", False, "email"),
+            (SettingsKeys.SMTP_FROM_NAME, "DUNNAA", "Nome de origem", False, "email"),
             (SettingsKeys.SMTP_USE_TLS, "true", "Usar TLS", False, "email"),
             # Push: FCM
             (SettingsKeys.FCM_ENABLED, "false", "Ativar push notifications via FCM", False, "push"),
@@ -196,38 +197,32 @@ class SettingsService:
             (SettingsKeys.ONESIGNAL_ENABLED, "false", "Ativar push via OneSignal", False, "push"),
             (SettingsKeys.ONESIGNAL_APP_ID, "", "OneSignal App ID", False, "push"),
             (SettingsKeys.ONESIGNAL_API_KEY, "", "OneSignal API Key", True, "push"),
-            # WhatsApp Business
-            (
-                SettingsKeys.WHATSAPP_ENABLED,
-                "false",
-                "Ativar WhatsApp Business API",
-                False,
-                "whatsapp",
-            ),
+            # Twilio (SMS + WhatsApp) - mesmo Account SID e Auth Token
+            (SettingsKeys.TWILIO_ACCOUNT_SID, "", "Twilio Account SID (Console Twilio)", False, "twilio"),
+            (SettingsKeys.TWILIO_AUTH_TOKEN, "", "Twilio Auth Token (Console Twilio)", True, "twilio"),
+            (SettingsKeys.TWILIO_SMS_FROM, "", "Twilio: numero para SMS (ex: +15551234567)", False, "twilio"),
+            (SettingsKeys.TWILIO_WHATSAPP_FROM, "", "Twilio WhatsApp: numero (ex: +14155238886 sandbox)", False, "twilio"),
+            # WhatsApp
+            (SettingsKeys.WHATSAPP_ENABLED, "false", "Ativar envio via WhatsApp (Twilio)", False, "whatsapp"),
+            (SettingsKeys.WHATSAPP_PROVIDER, "twilio", "Provedor WhatsApp: twilio ou meta", False, "whatsapp"),
             (
                 SettingsKeys.WHATSAPP_API_URL,
                 "https://graph.facebook.com/v18.0",
-                "WhatsApp API URL",
+                "Meta: API URL (so quando provider=meta)",
                 False,
                 "whatsapp",
             ),
-            (SettingsKeys.WHATSAPP_ACCESS_TOKEN, "", "WhatsApp Access Token", True, "whatsapp"),
-            (
-                SettingsKeys.WHATSAPP_PHONE_NUMBER_ID,
-                "",
-                "WhatsApp Phone Number ID",
-                False,
-                "whatsapp",
-            ),
+            (SettingsKeys.WHATSAPP_ACCESS_TOKEN, "", "Meta: Access Token (so quando provider=meta)", True, "whatsapp"),
+            (SettingsKeys.WHATSAPP_PHONE_NUMBER_ID, "", "Meta: Phone Number ID (so quando provider=meta)", False, "whatsapp"),
             # Storage
             (SettingsKeys.STORAGE_ENABLED, "false", "Ativar storage S3/R2", False, "storage"),
             (SettingsKeys.S3_ENDPOINT, "", "S3 Endpoint URL", False, "storage"),
             (SettingsKeys.S3_ACCESS_KEY, "", "S3 Access Key", True, "storage"),
             (SettingsKeys.S3_SECRET_KEY, "", "S3 Secret Key", True, "storage"),
-            (SettingsKeys.S3_BUCKET, "navaro", "S3 Bucket Name", False, "storage"),
+            (SettingsKeys.S3_BUCKET, "dunnaa", "S3 Bucket Name", False, "storage"),
             (SettingsKeys.S3_PUBLIC_URL, "", "S3 Public URL", False, "storage"),
             # App
-            (SettingsKeys.APP_NAME, "Navaro", "Nome do aplicativo", False, "general"),
+            (SettingsKeys.APP_NAME, "DUNNAA", "Nome do aplicativo", False, "general"),
             (SettingsKeys.SUPPORT_EMAIL, "", "Email de suporte", False, "general"),
             (SettingsKeys.SUPPORT_PHONE, "", "Telefone de suporte", False, "general"),
             (SettingsKeys.TERMS_URL, "", "URL dos Termos de Uso", False, "general"),
@@ -235,6 +230,7 @@ class SettingsService:
             # Loyalty
             (SettingsKeys.CASHBACK_ENABLED, "false", "Ativar cashback global", False, "loyalty"),
             (SettingsKeys.CASHBACK_PERCENT, "2.0", "Percentual de cashback (%)", False, "loyalty"),
+            (SettingsKeys.REFERRAL_BONUS_AMOUNT, "5.0", "Valor do bônus por indicação (R$)", False, "loyalty"),
         ]
 
         count = 0

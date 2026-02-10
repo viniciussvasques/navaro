@@ -26,6 +26,16 @@ class PaymentStatus(str, enum.Enum):
     refunded = "refunded"
 
 
+class PayoutStatus(str, enum.Enum):
+    """Payout status."""
+
+    pending = "pending"
+    processing = "processing"
+    succeeded = "succeeded"
+    failed = "failed"
+    cancelled = "cancelled"
+
+
 class PaymentPurpose(str, enum.Enum):
     """Payment purpose."""
 
@@ -295,9 +305,9 @@ class Payout(BaseModel):
         doc="Payout amount",
     )
 
-    status: Mapped[str] = mapped_column(
-        String(50),
-        default="pending",
+    status: Mapped[PayoutStatus] = mapped_column(
+        Enum(PayoutStatus),
+        default=PayoutStatus.pending,
         nullable=False,
         doc="Payout status",
     )

@@ -12,7 +12,7 @@ from app.core.exceptions import ForbiddenError, UnauthorizedError
 from app.core.security import decode_access_token
 from app.models import User, UserRole
 
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)
 
 
 # ─── Database Session ──────────────────────────────────────────────────────────
@@ -23,13 +23,28 @@ DBSession = Annotated[AsyncSession, Depends(get_db)]
 # ─── Authentication ────────────────────────────────────────────────────────────
 
 
+from fastapi import Request
+
 async def get_current_user(
-    credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)],
+    request: Request,
     db: DBSession,
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(security)] = None,
 ) -> User:
-    """Get current authenticated user from token."""
+    """Get current authenticated user from token (Header or Cookie)."""
+    token = None
+    
+    # 1. Try Header
+    if credentials:
+        token = credentials.credentials
+    # 2. Try Cookie
+    elif "access_token" in request.cookies:
+        token = request.cookies["access_token"]
+    
+    if not token:
+        raise UnauthorizedError("Não autenticado")
+
     try:
-        user_id = decode_access_token(credentials.credentials)
+        user_id = decode_access_token(token)
     except Exception as e:
         raise UnauthorizedError("Token inválido ou expirado") from e
 

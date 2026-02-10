@@ -1,7 +1,7 @@
 [project]
-name = "navaro-api"
+name = "dunnaa-api"
 version = "1.0.0"
-description = "Navaro API - Sistema de agendamento para barbearias e salões"
+description = "DUNNAA API - Sistema de agendamento para barbearias e salões"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -76,7 +76,7 @@ dev = [
 ]
 
 [project.scripts]
-navaro = "app.main:run"
+dunnaa = "app.main:run"
 
 [build-system]
 requires = ["hatchling"]

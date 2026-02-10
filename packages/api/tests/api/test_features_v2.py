@@ -47,6 +47,7 @@ async def test_service_at_home(client: AsyncClient, auth_headers: dict, establis
         "price": 100.0,
         "duration_minutes": 60,
         "is_at_home": True,
+        "image_url": "https://example.com/service-home-cut.jpg",
     }
     response = await client.post(
         f"/api/v1/establishments/{establishment_id}/services", json=payload, headers=auth_headers
@@ -54,6 +55,7 @@ async def test_service_at_home(client: AsyncClient, auth_headers: dict, establis
     assert response.status_code == 201
     data = response.json()
     assert data["is_at_home"] is True
+    assert data["image_url"] == payload["image_url"]
 
 
 @pytest.mark.asyncio

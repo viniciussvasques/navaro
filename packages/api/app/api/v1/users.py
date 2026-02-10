@@ -36,6 +36,10 @@ class UserUpdateRequest(BaseModel):
     avatar_url: str | None = Field(None, max_length=500)
 
 
+class RoleUpdateRequest(BaseModel):
+    """Role update request."""
+    role: str
+
 class UserListResponse(BaseModel):
     """User list response."""
 
@@ -118,4 +122,35 @@ async def list_users(
             for u in users
         ],
         total=total,
+    )
+
+
+@router.patch("/{user_id}/role", response_model=UserResponse)
+async def update_user_role(
+    user_id: str,
+    request: RoleUpdateRequest,
+    db: DBSession,
+    admin: AdminUser,
+) -> UserResponse:
+    """Update user role (admin only)."""
+    from uuid import UUID
+    result = await db.execute(select(User).where(User.id == UUID(user_id)))
+    user = result.scalar_one_or_none()
+    
+    if not user:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="User not found")
+
+    user.role = request.role
+    await db.commit()
+    await db.refresh(user)
+
+    return UserResponse(
+        id=str(user.id),
+        phone=user.phone,
+        name=user.name,
+        email=user.email,
+        avatar_url=user.avatar_url,
+        role=user.role.value,
+        referral_code=user.referral_code,
     )

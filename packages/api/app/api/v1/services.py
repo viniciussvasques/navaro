@@ -25,6 +25,7 @@ class ServiceCreate(BaseModel):
     duration_minutes: int = Field(30, ge=5, le=480)
     deposit_required: bool = False
     is_at_home: bool = False
+    image_url: str | None = Field(None, max_length=500)
 
 
 class ServiceUpdate(BaseModel):
@@ -38,6 +39,7 @@ class ServiceUpdate(BaseModel):
     sort_order: int | None = None
     deposit_required: bool | None = None
     is_at_home: bool | None = None
+    image_url: str | None = Field(None, max_length=500)
 
 
 class ServiceResponse(BaseModel):
@@ -54,6 +56,7 @@ class ServiceResponse(BaseModel):
     sort_order: int
     deposit_required: bool
     is_at_home: bool
+    image_url: str | None
 
 
 # ─── Helpers ───────────────────────────────────────────────────────────────────
@@ -105,6 +108,7 @@ async def list_services(
             sort_order=s.sort_order,
             deposit_required=s.deposit_required,
             is_at_home=s.is_at_home,
+            image_url=s.image_url,
         )
         for s in services
     ]
@@ -129,6 +133,7 @@ async def create_service(
         duration_minutes=request.duration_minutes,
         deposit_required=request.deposit_required,
         is_at_home=request.is_at_home,
+        image_url=request.image_url,
     )
 
     db.add(service)
@@ -145,6 +150,7 @@ async def create_service(
         sort_order=service.sort_order,
         deposit_required=service.deposit_required,
         is_at_home=service.is_at_home,
+        image_url=service.image_url,
     )
 
 
@@ -176,6 +182,7 @@ async def get_service(
         sort_order=service.sort_order,
         deposit_required=service.deposit_required,
         is_at_home=service.is_at_home,
+        image_url=service.image_url,
     )
 
 
@@ -218,6 +225,7 @@ async def update_service(
         sort_order=service.sort_order,
         deposit_required=service.deposit_required,
         is_at_home=service.is_at_home,
+        image_url=service.image_url,
     )
 
 

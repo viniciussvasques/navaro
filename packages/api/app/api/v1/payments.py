@@ -89,14 +89,20 @@ async def stripe_webhook(
     request: Request,
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> dict[str, str]:
-    """Handle Stripe webhooks."""
+    """Handle Stripe webhooks. Webhook secret from admin (dynamic config) or env."""
     import stripe
+
+    from app.models.system_settings import SettingsKeys
+    from app.services.settings_service import SettingsService
 
     payload = await request.body()
     sig_header = request.headers.get("stripe-signature")
+    webhook_secret = (await SettingsService(db).get(SettingsKeys.STRIPE_WEBHOOK_SECRET)) or getattr(
+        settings, "STRIPE_WEBHOOK_SECRET", ""
+    )
 
     try:
-        event = stripe.Webhook.construct_event(payload, sig_header, settings.STRIPE_WEBHOOK_SECRET)
+        event = stripe.Webhook.construct_event(payload, sig_header, webhook_secret)
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid payload")
     except stripe.error.SignatureVerificationError:

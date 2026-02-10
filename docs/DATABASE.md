@@ -1,4 +1,4 @@
-# 🗄️ Navaro - Modelo de Dados Completo
+# 🗄️ DUNNAA - Modelo de Dados Completo
 
 ## Diagrama ER Simplificado
 
@@ -120,6 +120,7 @@ CREATE TABLE services (
     establishment_id UUID NOT NULL REFERENCES establishments(id),
     name VARCHAR(200) NOT NULL,
     description TEXT,
+    image_url TEXT,
     price DECIMAL(10, 2) NOT NULL,
     duration_minutes INT NOT NULL DEFAULT 30,
     active BOOLEAN DEFAULT TRUE,
@@ -400,6 +401,16 @@ CREATE TABLE portfolio_images (
     description TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Observação geral de mídia:
+-- Todos os campos de imagem (logo_url, cover_url, image_url, thumbnail_url)
+-- armazenam apenas a URL pública do arquivo. Os arquivos em si devem ser
+-- salvos em um storage externo (ex: S3, Cloudflare R2) seguindo um padrão como:
+-- /media/establishments/{establishment_id}/logo.jpg
+-- /media/establishments/{establishment_id}/cover.jpg
+-- /media/establishments/{establishment_id}/services/{service_id}.jpg
+-- /media/establishments/{establishment_id}/products/{product_id}.jpg
+-- /media/establishments/{establishment_id}/portfolio/{image_id}.jpg
 ```
 
 ---

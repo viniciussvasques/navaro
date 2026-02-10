@@ -3,7 +3,7 @@
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 from sqlalchemy import select
@@ -16,37 +16,47 @@ from app.models.establishment import Establishment
 from app.models.staff import StaffMember
 from app.models.user import User, UserRole
 
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)
 
 
 async def get_current_user(
-    credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)],
+    request: Request,
     db: Annotated[AsyncSession, Depends(get_db)],
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(security)] = None,
 ) -> User:
-    """Get current authenticated user from JWT token."""
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail={"code": "UNAUTHORIZED", "message": "Token inválido"},
-        headers={"WWW-Authenticate": "Bearer"},
-    )
+    token = None
+    
+    # 1. Try Header
+    if credentials:
+        token = credentials.credentials
+    # 2. Try Cookie
+    elif "access_token" in request.cookies:
+        token = request.cookies["access_token"]
+    
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail={"code": "UNAUTHORIZED", "message": "Não autenticado"},
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
     try:
         payload = jwt.decode(
-            credentials.credentials,
+            token,
             settings.SECRET_KEY,
             algorithms=[settings.ALGORITHM],
         )
         user_id: str | None = payload.get("sub")
         if user_id is None:
-            raise credentials_exception
+            raise HTTPException(status_code=401, detail="Token inválido")
     except JWTError:
-        raise credentials_exception
+        raise HTTPException(status_code=401, detail="Token expirado ou inválido")
 
     result = await db.execute(select(User).where(User.id == UUID(user_id)))
     user = result.scalar_one_or_none()
 
     if user is None:
-        raise credentials_exception
+        raise HTTPException(status_code=401, detail="Usuário não encontrado")
 
     bind_context(user_id=str(user.id))
     return user

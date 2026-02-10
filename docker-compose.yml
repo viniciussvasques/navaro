@@ -1,26 +1,28 @@
 services:
-  postgres:
+  db:
     image: postgres:16-alpine
-    container_name: navaro-db
+    container_name: dunnaa-db
     environment:
-      POSTGRES_USER: navaro
-      POSTGRES_PASSWORD: navaro_dev
-      POSTGRES_DB: navaro
+      POSTGRES_USER: dunnaa
+      POSTGRES_PASSWORD: dunnaa_dev
+      POSTGRES_DB: dunnaa
     ports:
-      - "5455:5432"
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U navaro"]
+      test: ["CMD-SHELL", "pg_isready -U dunnaa"]
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - dunnaa-network
 
   redis:
     image: redis:7-alpine
-    container_name: navaro-redis
+    container_name: dunnaa-redis
     ports:
-      - "6385:6379"
+      - "6379:6379"
     volumes:
       - redis_data:/data
     healthcheck:
@@ -28,7 +30,123 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - dunnaa-network
+
+  whatsapp-bridge:
+    build:
+      context: ./packages/whatsapp-bridge
+      dockerfile: Dockerfile
+    image: dunnaa-whatsapp-bridge
+    container_name: dunnaa-whatsapp-bridge
+    ports:
+      - "3100:3100"
+    volumes:
+      - whatsapp_bridge_auth:/app/auth_info
+    environment:
+      - PORT=3100
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:3100/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - dunnaa-network
+
+  api:
+    build:
+      context: ./packages/api
+      dockerfile: Dockerfile
+    image: dunnaa-api
+    container_name: dunnaa-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./packages/api:/app
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://dunnaa:dunnaa_dev@dunnaa-db:5432/dunnaa
+      - REDIS_URL=redis://redis:6379/0
+      - APP_MODE=debug
+      - WHATSAPP_BRIDGE_URL=http://whatsapp-bridge:3100
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      whatsapp-bridge:
+        condition: service_healthy
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - dunnaa-network
+      - fixelo_fixelo-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=fixelo_fixelo-network"
+      # HTTPS Router
+      - "traefik.http.routers.dunnaa-api.rule=Host(`api.dunnaa.com.br`)"
+      - "traefik.http.routers.dunnaa-api.entrypoints=websecure"
+      - "traefik.http.routers.dunnaa-api.tls=true"
+      - "traefik.http.services.dunnaa-api.loadbalancer.server.port=8000"
+      # HTTP Router (Fallback)
+      - "traefik.http.routers.dunnaa-api-http.rule=Host(`api.dunnaa.com.br`)"
+      - "traefik.http.routers.dunnaa-api-http.entrypoints=web"
+      - "traefik.http.routers.dunnaa-api-http.service=dunnaa-api"
+      # CORS headers
+      - "traefik.http.middlewares.dunnaa-api-cors.headers.accessControlAllowOriginList=https://admin.dunnaa.com.br,http://admin.dunnaa.com.br,https://dunnaa.com.br,https://www.dunnaa.com.br"
+      - "traefik.http.middlewares.dunnaa-api-cors.headers.accessControlAllowMethods=GET,POST,PUT,PATCH,DELETE,OPTIONS"
+      - "traefik.http.middlewares.dunnaa-api-cors.headers.accessControlAllowHeaders=Content-Type,Authorization"
+      - "traefik.http.middlewares.dunnaa-api-cors.headers.accessControlAllowCredentials=true"
+      - "traefik.http.routers.dunnaa-api.middlewares=dunnaa-api-cors"
+      - "traefik.http.routers.dunnaa-api-http.middlewares=dunnaa-api-cors"
+
+  admin:
+    build:
+      context: ./packages/web-admin
+      dockerfile: Dockerfile
+    image: dunnaa-admin
+    container_name: dunnaa-admin
+    ports:
+      - "3005:3000"
+    volumes:
+      - ./packages/web-admin:/app
+      - /app/node_modules
+      - /app/.next
+    environment:
+      - NEXT_PUBLIC_API_URL=/api
+    depends_on:
+      api:
+        condition: service_started
+    networks:
+      - dunnaa-network
+      - fixelo_fixelo-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=fixelo_fixelo-network"
+      # HTTPS Router
+      - "traefik.http.routers.dunnaa-admin.rule=Host(`admin.dunnaa.com.br`)"
+      - "traefik.http.routers.dunnaa-admin.entrypoints=websecure"
+      - "traefik.http.routers.dunnaa-admin.tls=true"
+      - "traefik.http.services.dunnaa-admin.loadbalancer.server.port=3000"
+      # HTTP Router (Fallback)
+      - "traefik.http.routers.dunnaa-admin-http.rule=Host(`admin.dunnaa.com.br`)"
+      - "traefik.http.routers.dunnaa-admin-http.entrypoints=web"
+      - "traefik.http.routers.dunnaa-admin-http.service=dunnaa-admin"
+      # Security headers
+      - "traefik.http.routers.dunnaa-admin.middlewares=dunnaa-security-headers"
+      - "traefik.http.middlewares.dunnaa-security-headers.headers.stsSeconds=31536000"
+      - "traefik.http.middlewares.dunnaa-security-headers.headers.stsIncludeSubdomains=true"
+      - "traefik.http.middlewares.dunnaa-security-headers.headers.contentTypeNosniff=true"
+      - "traefik.http.middlewares.dunnaa-security-headers.headers.browserXssFilter=true"
+
+networks:
+  dunnaa-network:
+    driver: bridge
+  # Connect to existing Traefik network
+  fixelo_fixelo-network:
+    external: true
 
 volumes:
   postgres_data:
   redis_data:
+  whatsapp_bridge_auth:

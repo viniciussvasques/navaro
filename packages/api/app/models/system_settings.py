@@ -31,16 +31,24 @@ class SystemSettings(BaseModel):
 class SettingsKeys:
     """Constants for settings keys - all configurable via admin panel."""
 
-    # ─── SMS (nVoIP) ────────────────────────────────────────────────────────────
+    # ─── SMS (nVoIP ou Twilio) ──────────────────────────────────────────────────
+    SMS_ENABLED = "sms_enabled"
+    SMS_PROVIDER = "sms_provider"  # "nvoip" | "twilio"
     NVOIP_TOKEN = "nvoip_token"
     NVOIP_FROM_NUMBER = "nvoip_from_number"
-    SMS_ENABLED = "sms_enabled"
+    # Twilio (SMS e WhatsApp)
+    TWILIO_ACCOUNT_SID = "twilio_account_sid"
+    TWILIO_AUTH_TOKEN = "twilio_auth_token"
+    TWILIO_SMS_FROM = "twilio_sms_from"  # Número Twilio para SMS (ex: +15551234567)
 
     # ─── Payments: Stripe ───────────────────────────────────────────────────────
     STRIPE_SECRET_KEY = "stripe_secret_key"
     STRIPE_PUBLISHABLE_KEY = "stripe_publishable_key"
     STRIPE_WEBHOOK_SECRET = "stripe_webhook_secret"
     STRIPE_PLATFORM_FEE_PERCENT = "stripe_platform_fee_percent"
+    COMMISSION_FREE = "commission_free"
+    COMMISSION_SILVER = "commission_silver"
+    COMMISSION_GOLD = "commission_gold"
     STRIPE_ENABLED = "stripe_enabled"
 
     # ─── Payments: Mercado Pago ─────────────────────────────────────────────────
@@ -69,11 +77,17 @@ class SettingsKeys:
     ONESIGNAL_API_KEY = "onesignal_api_key"
     ONESIGNAL_ENABLED = "onesignal_enabled"
 
-    # ─── WhatsApp Business API ──────────────────────────────────────────────────
+    # ─── WhatsApp (Twilio, Meta ou Bridge) ──────────────────────────────────────
+    WHATSAPP_ENABLED = "whatsapp_enabled"
+    WHATSAPP_PROVIDER = "whatsapp_provider"  # "twilio" | "meta" | "bridge"
+    # Twilio
+    TWILIO_ACCOUNT_SID = "twilio_account_sid"
+    TWILIO_AUTH_TOKEN = "twilio_auth_token"
+    TWILIO_WHATSAPP_FROM = "twilio_whatsapp_from"  # ex: +14155238886 (sandbox) ou whatsapp:+14155238886
+    # Meta Cloud API (opcional)
     WHATSAPP_API_URL = "whatsapp_api_url"
     WHATSAPP_ACCESS_TOKEN = "whatsapp_access_token"
     WHATSAPP_PHONE_NUMBER_ID = "whatsapp_phone_number_id"
-    WHATSAPP_ENABLED = "whatsapp_enabled"
 
     S3_ENDPOINT = "s3_endpoint"
     S3_ACCESS_KEY = "s3_access_key"
@@ -92,3 +106,4 @@ class SettingsKeys:
     # ─── Loyalty & Wallet ──────────────────────────────────────────────────────
     CASHBACK_ENABLED = "cashback_enabled"
     CASHBACK_PERCENT = "cashback_percent"
+    REFERRAL_BONUS_AMOUNT = "referral_bonus_amount"

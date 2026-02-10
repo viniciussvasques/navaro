@@ -1,5 +1,6 @@
-"""SMS Service using nVoIP API."""
+"""SMS Service using nVoIP API (v2). Docs: https://nvoip.docs.apiary.io/."""
 
+import unicodedata
 import httpx
 
 from app.core.logging import get_logger
@@ -8,12 +9,34 @@ from app.models.system_settings import SettingsKeys
 logger = get_logger(__name__)
 
 
+def _normalize_sms_message(text: str) -> str:
+    """Remove acentuação; nVoIP não aceita acentuação no SMS (máx 160 caracteres)."""
+    if not text:
+        return text
+    nfkd = unicodedata.normalize("NFKD", text)
+    ascii_text = "".join(c for c in nfkd if not unicodedata.combining(c))
+    return ascii_text[:160]
+
+
+def _is_napikey(token: str) -> bool:
+    """True se for Napikey (painel nVoIP); False se for OAuth access_token (ex.: JWT)."""
+    if not token or len(token) < 20:
+        return False
+    # JWT tem 3 partes separadas por ponto
+    if token.count(".") >= 2:
+        return False
+    # UUID (User Token) tem hífens; Napikey é alfanumérico sem hífens
+    if "-" in token and len(token) == 36:
+        return False
+    return True
+
+
 class SMSService:
     """SMS service using nVoIP API for Brazil."""
 
     def __init__(self):
-        # Settings are loaded from database cache
-        pass
+        from app.core.config import settings
+        self.api_url = getattr(settings, "NVOIP_API_URL", "https://api.nvoip.com.br/v2")
 
     async def get_settings(self) -> dict:
         """Get SMS settings from database."""
@@ -54,21 +77,27 @@ class SMSService:
         if clean_phone.startswith("55"):
             clean_phone = clean_phone[2:]  # Remove country code
 
+        token = (settings["token"] or "").strip()
+        # nVoIP aceita OAuth (Bearer) ou Napikey na URL. Napikey = chave do painel Desenvolvedor.
+        use_napikey = _is_napikey(token)
+        url = f"{self.api_url}/sms"
+        if use_napikey:
+            from urllib.parse import urlencode
+            url = f"{url}?{urlencode({'napikey': token})}"
+        headers = {"Content-Type": "application/json"}
+        if not use_napikey:
+            headers["Authorization"] = f"Bearer {token}"
+
+        # nVoIP API v2: POST /v2/sms, body: numberPhone, message, flashSms (nvoip.apib)
         try:
             async with httpx.AsyncClient() as client:
                 response = await client.post(
-                    f"{self.api_url}/sms/messages",
-                    headers={
-                        "Authorization": f"Bearer {settings['token']}",
-                        "Content-Type": "application/json",
-                    },
+                    url,
+                    headers=headers,
                     json={
-                        "type": "Standard",
-                        "content": message,
-                        "contacts": [{"phone": clean_phone}],
-                        "options": {
-                            "flash": False,
-                        },
+                        "numberPhone": clean_phone,
+                        "message": _normalize_sms_message(message),
+                        "flashSms": False,
                     },
                     timeout=10.0,
                 )
@@ -90,14 +119,14 @@ class SMSService:
 
     async def send_verification_code(self, phone: str, code: str) -> bool:
         """Send verification code SMS."""
-        message = f"Navaro: Seu código é {code}. Válido por 5 minutos."
+        message = f"DUNNAA: Seu código é {code}. Válido por 5 minutos."
         return await self.send(phone, message)
 
     async def send_appointment_confirmation(
         self, phone: str, establishment_name: str, date: str, time: str
     ) -> bool:
         """Send appointment confirmation SMS."""
-        message = f"Navaro: Agendamento confirmado para {date} às {time} em {establishment_name}."
+        message = f"DUNNAA: Agendamento confirmado para {date} às {time} em {establishment_name}."
         return await self.send(phone, message)
 
     async def send_appointment_reminder(
@@ -105,7 +134,7 @@ class SMSService:
     ) -> bool:
         """Send appointment reminder (24h before)."""
         message = (
-            f"Navaro: Lembrete! Você tem agendamento amanhã às {time} em {establishment_name}."
+            f"DUNNAA: Lembrete! Você tem agendamento amanhã às {time} em {establishment_name}."
         )
         return await self.send(phone, message)
 
@@ -113,7 +142,7 @@ class SMSService:
         self, phone: str, establishment_name: str, reason: str | None = None
     ) -> bool:
         """Send appointment cancellation SMS."""
-        message = f"Navaro: Seu agendamento em {establishment_name} foi cancelado."
+        message = f"DUNNAA: Seu agendamento em {establishment_name} foi cancelado."
         if reason:
             message += f" Motivo: {reason}"
         return await self.send(phone, message)
@@ -122,7 +151,7 @@ class SMSService:
         self, phone: str, amount: float, establishment_name: str
     ) -> bool:
         """Send payment confirmation to establishment owner."""
-        message = f"Navaro: Pagamento de R${amount:.2f} recebido em {establishment_name}."
+        message = f"DUNNAA: Pagamento de R${amount:.2f} recebido em {establishment_name}."
         return await self.send(phone, message)
 
 

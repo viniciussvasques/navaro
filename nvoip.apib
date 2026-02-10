@@ -1,0 +1,2757 @@
+freFORMAT: 1A
+HOST: https://api.nvoip.com.br/v2/
+# Nvoip - v2
+<img src="https://www.exactsales.com.br/parceiros/wp-content/uploads/edd/2018/07/NVoip_460x192.png" style="width: 200px"/>
+
+##Visão geral
+Esta API permite que os nossos parceiros integrem suas plataformas para realização de chamadas de saída, entre outras funcionalidades. <br>
+<strong>Autenticação:</strong> ao parametrizar a integração no sistema da Nvoip é necessária a busca de algumas informações no seu painel. Como a napikey e o access_token. 
+Lembrando que há uma diferença entre o token gerado pela API (access_token) e o token encontrado no painel da Nvoip (user-token). Para buscar o token da sua conta no painel, vá no painel da Nvoip -> API. Neste campo, será apresentado 2 tokens: o user-token (token necessário para a geração do access_token) e a Napikey, que é a chave de API da Nvoip. É possível utilizá-la em algumas funcionalidades da API v2.<br>
+<b>Todos os valores inseridos nos exemplos de requisição são meramente ilustrativos. Por favor, altere-os para as credenciais corretas do seu perfil.</b>
+
+######Importante:
+Caso queira visualizar a antiga versão da API, acesse o link da documentação: https://nvoipv1.docs.apiary.io/
+
+##Autenticação
+A autenticação na API v2 da Nvoip pode ser feita de duas formas: através do <b>access_token</b> (OAuth) e da <b>Napikey</b> (chave de API). 
+Em cada funcionalidade estará especificado qual método de autenticação é suportada. <br>
+<strong>Para buscar o user_token (token necessário para gerar o access_token do OAuth) ou a sua chave de API (Napikey), entre no seu painel da Nvoip -> API.</strong>
+
+##Headers
+A Napikey é uma ótima opção para uma prototipagem rápida, mas para segurança e uso comercial, todas as integrações projetadas para uso por vários clientes devem usar a autenticação OAuth. 
+Agora, daremos alguns exemplos de uso referente as duas requisições. 
+
+- Usando OAuth 2.0, que utiliza o cabeçalho de autorização:  
+`Authorization: Bearer access_token`
+
+- Usando uma chave de API, que é adicionada ao URL usando o parâmetro de consulta napikey:  
+`https://api.nvoip.com.br/users?napikey=<napikey>`
+
+
+
+## Métodos
+
+A API Nvoip utiliza o padrão REST através do protocolo HTTPS. Os métodos variam de acordo com a função utilizada:
+
+<table>
+    <thead>
+        <tr>
+            <th>Método</th>
+            <th>Ação</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><code>GET</code></td>
+            <td>Consulta</td>
+        </tr>
+        <tr>
+            <td><code>POST</code></td>
+            <td>Inserção</td>
+        </tr>
+        <tr>
+            <td><code>PUT / PATCH</code></td>
+            <td>Atualização</td>
+        </tr>
+        <tr>
+            <td><code>DELETE</code></td>
+            <td>Deleção</td>
+        </tr>
+    </tbody>
+</table>
+​
+## Código de Status HTTPS
+​
+<table>
+    <thead>
+        <tr>
+            <th>Código HTTP</th>
+            <th>Descrição</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>200</b> OK</td>
+            <td>Sua requisição foi bem sucedida.</td>
+        </tr>
+        <tr>
+            <td><b>400</b> Bad Request</td>
+            <td>Algum parâmetro obrigatório não foi enviado ou é inválido. Neste caso a própria resposta indicará qual é o problema.</td>
+        </tr>
+        <tr>
+            <td><b>401</b> Unauthorized</td>
+            <td>Não foi enviada Napikey ou ela é inválida. Verifique as credenciais de autenticação da requisição.</td>
+        </tr>
+        <tr>
+            <td><b>404</b> Not Found</td>
+            <td>O endpoint ou o objeto solicitado não existe.</td>
+        </tr>
+        <tr>
+            <td><b>403</b> Forbidden</td>
+            <td>Requisição não autorizada ou uso de parâmetros não permitidos podem gerar este código.</td>
+        </tr>
+        <tr>
+            <td><b>429</b> Too Many Requests</td>
+            <td>Muitas requisições em um determinado período de tempo.</td>
+        </tr>
+        <tr>
+            <td><b>500</b> Internal Server Error</td>
+            <td>Algo deu errado no servidor.</td>
+        </tr>
+    </tbody>
+</table>
+
+
+
+
+### Group Autenticação da API - OAuth2
+[link-example]: http://127.0.0.1:5500/testeaudio.html
+
+### Solicite um token [/oauth/token]
+
+### Gerar credenciais da API [POST]
+
+
+[link-youtube]: http://youtube.com
+
+Aqui está um tutorial ensinando passo a passo como obter
+seu <b>access_token</b> e <b>refresh_token</b> para começar a utilizar a API da Nvoip. Esses tokens servirão para fazer
+chamadas e integrações mais seguras utilizando os recursos da nossa API. <br><br> Para gerar o OAuth, precisaremos de 2 informações importantes: O numbersip e o user_token. 
+Para buscar essas informações, entre no seu painel da Nvoip -> API.
+
+<!--######Vídeo: [Vídeo tutorial][link-youtube]!-->
+
+
+######URL esperado: 
+######"https://api.nvoip.com.br/v2/oauth/token"
+
+
+Preencha os seguintes campos em sua ferramenta de API favorita:
+
+######Headers:
+Os campos do Header devem ser respeitados.
+- `Content-Type:`     
+    + application/x-www-form-urlencoded
+- `Authorization:` 
+    + Basic TnZvaXBBcGlWMjpUblp2YVhCQmNHbFdNakl3TWpFPQ==
+    
+    
+######Body:
+Na sessão raw, faça as alterações na string com suas informações que podem ser obtidas no painel Nvoip.
+- `raw:`     
+    + username=YOUR-NUMBERSIP&password=USER-TOKEN&grant_type=password
+
+######Exemplo da requisição
+
+<pre>
+    <code class="json"> 
+    <span> 
+  username=99999999&password=GU5U-h-59QJHU@0MG-K6D@4dh4V7W0-15KhCTJ@&grant_type=password
+    </span>
+    </code>
+</pre>
+
+
++ Request (application/x-www-form-urlencoded)
+    + Headers
+        
+                Authorization: Basic TnZvaXBBcGlWMjpUblp2YVhCQmNHbFdNakl3TWpFPQ==
+            
+    + Body  
+    
+            username=YOUR-NUMBERSIP&password=USER-TOKEN&grant_type=password
+
++ Response 200 (application/json)
+            
+    + Body
+
+            {
+                "access_token": "access_token",
+                "token_type": "bearer",
+                "refresh_token": "refresh_token",
+                "expires_in": 86399,
+                "scope": "read write"
+            }
+ 
++ Response 400 (application/json)
+   
+   + Body
+            
+            {
+                "error": "invalid_grant",
+                "error_description": "Bad credentials"
+            }  
+            
++ Response 400
+            
+    + Body
+            
+            {
+                "error": "invalid_request",
+                "error_description": "Missing grant type"
+            }
+
+
+            
+###
+
+## Atualize um token [/oauth/token ]
+
+### Atualizar access token  [POST]
+O <b>access_token</b> obtido na etapa acima tem um tempo de validade (24 horas), portanto, tem que ser
+atualizado de tempo em tempo. Para isso precisamos do token de 
+atualização, é através dele que obtemos um access_token válido novamente.
+
+######URL esperado: 
+######"https://api.nvoip.com.br/v2/oauth/token"
+
+Preencha os seguintes campos em sua ferramentas de API favorita:
+
+######Headers:
+Os campos do Header devem ser respeitados.
+- `Content-Type:`     
+    + application/x-www-form-urlencoded
+- `Authorization:` 
+    + Basic TnZvaXBBcGlWMjpUblp2YVhCQmNHbFdNakl3TWpFPQ==
+    
+######Body:
+- `raw:`     
+    + grant_type=refresh_token&refresh_token=YOUR-REFRESH-TOKEN
+
+
++ Request (application/x-www-form-urlencoded)
+    
+    + Headers
+    
+            Authorization: Basic TnZvaXBBcGlWMjpUblp2YVhCQmNHbFdNakl3TWpFPQ==
+            
+    + Body  
+        
+            grant_type=refresh_token&refresh_token=YOUR-REFRESH-TOKEN
+                
+            
++ Response 200 (application/json)
+            
+    + Body
+
+            {
+                "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MTU2NDUyNzgsInVzZXJfbmFtZSI6Imx1aXpfMTIzamZtZ0Bob3RtYWlsLmNvbSIsImF1dGhvcml0aWVzIjpbIkNMSUVOVEUiXSwianRpIjoiYzI5NTk1OGQtYzczZi00YWYzLWEwOTctZThkNjEyOTFmOWUzIiwiY2xpZW50X2lkIjoiTnZvaXBBcGlWMiIsInNjb3BlIjpbInJlYWQiLCJ3cml0ZSJdfQ.TdZ6Z756iHQyCjWEnPk3aqQB-_753ngzIKvkqBNMO2E",
+                "token_type": "bearer",
+                "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX25hbWUiOiJsdWl6XzEyM2pmbWdAaG90bWFpbC5jb20iLCJzY29wZSI6WyJyZWFkIiwid3JpdGUiXSwiYXRpIjoiYzI5NTk1OGQtYzczZi00YWYzLWEwOTctZThkNjEyOTFmOWUzIiwiZXhwIjoxNjE4MTUwNjY5LCJhdXRob3JpdGllcyI6WyJDTElFTlRFIl0sImp0aSI6ImZmODFjMzI3LWUxNGEtNDkxYi05ZDZjLWI1YTFmZGM5N2Y3YSIsImNsaWVudF9pZCI6Ik52b2lwQXBpVjIifQ.mDJB7UpiBnG5S4Ibf1uUZ8Ev7A13VaVM8kxqNbpXiqc",
+                "expires_in": 86399,
+                "scope": "read write"
+            }
+            
++ Response 401 (application/json)
+            
+    + Body
+
+            {
+                "error": "invalid_token",
+                "error_description": "Cannot convert access token to JSON"
+            }
+           
++ Response 400 (application/json)
+            
+    + Body
+
+            {
+                "error": "unsupported_grant_type",
+                "error_description": "Unsupported grant type: refresh"
+            }
+           
+###
+
+### Obtenha informação de um token [/oauth/check_token]
+
+### Informação do token [POST]
+Esse endpoint lhe permite saber se um token expirou ou não,
+informe seu access_token que está sendo usado e saiba quando atualizá-lo.
+
+######URL esperado:
+######"https://api.nvoip.com.br/v2/oauth/check_token"
+Preencha os seguintes campos em sua ferramentas de API favorita:
+
+######Headers:
+Os campos do Header devem ser respeitados.
+- `Content-Type:`     
+    + application/x-www-form-urlencoded
+- `Authorization:` 
+    + Basic TnZvaXBBcGlWMjpUblp2YVhCQmNHbFdNakl3TWpFPQ==
+    
+######Body:
+- `raw:`     
+    + token=access_token
+    
+    
++ Request (application/x-www-form-urlencoded)
+   + Headers
+    
+            Authorization: Basic TnZvaXBBcGlWMjpUblp2YVhCQmNHbFdNakl3TWpFPQ==
+   + Body  
+   
+            token=access_token
+
+        
++ Response 200 (application/x-www-form-urlencoded)
+            
+    + Body
+
+            {
+                "user_name": "exemplo@gmail.com@hotmail.com",
+                "scope": [
+                "read",
+                "write"
+                ],
+                "active": true,
+                "exp": 1615645069,
+                "authorities": [
+                "CLIENTE"
+                ],
+                "jti": "c411a4a4-f17e-4991-a6bf-0371e2c29f26",
+                "client_id": "NvoipApiV2"
+            }
+            
++ Response 400 (application/json)
+            
+    + Body
+
+            {
+                "error": "invalid_token",
+                "error_description": "Token has expired"
+            }   
+            
+###
+
+#### Group 2FA - Autenticação de dois fatores
+
+### 2FA - Enviar código de verificação [/2fa]
+
+### Testar envio de código de verificação [POST]
+
+Envie um código para o celular ou e-mail do usuário que está acessando o seu sistema.
+
+Você pode enviar o código de acordo com sua preferência: apenas para o e-mail; apenas para o
+celular via SMS ou também para ambos os destinos.
+
+######URL esperado: 
+######"https://api.nvoip.com.br/v2/2fa"
+
+######Headers:
+- `Content-Type:`     
+    + application/json
+- `Authorization:` 
+    + Bearer <i>access_token</i>
+    
+######Body:
+- `raw:`     
+    + email: email que irá receber o código.
+    + cellPhone: telefone que irá receber o código.
+​
+######Exemplo da requisição:
+<pre>
+    <code class="json">
+        <span>
+    {
+       "email":"exemplo@gmail.com",
+       "cellPhone":"xxxxxxxxxxx"
+    }
+        </span>
+    </code>
+</pre>
+
+######Exemplo da resposta:
+
+<pre>
+    <code class="json">
+        <span>
+    {
+        "email": "exemplo@gmail.com",
+        "cellPhone": "xxxxxxxxxxx",
+        "2fa-token": "53ae835c-7aef-484f-8b46-ddf977a3579a",
+        "expiressIn": "14/05/2021 14:26:37"
+    }
+        </span>
+    </code>
+</pre>
+
++ Request (application/json)
+    
+    + Headers
+    
+            Authorization: Bearer access_token
+    + Body  
+   
+            {
+                "email":"Email que irá receber o código",
+                "cellPhone":"Telefone que irá receber o código"
+            }
+            
++ Response 200 (application/json)
+            
+    + Body
+
+            {
+                "token2fa": "e0f696a5-2771-4a5f-8287-ef284f02547c",
+                "expiressIn": "03/06/2021 16:45:43",
+                "email": "exemplo123@gmail.com",
+                "cellPhone": "119999999999"
+            }
+
++ Response 400 (application/json)
+            
+    + Body
+
+            {
+                "timestamp": "2021-06-03T19:36:44.362310300Z",
+                "status": 403,
+                "error": "Forbidden",
+                "message": "Fill in at least one field.",
+                "path": "/2fa"
+            }
+###
+
+## 2FA - Verificar código [/check/2fa]
+
+### Testar verificação do código [GET]
+
+Utilize esse recurso para validar o código digitado pelo usuário, lembre-se de enviar
+o código na requisição juntamente com o token_access recebido da primeira etapa.
+
+######URL esperado:
+######"https://api.nvoip.com.br/v2/check/2fa"
+
+######Headers:
+- `Content-Type:`     
+    + application/json
+- `Authorization:` 
+    + Bearer <i>access_token</i> 
+
+######Exemplo da requisição:
+<pre>
+    <code class="json">
+        <span>
+        {
+            https://api.nvoip.com.br/v2/check/2fa?napikey={napikey}&token2fa={token2fa}&pin={pin}
+        }
+        </span>
+    </code>
+</pre>
+
+######Exemplo da resposta para código validado:
+
+<pre>
+    <code class="json">
+        <span>
+    {
+        "status": "Code successfully validated."
+    }
+        </span>
+    </code>
+</pre>
+
+######Exemplo da resposta para código expirado:
+
+<pre>
+    <code class="json">
+        <span>
+    {
+        "status": "Code expired."
+    }
+        </span>
+    </code>
+</pre>
+
++ Request
+    
++ Parameters
+
+    + token2fa: <token de retorno do envio do código> (number) 
+    + pin: <código que o usuário recebeu>  - Código recebido do disparo
+    + napikey: <chave de API>
+
++ Response 200 (application/json)
+            
+    + Body
+
+            {
+                "status": "Code successfully validated."
+            }
+​
+            
++ Response 400 (application/json)
+            
+    + Body
+
+            {
+                "error": "Dados incorretos",
+                "status": "error"
+            }
+​​
+###
+
+#### Group OTP - One time password
+
+### OTP - Enviar código de verificação [/otp]
+
+### Enviar código [POST]
+
+A autenticação na API para enviar o código de verificação pode ser feita de duas formas: através da autenticação via OAuth ou através da chave de API (*napikey*). 
+Caso prefira a autenticação via OAuth, basta enviar o <i>access_token</i> no Header ou, caso queira realizar a autenticação via *napikey*, basta enviá-la na URL através do URI Params. 
+
+Você pode enviar de acordo com sua preferência, apenas para o email, apenas para o
+celular via SMS ou apenas para o celular via torpedo de voz. Se preferir, é possível enviar para todos os 3 campos. O código OTP ficará disponível por 30 minutos e, após esse tempo, o código será expirado.
+
+######URL esperado: 
+######"https://api.nvoip.com.br/v2/otp"
+
+######Headers:
+- `Content-Type:`     
+    + application/json
+- `Authorization:` 
+    + Bearer <i>access_token</i> 
+    
+######Body:
+- `raw:`     
+    + sms: número que irá receber o código via SMS.
+    + voice: telefone que irá receber o código via torpedo de voz.
+    + email: email que irá receber o código
+​
+######Exemplo da requisição:
+<pre>
+    <code class="json">
+        <span>
+        {
+            "sms": "99999999999",
+            "voice": "99999999999",
+            "email": "exemplo@gmail.com"
+        }
+        </span>
+    </code>
+</pre>
+
+######Exemplo da resposta:
+
+<pre>
+    <code class="json">
+        <span>
+        {
+            "key": "79e9fa27-c902-45a5-9c60-091898b02be3",
+            "expiresIn": "11/06/2021 12:35:29"
+        }
+        </span>
+    </code>
+</pre>
+
++ Request (application/json)
+    
+    + Headers
+    
+            Authorization: Bearer access_token
+    + Body  
+   
+            {
+                "sms": "número de destino",
+                "voice": "número de destino",
+                "email": "e-mail de destino"
+            }
+            
++ Response 200 (application/json)
+            
+    + Body
+
+            {
+                "key": "79e9fa27-c902-45a5-9c60-091898b02be3",
+                "expiresIn": "11/06/2021 12:35:29"
+            }
+
++ Response 400 (application/json)
+            
+    + Body
+
+            {
+                "timestamp": "2021-06-03T19:36:44.362310300Z",
+                "status": 403,
+                "error": "Forbidden",
+                "message": "Fill in at least one field.",
+                "path": "/2fa"
+            }
+###
+
+## OTP - Verificar código [/check/otp]
+
+### Verificar código [GET]
+
+Utilize esse recurso para validar o código digitado pelo usuário, lembre-se de enviar
+o código na requisição juntamente com a key recebida na primeira etapa.
+
+######URL esperado:
+######https://api.nvoip.com.br/v2/check/otp?code=*code*&key=*key*
+
+######Params:
+Os campos do Params devem ser respeitados.
+- `code:` 
+    + Código enviado para o destino
+- `key:` 
+    + Identificação do OTP enviado
+
+######Exemplo da resposta para código validado:
+
+<pre>
+    <code class="json">
+        <span>
+    {
+        "status": "Code successfully validated."
+    }
+        </span>
+    </code>
+</pre>
+
+######Exemplo da resposta para código expirado:
+
+<pre>
+    <code class="json">
+        <span>
+    {
+        "timestamp": 1623851893.748203000,
+        "status": 404,
+        "error": "Resource not found.",
+        "message": "Otp not found or already validated.",
+        "path": "/v2/otp"
+    }
+        </span>
+    </code>
+</pre>
+
++ Request (application/json)
+    
+
++ Parameters
+        
+    + code: 123456 (number) - Código recebido do usuário
+    + key: 76266ea79f344af19c0b2cf4fd15eb73 - Identificador recebido do disparo
+    
+            
++ Response 200 (application/json)
+            
+    + Body
+
+            {
+                "status": "Ok"
+            }
+​
++ Response 400 (application/json)
+            
+    + Body
+
+            {
+                "error": "Codigo expirou",
+                "status": "error"
+            }
+            
++ Response 400 (application/json)
+            
+    + Body
+
+            {
+                "error": "Dados incorretos",
+                "status": "error"
+            }
+​​
+###
+
+### Group Ligações
+### Realizar chamada  [/calls/]
+
+### Realizar chamada [POST]
+
+######URL esperado: 
+######"https://api.nvoip.com.br/v2/calls/"
+
+O sistema realizará chamadas de saída para o número de destino definido no escopo da requisição. É necessário preencher os campos "caller" e "called", com o Usuário SIP e número de destino, respectivamente. Além disso, é necessário estar autenticado na API.
+
+
+######Observações:
+- O formato de envio campo "caller" é livre uma vez que pode ser o ramal "interno" do usuário.
+- O formato de envio campo "called" é "DDD número" (Ex. p/ SP: 11991059948).
+
+######Headers:
+- `Content-Type:`     
+    + application/json
+- `Authorization:` 
+    + Bearer <i>access_token</i> 
+
+######Exemplo da requisição:
+<pre>
+    <code class="json">
+        <span>
+        {
+            "caller": "12345678",
+            "called": "11999999999"
+        }
+        </span>
+    </code>
+</pre>
+
+######Exemplo da resposta:
+<pre>
+    <code class="json">
+        <span>
+        {
+            "state": "success",
+            "callId": "c389ceb2-c01e-4140-861d-6e152dc598e1"
+        }
+        </span>
+    </code>
+</pre>
+
++ Request (application/json)
+    + Headers
+        
+            Authorization: Bearer access_token
+            
+    + Body  
+    
+            {
+               "caller":"1049", 
+               "called":"11990000000"
+            }
+
++ Response 201 (application/json)
+            
+    + Body
+
+            {
+                "state": "success",
+                "callId": "c389ceb2-c01e-4140-861d-6e152dc598e1"
+            }
++ Response 400 (application/json)
+   
+   + Body
+            
+            {
+                "state":"bad_request",
+                "message":"error description"
+            }   
+            
++ Response 401 (application/json)
+            
+    + Body
+            
+            {
+                "state":"unauthorized",
+                "message":"error description"
+            }    
+            
++ Response 500 (application/json)
+            
+    + Body
+            
+            {
+                "state":"error",
+                "message":"error description"
+            }            
+            
+###
+
+## Consultar chamada [/calls]
+
+### Consultar chamada  [GET]
+O sistema parceiro realizará essa requisição à URL da NVOIP em um intervalo cíclico médio de 2 segundos para buscar o estado e duração atual para cada chamada ativa, cujo ID será informado na URL da requisição.
+O parâmetro "napikey" pode ser enviado pelo URI Params e, dessa forma, poderá também ser enviado pela URL do Browser. Caso a napikey não seja enviada pelo URI Params, deve ser enviado o OAuth pelo Header, através do escopo "Authorization".
+
+Observação: considere o provisionamento adequado de recursos de acordo com a evolução do número de requisições.
+
+######URL esperado: 
+######"https://api.nvoip.com.br/v2/calls?callId={callid}&napikey={napikey}"
+
+No atributo 'state' retornado poderá ser informado um dos seguintes valores:
+######● calling_origin
+######● calling_destination
+######● established
+######● noanswer
+######● busy
+######● finished
+######● failed
+
+
+######Importante:
+* O arquivo retornado no campo "linkAudio" será de áudio executável (mp3/wav/etc). Se o link for inserido na barra de endereço do Chrome ele será executado (e não convertido em download) Ex.: https://www.api.nvoip.com.com.br/central/chamada159f22g1h5.mp3
+* O campo talkingDurationSeconds inicia a contagem somente após o destino atender. O tempo de toque das duas partes deve ser ignorado. Este campo deve retornar um número INTEIRO representando o tempo de conversação em segundos.
+* Deve ser possível obter o status da chamada mesmo após a finalização da mesma pois o registro final é obtido somente segundos após o término da ligação. 
+
++ Request 
+    
++ Parameters
+    + callId: Identificador único da chamada - Identificador único da chamada
+    + napikey: Chave de API 
+    
+    
+    
+
++ Response 200 (application/json)
+            
+    + Body
+
+            
+            {
+                "state": "finished | established | calling_destination",
+                "linkAudio": "https://s3-sa-east-1.amazonaws.com/gravacoes-nvoip/2021/06/03/5411979889e486-270a-48a9-83c0-c34cd3361069.mp3",
+                "talkingDurationSeconds": 17,
+                "totalDurationSeconds": "17",
+                "caller": "99999999"
+            }
+            
+            
++ Response 500 (application/json)
+            
+    + Body
+
+            {
+                "state":"error",
+                "message":"error description"
+            }
+###
+
+## Encerrar chamada [/endcall]
+
+### Encerrar chamada [GET]
+O sistema parceiro deverá realizar essa requisição à URL da Nvoip para encerrar uma chamada ativa. A central deverá retornar o state "finished" e o "linkAudio".
+O *callId* é o ID de identificação de uma chamada, e o mesmo é retornado ao disparar uma ligação via API através da funcionalidade "Realizar chamada".
+
+######URL esperado: 
+######"https://api.nvoip.com.br/v2/endcall?callId={callid}"
+
+######Headers:
+Os campos do Header devem ser respeitados.
+- `Authorization:` 
+    + Bearer <i>access_token</i>
+- `Content-Type:` 
+    + application/json 
+
++ Request (application/json)
+    + Headers
+        
+            Authorization: Bearer access_token
+
+######Exemplo da resposta:
+    
+<pre>
+<code class="json">
+<span>
+        {
+            "state": "Call ended",
+            "linkAudio": "https://s3-sa-east-1.amazonaws.com/gravacoes-nvoip/2021/06/16/fdff1f25-c439-4722-a570-2bbb407a5994.mp3"
+        } 
+</span>
+</code>
+</pre>
+
+
++ Request 
+
++ Parameters
+    + callId: c389ceb2c01e4140861d6e15e - Identificador único da chamada
+
++ Response 200 (application/json)
+            
+    + Body
+
+            {
+                "state": "Call ended",
+                "linkAudio": "https://s3-sa-east-1.amazonaws.com/gravacoes-nvoip/2021/06/03/76e3c24c-22de-4b80-8f49-630764005989.mp3"
+            }
+            
++ Response 400 (application/json)
+            
+    + Body
+
+            {
+                "state":"bad_request",
+                "message":"error description"
+            }   
+            
++ Response 401 (application/json)
+            
+    + Body
+
+            {
+                "state":"unauthorized",
+                "message":"error description"
+            }    
+            
++ Response 500 (application/json)
+            
+    + Body
+
+            {
+                "state":"error",
+                "message":"error description"
+            }
+            
+###
+
+## Histórico de ligações [/calls/history]
+### Consultar histórico de ligações [GET]
+O sistema parceiro deverá realizar essa requisição à URL da Nvoip para consultar o relatório
+de ligações. O relatório fornece ligações de até 48 horas anteriores, incluindo suas gravações, 
+custo, status, origem, destino, data, tipo e duração.
+
+######URL esperado: 
+######"https://api.nvoip.com.br/v2/calls/history?type=&date="
+
+######Params:
+Os campos do Params devem ser respeitados.
+- `type:` 
+    + "inbound" para ligações de entrada, "outbound" para ligações de saída ou vazio ("") para todas as ligações.
+- `date:` 
+    + "today" para as ligações de hoje, "yesterday" para as ligações de ontem e vazio ("") para ambos os dias.
+
+######Headers:
+
+Os campos do Header devem ser respeitados.
+- `Authorization:` 
+    + Bearer <i>access_token</i>
+- `Content-Type:` 
+    + application/json 
+
++ Request (application/json)
+    + Headers
+        
+            Authorization: Bearer access_token
+
+######Exemplo da resposta:
+    
+<pre>
+<code class="json">
+<span>
+       {
+        "date": "12/01/2023 14:30:34",
+        "type": "outbound",
+        "origin": "<numbersip> ",
+        "destination": "<callerid>",
+        "duration": "00:00:00",
+        "cost": "R$ 0.06",
+        "status": "Completada",
+        "audio": "<link da gravação>"
+    }
+</span>
+</code>
+</pre>
+
+
++ Request 
++ Parameters
+    + type: outbound
+    + date: today
+
++ Response 200 (application/json)
+            
+    + Body
+
+    {
+        "date": "12/01/2023 14:30:34",
+        "type": "outbound",
+        "origin": "<numbersip> ",
+        "destination": "<callerid>",
+        "duration": "00:00:00",
+        "cost": "R$ 0.06",
+        "status": "Completada",
+        "audio": "<link da gravação>"
+    }
+            
++ Response 400 (application/json)
+            
+    + Body
+
+            {
+                "state":"bad_request",
+                "message":"error description"
+            }   
+            
++ Response 401 (application/json)
+            
+    + Body
+
+            {
+                "state":"unauthorized",
+                "message":"error description"
+            }    
+            
++ Response 500 (application/json)
+            
+    + Body
+
+            {
+                "state":"error",
+                "message":"error description"
+            }
+            
+###
+
+### Group SMS
+### Enviar SMS  [/sms]
+
+### Enviar SMS [POST]
+
+######URL esperado: 
+######"https://api.nvoip.com.br/v2/sms"
+
+######Observações:
+Através da API da Nvoip hoje é possível disparar SMS One Way, ou seja, não terá o retorno caso o destino responda a mensagem.
+Não é aceito acentuação. Você pode disparar SMS de até 160 caracteres.
+Esse recurso permite o envio de um SMS para o número de destino. A autenticação na API para realizar o envio do SMS pode ser feita de duas formas: através da autenticação via OAuth ou através da chave de API (*napikey*). 
+Caso prefira a autenticação via OAuth, basta enviar o <i>access_token</i> no Header ou, caso queira realizar a autenticação via *napikey*, basta enviá-la na URL através do URI Params.
+
+######Headers:
+Os campos do Header devem ser respeitados, caso prefira a autenticação via OAuth.
+- `Authorization:` 
+    + Bearer <i>access_token</i>
+- `Content-Type:` 
+    + application/json 
+
+###
+
+######Params:
+Os campos do Params devem ser respeitados, caso prefira o método de autenticação via Napikey.
+- `napikey:`     
+    + *Chave de API*
+    
+###
+
+######Body:
+Os campos do Body devem ser respeitados.
+- `numberPhone:` 
+    + Número que irá receber o SMS.
+- `message:` 
+    + Mensagem que será enviada.
+- `flashSms:`
+    + Caso queira que seja enviado o formato de flashSMS, envie "true". Caso deseja que seja enviado um SMS normal, envie "false".
+
+
++ Request (application/json)
+    + Headers
+        
+               Authorization: Bearer access_token
+                
+    + Body  
+    
+            {
+                "numberPhone": "número que irá receber o SMS",
+                "message": "mensagem que será enviada",
+                "flashSms": false
+            }
+
+
++ Response 200 (application/json)
+            
+    + Body
+
+            {
+                "status": "200 - SMS Enviado com Sucesso",
+                "mensagem": "SMS enviado"
+            }
+            
++ Response 400 (application/json)
+     
+            {
+                "timestamp": "2021-05-21T17:41:31.621976Z",
+                "status": 400,
+                "error": "Invalid arguments.",
+                "message": "size must be between 0 and 160",
+                "path": "/v2/sms"
+            }
+            
++ Response 400 (application/json)
+    
+            {
+                "timestamp": "2021-05-21T17:40:45.819881Z",
+                "status": 400,
+                "error": "Invalid arguments.",
+                "message": "size must be between 11 and 16",
+                "path": "/v2/sms"
+            }
+            
++ Response 400 (application/json)
+            
+            {
+                "timestamp": "2021-05-21T19:01:32.416637Z",
+                "status": 400,
+                "error": "Invalid arguments.",
+                "message": "User have no permition to use SMS",
+                "path": "/v2/sms"
+            }
+            
+###
+
+### Group Torpedo de voz
+### Enviar torpedo de voz [/torpedo/voice]
+
+### Enviar torpedo de voz [POST]
+
+######URL esperado: 
+######"https://api.nvoip.com.br/v2/torpedo/voice"
+
+Com o torpedo de voz, é possível enviar um ou mais áudios para o destino através de um arquivo MP3 ou um áudio lido (TTS). É possível realizar interação com o destino através do recurso de captura de DTMF e, além disso, é possível adaptar os áudios e capturas de acordo com a sua necessidade. 
+
+######Observações:
+- O formato de envio campo <b>caller</b> é obrigatório. Use um usuário cadastrado na plataforma.
+- O formato de envio campo <b>called</b> é "DDD número" (Ex. p/ SP: 11991059948).
+- Os campos <b>audio</b> devem conter uma URL pública apontando para um arquivo de áudio MP3 ou um texto.
+- O campo <b>positionAudio</b> irá definir a ordem em que os áudios serão reproduzidos. Fique atento na posição dos áudios para capturar a resposta de acordo com sua necessidade.
+- O campo <b>min</b> e <b>max</b> define o número mínimo e máximo de digitos que você irá capturar. Quando o valor máximo é capturado, o sistema executa o "audio2". Enquanto o valor mínimo não for capturado, ele aguarda o tempo do "timedtmf".
+- O campo <b>timedtmf</b> é o tempo (em milisegundos) que o sistema irá aguardar o destino digitar algo (DTMF).
+- O campo <b>timeout</b> deve ser o total de tempo(em segundos) em que a ligação ficará ativa. Some o tempo do "audio1" + tempo "audio2" + "timedtmf" e adicione + 10 segundos por segurança. Exemplo: Se "audio1" tem 10seg, "audio2" tem 2 seg, "timedtmf" é 10seg, então o valor aqui será 22seg + 10seg = 32.
+
+<h4>Torpedo de voz simples:</h4> 
+
+O torpedo de voz simples consiste em um áudio que será reproduzido no número de destino. No torpedo de voz simples, não há nenhuma interação com o usuário.
+
+Com o Torpedo de Voz Inteligente, você envia um audio gravado (MP3)
+ou um Audio Lido (TTS) para o destino e o mesmo pode interagir com o
+áudio, digitando um valor que será enviado a você no retorno.
+
+É possível escolher as posições dos áudios simples e dos áudios  interativos (que irão captar o dígito do usuário).
+Basta organizar o campo `positionAudio` para sua necessidade. 
+
+O campo de envio de ambos os áudios é o mesmo. O sistema automaticamente detecta
+se é um arquivo MP3 ou um texto para ser lido.
+
+
+######Exemplo da requisição:
+
+<pre>
+<code class="json">
+    <span>
+    {
+       "caller":"<*numbersip*>",
+       "called":"<*numero de destino*>",
+       "audios":[
+          {
+             "audio":"Olá, seja bem vindo",
+             "positionAudio":1
+          }
+       ],
+       "dtmfs":[]
+    } 
+
+</span>
+</code>
+</pre>
+
+<h4>Torpedo de voz interativo:</h4> 
+
+O torpedo de voz interativo consiste em um ou mais áudios que serão reproduzidos no número de destino determinado. No torpedo de voz interativo, há apenas única interação com o usuário, capturando uma vez os dígitos (DTMF). 
+
+Basta adicionar novas posições na requisição, para que os áudios sejam reproduzidos de acordo com a sua necessidade.
+
+No áudio que for desejada a captura do DTMF, insira-o dentro do Array "dtmfs", de acordo com o exemplo abaixo. 
+
+O campo de envio de ambos os áudios é o mesmo. O sistema automaticamente detecta
+se é um arquivo MP3 ou um texto para ser lido.
+
+######Exemplo da requisição (torpedo de voz interativo):
+
+<pre>
+<code class="json">
+    <span>
+    {
+       "caller":"<*numbersip*>",
+       "called":"<*numero de destino*>",
+       "audios":[
+      {
+         "audio":"Olá, seja bem vindo",
+         "positionAudio":1
+      }
+       ],
+       "dtmfs":[
+          {
+             "audio":"se está satisfeito com nossos serviços, digite 1, se não, digite 2",
+             "positionAudio":2,
+             "timedtmf":"4000",
+             "timeout":"30",
+             "min":"0",
+             "max":"1"
+          }
+       ]
+    }
+</span>
+</code>
+</pre>
+
+<h4>Torpedo de voz interativo dinâmico:</h4> 
+
+O torpedo de voz interativo dinâmico consiste em um ou mais áudios que serão reproduzidos no número de destino determinado. No torpedo de voz interativo dinâmico, serão retornados os dígitos capturados em cada áudio reproduzido. Podendo ser capturado mais de uma vez os dígitos (DTMF) respondidos pelos usuários. 
+
+Basta adicionar novas posições na requisição, para que os áudios sejam reproduzidos de acordo com a sua necessidade.
+
+No áudio que for desejada a captura do DTMF, insira-o dentro do Array "dtmfs", de acordo com o exemplo abaixo. 
+
+O campo de ambos os áudios é o mesmo. O sistema automaticamente detecta
+se é um arquivo MP3 ou um texto para ser lido.
+
+######Exemplo da requisição (torpedo de voz interativo dinâmico):
+
+<pre>
+<code class="json">
+    <span>
+        {
+            "caller":"<*numbersip*>",
+            "called":"<*numero de destino*>",
+       "audios":[
+          {
+             "audio":"Olá, seja bem vindo",
+             "positionAudio":1
+          },
+          {
+             "audio":"obrigado, seu feedback foi registrado com sucesso! ",
+             "positionAudio":3
+          }
+        ],
+           "dtmfs":[
+               {
+                 "audio":"se está satisfeito com nossos serviços, digite 1, se não, digite 2",
+                 "positionAudio":2,
+                 "timedtmf":"4000",
+                 "timeout":"30",
+                 "min":"0",
+                 "max":"1"
+              },
+               {
+                 "audio":"digite qualquer número para finalizar",
+                 "positionAudio":4,
+                 "timedtmf":"4000",
+                 "timeout":"30",
+                 "min":"0",
+                 "max":"1"
+              }
+           ]
+        }
+
+</span>
+</code>
+</pre>
+
+######Exemplo da resposta:
+
+<pre>
+<code class="json">
+    <span>
+    {
+        "caller": "Ramal",
+        "called": "Telefone",
+        "status": "Completada",
+        "uuid": "a7969021-2fd0-4676-bee5-4f6c260226e8",
+        "dtmf": "[2, 1]",
+        "reqstart": "19/05/2021 18:37:41",
+        "callstart": "19/05/2021 18:37:44",
+        "reqend": "19/05/2021 18:38:09",
+        "duration": "00:00:16"
+    }
+</span>
+</code>
+</pre>
+    
+ + Detalhamento da requisição
+ 
+| Campo  |      Detalhes      |  Tipo |
+|----------|:-------------:|------:|
+| `caller` | Caller é o ramal que irá efetuar o disparo do Torpedo. | `string` |
+| `called` | Called é o número que vai receber o Torpedo.  | `string` |
+| `audio` | O campo audio devem conter uma URL pública apontando para um arquivo de áudio MP3 ou um texto. | `string` |
+| `positionAudio` | É a posição que seu audio.mp3 ou texto será reproduzido como um todo. | `number` |
+| `timedtmf` | Esse campo é o tempo (em milisegundos) em que o torpedo irá esperar para reproduzir o proximo audio, caso o usuário não digite nada. | `string` |
+| `timeout` | O campo timeout é o valor total estimado para a reprodução de todo o áudio, ele pode ser estipulado a partir da quantidade de áudio que está enviando, em caso de dúvida, acresente +10 segundos por segurança.  | `string` |
+| `min` | Número mínimo que pode ser digitado | `number` |
+| `max` | Número máximo que pode ser digitado | `number` |
+
++ Detalhamento da resposta
+ 
+| Campo  |      Detalhes      |  Tipo |
+|----------|:-------------:|------:|
+| `caller` | Caller é o ramal que irá efetuar o disparo do torpedo. | `string` |
+| `called` | Called é o número que vai receber o Torpedo. | `number` |
+| `status` | Esse campo informa o status final do seu torpedo | `number` |
+| `uuid` | Uuid representa o ID do torpedo. | `number` |
+| `dtmf` | Esse campo contém  os digitos que foram capturados pelo torpedo.  | `string` |
+| `reqstart` | Esse campo contém  a data/hora que o torpedo foi disparado para o destinatário. | `number` |
+| `callstart` | Esse campo contém  a data/hora que o torpedo foi atendido. | `string` |
+| `reqend` | Esse campo contém  a data/hora do final da requisição.  | `string` |
+| `duration` | O campo duration define o tempo total do torpedo, desde que foi atendido até ser finalizado.| `string` |
+
+
+
+
+
+
+
+
++ Request (application/json)
+    + Headers
+        
+                Authorization: Bearer access_token
+            
+    + Body  
+            
+          {
+               "caller":"numbersip",
+               "called":"numero de destino",
+               "audios":[
+          {
+             "audio":"Olá, seja bem vindo",
+             "positionAudio":1
+          }
+               ],
+               "dtmfs":[]
+          } 
+
+
++ Response 200 (application/json)
+            
+    + Body
+
+            {
+                "duration":"00:00:20",
+                "reqend":"19/03/2021 14:30:16",
+                "caller":"*****001",
+                "called":"5511999999999",
+                "callstart":"19/03/2021 14:29:51",
+                "dtmf":"[1, 2]",
+                "uuid":"18b791b4-ff38-480c-bec1-3ca1df024242",
+                "reqstart":"19/03/2021 14:29:51",
+                "status":"Completada"
+            }
+ 
++ Response 400 (application/json)
+   
+   + Body
+            
+            {
+                "state": "error",
+                "error": "caller invalido"
+            }  
+            
++ Response 400 (application/json)
+            
+    + Body
+            
+            {
+                "state": "error",
+                "error": "numero invalido"
+            }    
+            
++ Response 500 (application/json)
+            
+    + Body
+            
+            {
+                "state":"error",
+                "message":"error description"
+            }            
+            
+###
+
+### Agendar torpedo de voz [/sched/torpedo]
+
+### Agendar torpedo de voz [POST]
+
+######URL esperado: 
+######"https://api.nvoip.com.br/v2/sched/torpedo"
+
+Através desse recurso, é possível agendar um torpedo para que o mesmo seja disparado na data em que o torpedo foi agendado. 
+Somente é possível agendar torpedo após 10 minutos da data da requisição. 
+
+A data deve ser enviada de acordo com a seguinte sintaxe: yyyy-MM-dd HH:MM (por exemplo: 2021-07-28 17:55). 
+
+######Headers:
+Os campos do Header devem ser respeitados.
+- `Authorization:` 
+    + Bearer <i>access_token</i>
+- `Content-Type:` 
+    + application/json 
+
+######Exemplo de requisição:
+<pre>
+    <code class="json"> 
+    <span> 
+        {
+            "message": "Olá, está é uma mensagem de teste para agendamento de torpedos",
+            "toNumber": "1199999999999",
+            "schedulingDate": "2021-07-28 17:55"
+        }
+    </span>
+    </code>
+</pre>
+
++ Request (application/json)
+
+   + Headers
+    
+        Authorization: Bearer access_token
+
+    + Body  
+            
+            {
+                "message": "<mensagem que será enviada>",
+                "toNumber": "<número de destino>",
+                "schedulingDate": "2021-07-28 17:55"
+            }
+
+###
+
+### Atualizar torpedo de voz agendado [/update/sched/torpedo]
+
+### Atualizar torpedo de voz agendado [PUT]
+
+Para atualizar um torpedo de voz já agendado, é necessário o envio da chave do torpedo na URL da requisição (schedkey), juntamente com a autenticação OAuth no Header. 
+Além disso, é necessário enviar alguns parâmetros no corpo do body para realizar a atualização do torpedo.
+
+######Headers:
+Os campos do Header devem ser respeitados.
+- `Content-Type:`     
+    + application/json
+- `Authorization:` 
+    + Bearer <i>access_token</i>
+
++ Request (application/json)
+
+   + Parameters
+    + finaldigits: <últimos 4 dígitos do cartão> (number)
+
+    + Body  
+            
+            {
+                "message": "<mensagem que será enviada>",
+                "toNumber": "<número de destino>",
+                "schedulingDate": "2021-07-28 17:55"
+            }
+
+
+###
+
+### Listar torpedo de voz agendado [/list/sched/torpedo]
+
+### Listar torpedo de voz agendado [GET]
+
+A autenticação na API para listar os torpedos de voz agendados pode ser feita de duas formas: através da autenticação via OAuth ou através da chave de API (*napikey*). 
+Caso prefira a autenticação via OAuth, basta enviar o <i>access_token</i> no Header ou, caso queira realizar a autenticação via *napikey*, basta enviá-la na URL através do URI Params. 
+
+######Headers:
+Os campos do Header devem ser respeitados, caso prefira o método de autenticação via OAuth.
+- `Content-Type:`     
+    + application/json
+- `Authorization:` 
+    + Bearer <i>access_token</i> 
+    
+
+    ###
+    
+######Params:
+Os campos do Params devem ser respeitados, caso prefira o método de autenticação via Napikey.
+- `napikey:`     
+    + *Chave de API*
+
++ Request (application/json)
+
+###
+
+### Buscar torpedo de voz agendado [/get/sched/torpedo]
+
+### Buscar torpedo de voz agendado [GET]
+
+Para buscar um torpedo de voz já agendado, é necessário o envio da chave do torpedo na URL da requisição (schedkey), juntamente com a autenticação OAuth no Header ou através da chave de API (napikey). 
+
+######Exemplo da requisição: 
+
+<pre>
+    <code class="json"> 
+        <span> 
+            https://api.nvoip.com.br/v2/get/sched/torpedo?schedkey={schedkey}&napikey={napikey}
+        </span>
+    </code>
+</pre>
+
+######Headers:
+Os campos do Params devem ser respeitados, caso prefira o método de autenticação via OAuth.
+- `Content-Type:`     
+    + application/json
+- `Authorization:` 
+    + Bearer <i>access_token</i> 
+    
+    
+    ###
+    
+    
+
+######Params:
+Os campos do Params devem ser respeitados, caso prefira o método de autenticação via Napikey.
+- `schedkey:`     
+    + Identificador de torpedo de voz agendado (*schedkey*).
+- `napikey:` 
+    + *Chave de API* 
+
++ Request
+    
++ Parameters
+    
+    + schedkey: 82378sop - Chave de identificação do torpedo de voz agendado
+    
+    + napikey: 93829assd87328= - Chave de API capturada no painel
+    
+
+###
+
+### Excluir torpedo de voz agendado [/delete/sched/torpedo]
+
+### Excluir torpedo de voz agendado [DELETE]
+
+Para excluir um torpedo de voz já agendado, é necessário o envio da chave do torpedo na URL da requisição (schedkey), juntamente com a autenticação OAuth no Header.
+
+######Exemplo da requisição: 
+
+<pre>
+    <code class="json"> 
+        <span> 
+            https://api.nvoip.com.br/v2/delete/sched/torpedo?schedkey={schedkey}
+</span>
+</code>
+</pre>
+</code>
+
+######Headers:
+O campos do Header devem ser respeitados.
+- `Authorization:` 
+    + Bearer <i>access_token</i>
+ 
++ Request
+    
+    + Headers
+    
+        Authorization: Bearer access_token
+    
++ Parameters
+    
+    + schedkey: 82378sop - Chave de identificação do torpedo de voz agendado
+    
+
+###
+
+
+### Group URA
+
+### Visualizar URA [/ura/list]
+
+### Visualizar URA  [GET]
+
+Para consultar (visualizar) a sua URA, basta enviar os parâmetros solicitados na URL (numbersip e napikey) e toda a configuração da URA será retornada. 
+
+######URL esperado: 
+######"https://api.nvoip.com.br/v2/ura/list?numbersip=*numbersip*&napikey=*napikey*"
+
+- `numbersip:` 
+    + Para encontrar o numbersip, entre no seu painel da Nvoip, vá em configurações -> usuários. 
+- `napikey:` 
+    + Para encontrar a napikey, vá na aba API no painel da Nvoip.
+
+<BR>
+
+######Exemplo de resposta: 
+
+<pre>
+    <code class="json"> 
+        <span> 
+            {
+              "audios": [
+                {
+                  "audioName": "HC",
+                  "isFHC": false,
+                  "audioURL": "https://gravacoes-nvoip.s3-sa-east-1.amazonaws.com/ura/nvoip.54cbf9b9-ed-9f698b177dbd.mp3",
+                  "audioMessage": "Olá, bem vindo a ura de treinamento!"
+                }
+                ],
+              "menus": [
+                {
+                  "typeMenu": "Menu Principal ",
+                  "function2": "Desenvolvimento",
+                  "functionTranshipment": "Desenvolvimento",
+                  "callExtensionMenu": false
+                }
+                ],
+              "times": [
+                {
+                  "name": "Horario Comercial",
+                  "week": "Todos",
+                  "day": "0",
+                  "month": "0",
+                  "year": "0",
+                  "startTime": "05:00:00",
+                  "endTime": "20:59:59",
+                  "did": "551143958050,551935139147,552435125697"
+                }
+                ],
+              "users": [
+                {
+                  "userSip": "99999999",
+                  "followMe": false
+                }
+                ],
+              "queue": [
+                {
+                  "name": "Desenvolvimento",
+                  "option": 5,
+                  "touchStrategy": "Tocar em todos",
+                  "music": "bossa_nova"
+                }
+            ]
+        }
+</span>
+</code>
+</pre>
+</code>
+ 
++ Request (application/json)
+    
++ Parameters
+    
+    + numbersip: 99999999 - Numbersip capturado no painel da Nvoip
+    
+    + napikey: 93829assd87328= - Chave de API capturada no painel
+
++ Response 200 (application/json)
+            
+    + Body
+
+            {
+              "audios": [
+                {
+                  "audioName": "HC",
+                  "isFHC": false,
+                  "audioURL": "https://gravacoes-nvoip.s3-sa-east-1.amazonaws.com/ura/nvoip.54cbf9b9-ed-9f698b177dbd.mp3",
+                  "audioMessage": "Olá, bem vindo a ura de treinamento!"
+                }
+                ],
+              "menus": [
+                {
+                  "typeMenu": "Menu Principal ",
+                  "function2": "Desenvolvimento",
+                  "functionTranshipment": "Desenvolvimento",
+                  "callExtensionMenu": false
+                }
+                ],
+              "times": [
+                {
+                  "name": "Horario Comercial",
+                  "week": "Todos",
+                  "day": "0",
+                  "month": "0",
+                  "year": "0",
+                  "startTime": "05:00:00",
+                  "endTime": "20:59:59",
+                  "did": "551143958050,551935139147,552435125697"
+                }
+                ],
+              "users": [
+                {
+                  "userSip": "99999999",
+                  "followMe": false
+                }
+                ],
+              "queue": [
+                {
+                  "name": "Desenvolvimento",
+                  "option": 5,
+                  "touchStrategy": "Tocar em todos",
+                  "music": "bossa_nova"
+                }
+            ]
+        }
+            
++ Response 401 (application/json)
+            
+    + Body
+
+            {
+                "error": "invalid_token",
+                "error_description": "Cannot convert access token to JSON"
+            }
+
+###
+
+### Group Usuários
+
+## Cadastrar usuário secundário  [/users]
+
+### Cadastrar usuário secundário [POST]
+
+Esse recurso permite adicionar usuários secundários a uma conta primária 
+via API. Essa funcionalidade aceita somente o método de autenticação via OAuth. 
+
+Observação: Esse recurso só pode ser acessado por usuários primários.
+
+######URL esperado: 
+######"https://api.nvoip.com.br/v2/users"
+
+######Headers:
+Os campos do Header devem ser respeitados.
+- `Content-Type:`     
+    + application/json
+- `Authorization:` 
+    + Bearer <i>access_token</i> 
+    
+
+######Body:
+- O campo <b>name</b> é do formato String e deverá receber o nome do usuário.
+- O campo <b>email</b> é  do formato String e deverá receber o email do usuário.
+- O campo <b>password</b> é  do formato String e deverá receber a senha do usuário.
+
+
++ Request (application/json)
+    + Headers
+        
+            Authorization: Bearer access_token
+                
+    + Body  
+    
+            {
+                "name":"<nome do usuário>",
+                "email":"<e-mail do usuário>",
+                "password":"<senha do usuário>"
+            }
+
++ Response 201 (application/json)
+            
+    + Body
+
+            {
+                "name": "nome do usuário",
+                "email": "usuario@email.com",
+                "numbersip": "ramal gerado",
+                "password": "senha do usuário"
+            }
+            
++ Response 400 (application/json)
+            
+    + Body
+
+            {
+                "timestamp": "2021-03-12T17:07:09.821034900Z",
+                "status": 400,
+                "error": "Invalid arguments.",
+                "message": "Email já cadastrado",
+                "path": "/users/secondary"
+            }            
+
+###
+
+### Listar usuários secundários  [/list/users]
+
+### Listar todos usuários secundários [GET]
+
+A autenticação na API para listar os usuários secundários pode ser feita de duas formas: através da autenticação via OAuth ou através da chave de API (*napikey*). 
+Caso prefira a autenticação via OAuth, basta enviar o <i>access_token</i> no Header ou, caso queira realizar a autenticação via *napikey*, basta enviá-la na URL através do URI Params. 
+
+Observação: Esse recurso só pode ser acessado por usuários primários.
+
+######URL esperado: 
+######"https://api.nvoip.com.br/v2/list/users"
+
+######Headers:
+Os campos do Params devem ser respeitados, caso prefira o método de autenticação via OAuth.
+
+- `Authorization:` 
+    + Bearer <i>access_token</i> 
+    
+
+    ###
+    
+######Params:
+Os campos do Params devem ser respeitados, caso prefira o método de autenticação via Napikey.
+- `napikey:`     
+    + *Chave de API*
+ 
++ Response 200 (application/json)
+            
+    + Body
+
+           
+            [
+                {
+                    "name": "Usuário 2",
+                    "email": "userteste1@email.com",
+                    "numbersip": "*****001",
+                    "password": "*****"
+                },
+                {
+                    "name": "Usuario 3",
+                    "email": "userteste3@email.com",
+                    "numbersip": "*****002",
+                    "password": "*****"
+                },
+                {
+                    "name": "Usuário 4",
+                    "email": "userteste4@email.com",
+                    "numbersip": "*****003",
+                    "password": "*****"
+                }
+            ]
+            
++ Response 400 (application/json)
+            
+    + Body
+
+            {
+                "error": "token invalido",
+                "status": "error"
+            }           
+
+###
+
+### Buscar usuário secundário por numbersip  [/get/users]
+
+### Buscar usuário secundário por numbersip [GET]
+
+A autenticação na API para listar os usuários secundários pode ser feita de duas formas: através da autenticação via OAuth ou através da chave de API (*napikey*). 
+Caso prefira a autenticação via OAuth, basta enviar o <i>access_token</i> no Header ou, caso queira realizar a autenticação via *napikey*, basta enviá-la na URL através do URI Params. 
+
+Observação: Esse recurso só pode ser acessado por usuários primários.
+
+######URL esperado: 
+######"https://api.nvoip.com.br/v2/get/users?numbersip={numbersip}"
+
+######Headers:
+Os campos do Params devem ser respeitados, caso prefira o método de autenticação via OAuth.
+
+- `Authorization:` 
+    + Bearer <i>access_token</i> 
+    
+
+    ###
+    
+######Params:
+Os campos do Params devem ser respeitados, caso prefira o método de autenticação via Napikey.
+- `napikey:`     
+    + *Chave de API*
+- `numbersip:`
+    + Numbersip do usuário que será retornado.
+
+
++ Response 200 (application/json)
+            
+    + Body
+
+            {
+                "webphone": true,
+                "blocked": false,
+                "nome": "Usuário X",
+                "email": "userx@email.com",
+                "sipPassword": "123",
+                "callerId": "1146375000"
+            }
+            
++ Response 401 (application/json)
+            
+    + Body
+
+            {
+                "error": "invalid_token",
+                "error_description": "Access token expired: your token"
+            }          
+
+###
+
+## Editar usuário secundário  [/update/users]
+
+### Editar cadastro usuário [PUT]
+
+Esse recurso permite fazer alterações em seus usuários secundários via API. Nessa funcionalidade, o único método de autenticação suportado é o OAuth.<br>
+Observação: Esse recurso só pode ser acessado por usuários primários.
+
+######URL esperado: 
+######"https://api.nvoip.com.br/v2/update/users?numbersip={numbersip}"
+
+######Headers:
+Os campos do Header devem ser respeitados.
+- `Content-Type:`   
+    + application/json
+- `Authorization:` 
+    + Bearer <i>access_token</i> 
+    
+
+######Body:
+- O parâmetro da url <b>{numbersip}</b> é obrigatório, e deve informar o id do usuário que será alterado.
+- O campo <b>nome</b> é do formato String e deverá receber o nome que o usuário irá receber.
+- O campo <b>sipPassword</b> é do formato String e deverá receber a nova senha do usuário.
+- O campo <b>blocked</b> é do formato boolean (true/false), e pode bloquear ou desbloquear um usuário.
+- O campo <b>webphone</b> é do formato boolean (true/false), e pode ativar ou desativar o acesso do usuário ao webphone.
+
+
++ Request (application/json)
+    + Headers
+         Authorization: Bearer access_token  
+    
+    + Parameters
+        + numbersip: <numbersip que será atualizado> (number)
+    
+    + Body  
+    
+            {
+                "nome":"Nome Teste",
+                "sipPassword":"123",
+                "blocked":false,
+                "webphone":true
+            }
+            
++ Response 200 (application/json)
+            
+    + Body
+
+            {
+                "nome": "Nome Teste",
+                "sipPassword": "",
+                "blocked": false,
+                "webphone": true
+            }
+            
+            
++ Response 401 (application/json)
+            
+    + Body
+
+            {
+                "error": "invalid_token",
+                "error_description": "Cannot convert access token to JSON"
+            }       
+    
+
+###
+
+## Excluir usuário secundário  [/delete/users]
+
+### Excluir usuário [DELETE]
+
+Esse recurso permite deletar usuários secundários via API. O único método de autenticação suportado é o OAuth.
+
+######URL esperado: 
+######"https://api.nvoip.com.br/v2/users?numbersip={numbersip}"
+
+
+######Headers:
+Os campos do Header devem ser respeitados.
+- `Authorization:` 
+    + Bearer <i>access_token</i>
+    
+######Params:
+Os campos do Params devem ser respeitados.
+- `numbersip:`     
+    + Numbersip do usuário que será excluído.
+
++ Request
+    + Headers
+        Authorization: Bearer access_token
+
++ Parameters
+    + numbersip: <numbersip do usuário que será excluído> (number)
+        
+    
+    
++ Response 404 (application/json)
+            
+    + Body
+
+            {
+                "timestamp": "2021-03-12T17:50:41.866507200Z",
+                "status": 404,
+                "error": "Resource not found.",
+                "message": "Usuário não encontrado.",
+                "path": "/users/secondary/numbersip/00000000"
+            }           
+            
+        ###
+
+
+### Group Sistema
+
+### Consultar saldo [/balance]
+
+### Consultar saldo  [GET]
+
+Para consultar o saldo da sua conta, apenas envie Bearer <i>access_token</i> no campo Authorization, onde o <i>access_token</i> é o token gerado pelo OAuth. Será retornado o saldo da conta no campo balance.
+
+######URL esperado: 
+######"https://api.nvoip.com.br/v2/balance"
+
+######Headers:
+Os campos do Header devem ser respeitados.
+- `Authorization:` 
+    + Bearer <i>access_token</i> 
+    
++ Request 
+    
+    + Headers
+    
+        Authorization: Bearer access_token
+
++ Response 200 (application/json)
+            
+    + Body
+
+            {
+                "balance":"285.06"
+            }
+            
++ Response 401 (application/json)
+            
+    + Body
+
+            {
+                "error": "invalid_token",
+                "error_description": "Cannot convert access token to JSON"
+            }
+###
+
+
+## Consultar tarifas  [/list/rates]
+
+### Consultar tarifas [GET]
+
+Esse recurso permite consultar a tarifa vinculada a conta. A autenticação na API para verificar a tarifa vinculada a conta pode ser feita de duas formas: através da autenticação via OAuth ou através da chave de API (*napikey*). 
+Caso prefira a autenticação via OAuth, basta enviar o <i>access_token</i> no Header ou, caso queira realizar a autenticação via *napikey*, basta enviá-la na URL através do URI Params.
+
+######URL esperado: 
+######"https://api.nvoip.com.br/v2/list/rates"
+
+######Headers:
+Os campos do Header devem ser respeitados, caso deseje o método de autenticação via OAuth.
+- `Authorization:` 
+    + Bearer <i>access_token</i> 
+- `Content-Type:` 
+    + application/json 
+    
+        
+######Params:
+Os campos do Params devem ser respeitados, caso deseje o método de autenticação via Napikey.
+- `napikey:`     
+    + *Chave de API*
+    
+
++ Request
++ Parameters
+    + napikey: <identificador único da API> (string)
+        
+
++ Response 204
+        
+            
++ Response 404 (application/json)
+            
+    + Body
+
+            {
+                "error": "invalid_token",
+                "error_description": "Cannot convert access token to JSON"
+            }    
+           
+###
+
+### Listar números virtuais [/list/dids]
+
+### Listar números virtuais  [GET]
+
+Esse recurso permite listar os números virtuais vinculados a conta. A autenticação na API para verificar os números vinculados pode ser feita de duas formas: através da autenticação via OAuth ou através da chave de API (*napikey*). 
+Caso prefira a autenticação via OAuth, basta enviar o <i>access_token</i> no Header ou, caso queira realizar a autenticação via *napikey*, basta enviá-la na URL através do URI Params.
+
+######URL esperado: 
+######"https://api.nvoip.com.br/v2/list/dids"
+
+######Headers:
+Os campos do Header devem ser respeitados, caso prefira a autenticação via OAuth.
+- `Authorization:` 
+    + Bearer <i>access_token</i>
+- `Content-Type:` 
+    + application/json 
+
+######Params:
+Os campos do Params devem ser respeitados, caso prefira o método de autenticação via Napikey.
+- `napikey:`     
+    + *Chave de API*
+
++ Request
++ Parameters
+    + napikey: <identificador único da API> (string)
+
+    + Response 200 (application/json)
+       
+        + Body
+             
+                {
+                    "number": "553232225093",
+                    "country": "Brasil",
+                    "cityAndState": "Juiz de Fora/MG",
+                    "monthlyPayment": 25.00,
+                    "activationFee": 25.00,
+                    "cost": 0.00,
+                    "simultaneousCalls": 5,
+                    "destinyType": "IP/Dominio",
+                    "destination": "ura.nvoip.com.br",
+                    "status": true
+                 }
+###
+### Editar números virtuais [/update/dids]
+
+### Editar números virtuais  [PUT]
+
+Para edtar os números virtuais da sua conta, apenas envie Bearer *access-token* no campo Authorization, onde o access_token é o token gerado pelo OAuth.
+
+É necessário o envio do parâmetro "did" via URI Params para a identificação do número virtual. Além disso, no body, é necessário enviar as informações necessárias referente ao número que será editado. No campo "typeOfDestination", é possível enviar os seguintes valores: "usuario", "alternativo", "ip/dominio" e "siga-me". Em "destination", insira o destino desejado.
+
+######URL esperado: 
+######"https://api.nvoip.com.br/v2/dids?did={number}"
+######Headers:
+Os campos do Header devem ser respeitados.
+- `Authorization:` 
+    + Bearer <i>access_token</i> 
+- `Content-Type:` 
+    + application/json 
+    
+######Params:
+Os campos do Params devem ser respeitados.
+- `did:` 
+    + <i>Número virtual que será feita a alteração</i>
+
+
++ Request (application/json)
+
+
+    + Headers
+        
+            Authorization: Bearer access_token 
+            
+    + Body 
+        
+        {
+            "typeOfDestination": "ip/dominio",
+            "destination": "ura.nvoip.com.br"
+        }
+        
+        
+    
+    
+    + Response 200 (application/json)
+       
+        + Body
+             
+                {
+                    "number": "553232225093",
+                    "country": "Brasil",
+                    "cityAndState": "Juiz de Fora/MG",
+                    "monthlyPayment": 25.00,
+                    "activationFee": 25.00,
+                    "cost": 0.00,
+                    "simultaneousCalls": 5,
+                    "destinyType": "IP/Dominio",
+                    "destination": "ura.nvoip.com.br",
+                    "status": true
+                 }
+  
+### 
+
+
+### Group WhatsApp
+
+### Listar Templates [/wa/listTemplates]
+
+### Listar Templates  [GET]
+
+Este recurso possibilita a listagem dos templates cadastrados no WhatsApp da conta. Esta funcionalidade aceita exclusivamente o método de autenticação via OAuth.
+
+######URL esperado: 
+######https://api.nvoip.com.br/v2/wa/listTemplates
+####
+####
+
+Obs: 
+No modelo de template de WhatsApp, as variáveis são representadas por duplas chaves ({{1}}) e são utilizadas para personalizar dinamicamente as mensagens com informações específicas.
+
+######Headers:
+Os campos do Header devem ser respeitados.
+- `Authorization:` 
+    + Bearer <i>access_token</i>
+
+#####Exemplo de retorno:
+
+
+<pre>
+    <code class="json">
+        <span>
+[
+    {
+        "instance": "110160952101695",
+        "data": [
+            {
+                "name": "teste_template",
+                "components": [
+                    {
+                        "type": "HEADER",
+                        "format": "TEXT",
+                        "text": "Hello!"
+                    },
+                    {
+                        "type": "BODY",
+                        "text": "Hello! see you soon"
+                    }
+                ],
+                "language": "en_US",
+                "status": "APPROVED",
+                "id": "989866565655544"
+            },
+            {
+                "name": "teste_template",
+                "components": [
+                    {
+                        "type": "HEADER",
+                        "format": "TEXT",
+                        "text": "Olá, meu nome é {{1}}!"
+                    },
+                    {
+                        "type": "BODY",
+                        "text": "Este é nosso novo canal de atendimento. Qualquer dúvida, pode nos chamar por aqui."
+                    },
+                    {
+                        "type": "FOOTER",
+                        "text": "Estamos à disposição."
+                    }
+                ],
+                "language": "pt_BR",
+                "status": "APPROVED",
+                "id": "9898665656555446565"
+            },
+            {
+                "name": "ticket_confirmation",
+                "components": [
+                    {
+                        "type": "HEADER",
+                        "format": "IMAGE"
+                    },
+                    {
+                        "type": "BODY",
+                        "text": "Seu ingresso para {{1}} chegou!"
+                    },
+                    {
+                        "type": "FOOTER",
+                        "text": "Esta mensagem é de uma empresa verificada"
+                    }
+                ],
+                "language": "pt_BR",
+                "status": "APPROVED",
+                "id": "1404159784638354"
+            },
+            {
+                "name": "hour_announcement",
+                "components": [
+                    {
+                        "type": "HEADER",
+                        "format": "VIDEO"
+                    },
+                    {
+                        "type": "BODY",
+                        "text": "O happy hour chegou! Seja feliz e aproveite o dia. Local: {{1}} Horário: {{2}}"
+                    },
+                    {
+                        "type": "FOOTER",
+                        "text": "Esta mensagem é de uma empresa não verificada."
+                    }
+                ],
+                "language": "pt_BR",
+                "status": "APPROVED",
+                "id": "65656565489526565"
+            },
+            {
+                "name": "flight_confirmation",
+                "components": [
+                    {
+                        "type": "HEADER",
+                        "format": "DOCUMENT"
+                    },
+                    {
+                        "type": "BODY",
+                        "text": "Esta é a sua confirmação de voo para {{1}}-{{2}} em {{3}}."
+                    },
+                    {
+                        "type": "FOOTER",
+                        "text": "Esta mensagem é de uma empresa não verificada."
+                    }
+                ],
+                "language": "pt_BR",
+                "status": "APPROVED",
+                "id": "102815565584541904"
+            }
+        ]
+    }
+]
+
+ </span>
+    </code>
+</pre>
+
+<BR>
+ 
++ Request (application/json)
+    
++ Parameters
+    
++ Headers
+        
+    Authorization: Bearer access_token
+                 
+             
++ Response 200 (application/json)
+            
+    + Body
+        
+        [
+    {
+        "instance": "110160952101695",
+        "data": [
+            {
+                "name": "teste_template",
+                "components": [
+                    {
+                        "type": "HEADER",
+                        "format": "TEXT",
+                        "text": "Hello!"
+                    },
+                    {
+                        "type": "BODY",
+                        "text": "Hello! see you soon"
+                    }
+                ],
+                "language": "en_US",
+                "status": "APPROVED",
+                "id": "989866565655544"
+            },
+            {
+                "name": "teste_template",
+                "components": [
+                    {
+                        "type": "HEADER",
+                        "format": "TEXT",
+                        "text": "Olá, meu nome é {{1}}!"
+                    },
+                    {
+                        "type": "BODY",
+                        "text": "Este é nosso novo canal de atendimento. Qualquer dúvida, pode nos chamar por aqui."
+                    },
+                    {
+                        "type": "FOOTER",
+                        "text": "Estamos à disposição."
+                    }
+                ],
+                "language": "pt_BR",
+                "status": "APPROVED",
+                "id": "9898665656555446565"
+            },
+            {
+                "name": "ticket_confirmation",
+                "components": [
+                    {
+                        "type": "HEADER",
+                        "format": "IMAGE"
+                    },
+                    {
+                        "type": "BODY",
+                        "text": "Seu ingresso para {{1}} chegou!"
+                    },
+                    {
+                        "type": "FOOTER",
+                        "text": "Esta mensagem é de uma empresa verificada"
+                    }
+                ],
+                "language": "pt_BR",
+                "status": "APPROVED",
+                "id": "1404159784638354"
+            },
+            {
+                "name": "hour_announcement",
+                "components": [
+                    {
+                        "type": "HEADER",
+                        "format": "VIDEO"
+                    },
+                    {
+                        "type": "BODY",
+                        "text": "O happy hour chegou! Seja feliz e aproveite o dia. Local: {{1}} Horário: {{2}}"
+                    },
+                    {
+                        "type": "FOOTER",
+                        "text": "Esta mensagem é de uma empresa não verificada."
+                    }
+                ],
+                "language": "pt_BR",
+                "status": "APPROVED",
+                "id": "65656565489526565"
+            },
+            {
+                "name": "flight_confirmation",
+                "components": [
+                    {
+                        "type": "HEADER",
+                        "format": "DOCUMENT"
+                    },
+                    {
+                        "type": "BODY",
+                        "text": "Esta é a sua confirmação de voo para {{1}}-{{2}} em {{3}}."
+                    },
+                    {
+                        "type": "FOOTER",
+                        "text": "Esta mensagem é de uma empresa não verificada."
+                    }
+                ],
+                "language": "pt_BR",
+                "status": "APPROVED",
+                "id": "102815565584541904"
+            }
+        ]
+    }
+]
+
+
++ Response 404 (application/json)
+            
+    + Body
+            
+  {
+    "timestamp": "2024-02-02T18:12:53.150602Z",
+    "status": 404,
+    "error": "Resource not found.",
+    "message": "Error! Instance not found.",
+    "path": "/v2/wa/listTemplates"
+    }
+           
+
+###
+
+
+### Enviar WhatsApp [/wa/sendTemplates]
+
+### Enviar WhatsApp  [POST]
+
+Este recurso concede a capacidade de enviar os templates do WhatsApp associados à sua conta. Para utilizar essa funcionalidade, é essencial autenticar-se exclusivamente através do método OAuth. O envio de templates possibilita a personalização de mensagens para interações mais dinâmicas e adaptadas às necessidades específicas de cada usuário. É fundamental garantir a inclusão de todas as variáveis e, caso aplicável, links necessários para assegurar o envio adequado. Certifique-se de configurar os templates de forma completa, incluindo todas as informações obrigatórias.
+
+######URL esperado: 
+######https://api.nvoip.com.br/v2/wa/sendTemplates
+####
+####
+
+OBS: É necessário requisitar a listagem dos templates para compor as informações necessárias para envio dos mesmos.
+
+Descrição dos campos a serem enviados:
+
+- `<idTemplate>`: ID do template obtido ao listar os templates
+- `<destination>`: Número que receberá a mensagem de template
+- `<instance>`: ID da instância do WhatsApp vinculada ao número
+- `<language>`: Idioma do template obtido ao listar os templates
+- `<bodyVariables>`: Array contendo variáveis do corpo do template, se houver
+- `<headerVariables>`: Array contendo variáveis do cabeçalho da requisição, se houver
+- `<imageUrl>`: Link da imagem a ser enviada no cabeçalho, se houver
+- `<videoUrl>`: URL do vídeo a ser enviado no cabeçalho, se houver
+- `<documentUr>`l: URL do documento a ser enviado no cabeçalho, se houver
+- `<documentName>`: Nome do documento a ser enviado, se houver
+
+
+######Headers:
+Os campos do Header devem ser respeitados.
+- `Authorization:` 
+    + Bearer <i>access_token</i>
+- `Content-Type:` 
+    + application/json
+    
+    
+
+####
+####
+######Estrutura Básica do Corpo da Requisição
+
+Os campos abaixos são obrigatórios para envio dos templates:
+
+<pre>
+    <code class="json">
+        <span>
+{
+    "idTemplate": "id_do_template",
+    "destination": "numero_destino",
+    "instance": "sua_instancia",
+    "language": "idioma_do_template"
+}
+
+   </span>
+    </code>
+</pre>
+
+######Variações no Corpo da Requisição
+
+O conteúdo da solicitação varia dependendo dos componentes incluídos no modelo. Abaixo estão exemplos de como enviar modelos com diferentes componentes e variáveis.
+
+####
+####  
+######Exemplo de requisição:
+
+Quando o modelo não contém variáveis e inclui apenas componentes de texto:
+
+- Template:
+<pre>
+    <code class="json">
+        <span>
+
+{
+    "instance": "101222323232323",
+    "data": [
+        {
+            "name": "teste_template",
+            "components": [
+                {
+                    "type": "HEADER",
+                    "format": "TEXT",
+                    "text": "Hello!"
+                },
+                {
+                    "type": "BODY",
+                    "text": "Hello! see you soon"
+                }
+            ],
+            "language": "en_US",
+            "status": "APPROVED",
+            "id": "989866565655544"
+        }
+
+    </span>
+    </code>
+</pre>
+            
+- Corpo para envio do template:
+
+<pre>
+    <code class="json">
+        <span>
+
+
+{
+    "idTemplate": "id_template",
+    "destination": "destination",
+    "instance": "instance",
+    "language": "en_US"
+}
+
+   </span>
+    </code>
+</pre>
+
+####
+####
+######Exemplo de requisição:
+
+Para modelos que possuem variáveis no cabeçalho:
+
+- Template:
+
+<pre>
+    <code class="json">
+        <span>
+{
+    "name": "teste_template",
+    "components": [
+        {
+            "type": "HEADER",
+            "format": "TEXT",
+            "text": "Olá, meu nome é {{1}}!"
+        },
+        {
+            "type": "BODY",
+            "text": "Este é nosso novo canal de atendimento. Qualquer dúvida, pode nos chamar por aqui."
+        },
+        {
+            "type": "FOOTER",
+            "text": "Estamos à disposição."
+        }
+    ],
+    "language": "pt_BR",
+    "status": "APPROVED",
+    "id": "9898665656555446565"
+}
+            
+   </span>
+    </code>
+</pre>
+
+            
+- Corpo para envio do template:
+
+<pre>
+    <code class="json">
+        <span>
+
+{
+    "idTemplate": "id_template",
+    "destination": "destination",
+    "instance": "instance",
+    "language": "pt_BR",
+    "headerVariables": [
+        "var1"
+    ]
+}
+
+ </span>
+    </code>
+</pre>
+
+
+####
+####
+######Exemplo de requisição:
+
+
+Se o modelo incluir uma imagem no cabeçalho e uma variável no corpo, você precisará fornecer a URL da imagem para o cabeçalho e o texto a ser enviado no lugar da variável no corpo da mensagem:
+
+- Template:
+
+<pre>
+    <code class="json">
+        <span>
+
+{
+    "name": "ticket_confirmation",
+    "components": [
+        {
+            "type": "HEADER",
+            "format": "IMAGE"
+        },
+        {
+            "type": "BODY",
+            "text": "Seu ingresso para {{1}} chegou!"
+        },
+        {
+            "type": "FOOTER",
+            "text": "Esta mensagem é de uma empresa verificada"
+        }
+    ],
+    "language": "pt_BR",
+    "status": "APPROVED",
+    "id": "1404159784638354"
+}
+            
+             </span>
+    </code>
+</pre>
+            
+- Corpo para envio do template:
+
+<pre>
+    <code class="json">
+        <span>
+{
+    "idTemplate": "id_template",
+    "destination": "destination",
+    "instance": "instance",
+    "language": "pt_BR",
+    "bodyVariables": [
+        "var1"
+    ],
+    "imageUrl": "url_imagem"
+}
+
+         </span>
+    </code>
+</pre>
+
+####
+####
+######Exemplo de requisição:
+
+- Template:
+
+Para templates que contêm um documento no cabeçalho e variáveis no corpo, especifique o nome e a URL do documento e as variáveis:
+
+<pre>
+    <code class="json">
+        <span>
+
+ {
+    "name": "flight_confirmation",
+    "components": [
+        {
+            "type": "HEADER",
+            "format": "DOCUMENT"
+        },
+        {
+            "type": "BODY",
+            "text": "Esta é a sua confirmação de voo para {{1}}-{{2}} em {{3}}."
+        },
+        {
+            "type": "FOOTER",
+            "text": "Esta mensagem é de uma empresa não verificada."
+        }
+    ],
+    "language": "pt_BR",
+    "status": "APPROVED",
+    "id": "102815565584541904"
+}
+            
+       </span>
+    </code>
+</pre>
+            
+- Corpo para envio do template:
+
+<pre>
+    <code class="json">
+        <span>
+{
+    "idTemplate": "id_template",
+    "destination": "numero_destino",
+    "instance": "instance",
+    "language": "pt_BR",
+    "documentName": "file_name",
+    "documentUrl": "url_document",
+    "bodyVariables": [
+        "var1",
+        "var2",
+        "var3"
+    ]
+}
+
+      </span>
+    </code>
+</pre>
+    
+<BR>
+ 
++ Request (application/json)
+    + Headers
+        
+                Authorization: Bearer access_token
+            
+    + Body  
+          {
+                "idTemplate": "id_template",
+                "destination": "number_destination",
+                "instance": "instance",
+                "language": "language"
+          }
+                 
+             
++ Response 200 (application/json)
+            
+   
++ Response 500 (application/json)
+            
+    + Body
+            
+ {
+    "timestamp": "2024-02-02T18:39:21.417+00:00",
+    "status": 500,
+    "error": "Internal Server Error",
+    "message": "{\"error\":{\"message\":\"(#132000) Number of parameters does not match the expected number of params\",\"type\":\"OAuthException\",\"code\":132000,\"error_data\":{\"messaging_product\":\"whatsapp\",\"details\":\"body: number of localizable_params (1) does not match the expected number of params (3)\"},\"fbtrace_id\":\"Aca7ZcfU1WJEGHVgo8dAqyF\"}}",
+    "path": "/wa/sendTemplates"
+}
+           
+
+###

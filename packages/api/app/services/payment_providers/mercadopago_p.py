@@ -11,32 +11,47 @@ class MercadoPagoProvider(PaymentProvider):
     """Mercado Pago payment provider (PIX focus)."""
 
     def __init__(self, access_token: str | None = None):
-        self.access_token = access_token or "MOCK_MP_TOKEN"
+        # Dynamic config (admin) or mock token for development
+        self.access_token = (access_token or "").strip() or "MOCK_MP_TOKEN"
 
     async def create_intent(
         self, user_id: UUID, amount: float, metadata: dict[str, Any]
     ) -> dict[str, Any]:
-        """Create a PIX payment intent in Mercado Pago."""
-        # In a real implementation, we would use mercadopago SDK:
+        """Create a PIX payment intent in Mercado Pago (Split Marketplace)."""
+        # In a real Marketplace implementation:
+        # application_fee = metadata.get("application_fee")
+        # seller_id = metadata.get("seller_id")
+        
         # sdk = mercadopago.SDK(self.access_token)
         # payment_data = {
         #     "transaction_amount": amount,
+        #     "application_fee": application_fee, # platform commission
         #     "payment_method_id": "pix",
-        #     "payer": {"email": "user@example.com"},
+        #     "payer": {"email": "..."},
         #     "metadata": metadata
         # }
-        # result = sdk.payment().create(payment_data)
+        # result = sdk.payment().create(payment_data, {"X-Idempotency-Key": ...})
 
-        # Mocking the response
+        # Mocking the response with split context
         payment_id = f"mp_{secrets.token_hex(8)}"
+        
+        # Log the split for operational transparency (visible in our new Live Logs!)
+        from app.core.logging import get_logger
+        logger = get_logger(__name__)
+        logger.info(
+            "MercadoPago: Intent created with split", 
+            total=amount, 
+            commission=metadata.get("application_fee"), 
+            seller=metadata.get("seller_id")
+        )
 
         return {
             "provider_payment_id": payment_id,
-            "qr_code": "00020101021226850014br.gov.bcb.pix...",  # Mock PIX copy/paste
-            "qr_code_base64": "iVBORw0KGgoAAAANSUhEUg...",  # Mock QR Base64
+            "qr_code": "00020101021226850014br.gov.bcb.pix...",  # Mock PIX
+            "qr_code_base64": "iVBORw0KGgoAAAANSUhEUg...", 
             "provider": "mercadopago",
             "status": "pending",
-            "client_secret": payment_id,  # For MP we use ID to check status or webhook
+            "client_secret": payment_id,
         }
 
     async def handle_webhook(self, data: dict[str, Any]) -> dict[str, Any] | None:

@@ -3,20 +3,15 @@
 from datetime import datetime
 from uuid import UUID
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from pydantic import BaseModel, ConfigDict, Field
 from slugify import slugify
 from sqlalchemy import case, func, select
 
 from app.api.deps import CurrentUser, DBSession
 from app.core.exceptions import ForbiddenError, NotFoundError
-from app.models import (
-    Establishment,
-    EstablishmentCategory,
-    EstablishmentStatus,
-    SubscriptionTier,
-    UserRole,
-)
+from app.models import Establishment, EstablishmentCategory, EstablishmentStatus, SubscriptionTier, UserRole
+from app.services.storage_service import StorageService
 
 router = APIRouter(prefix="/establishments", tags=["Establishments"])
 
@@ -426,3 +421,89 @@ async def delete_establishment(
 
     establishment.status = EstablishmentStatus.closed
     await db.commit()
+
+
+# ─── Media Upload (Logo / Capa) ────────────────────────────────────────────────
+
+
+async def _get_storage_or_503(db: DBSession) -> StorageService:
+    """Helper to criar StorageService ou devolver 503 claro."""
+    return await StorageService.from_db(db)
+
+
+@router.post(
+    "/{establishment_id}/logo",
+    response_model=EstablishmentResponse,
+    status_code=status.HTTP_200_OK,
+)
+async def upload_establishment_logo(
+    establishment_id: UUID,
+    db: DBSession,
+    current_user: CurrentUser,
+    file: UploadFile = File(...),
+) -> EstablishmentResponse:
+    """Upload da logo do estabelecimento para o storage configurado (S3/R2).
+
+    - Requer que o usuário seja dono do estabelecimento ou admin.
+    - Atualiza `logo_url` com a URL pública retornada pelo storage.
+    """
+    result = await db.execute(select(Establishment).where(Establishment.id == establishment_id))
+    establishment = result.scalar_one_or_none()
+    if not establishment:
+        raise NotFoundError("Estabelecimento")
+
+    if establishment.owner_id != current_user.id and current_user.role != UserRole.admin:
+        raise ForbiddenError()
+
+    content = await file.read()
+    if not content:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Arquivo vazio.")
+
+    storage = await _get_storage_or_503(db)
+    url = await storage.upload_establishment_logo(
+        establishment_id=establishment_id,
+        content=content,
+        content_type=file.content_type or "image/jpeg",
+    )
+
+    establishment.logo_url = url
+    await db.commit()
+    await db.refresh(establishment)
+    return establishment_to_response(establishment)
+
+
+@router.post(
+    "/{establishment_id}/cover",
+    response_model=EstablishmentResponse,
+    status_code=status.HTTP_200_OK,
+)
+async def upload_establishment_cover(
+    establishment_id: UUID,
+    db: DBSession,
+    current_user: CurrentUser,
+    file: UploadFile = File(...),
+) -> EstablishmentResponse:
+    """Upload da foto de capa do estabelecimento para o storage configurado (S3/R2)."""
+    result = await db.execute(select(Establishment).where(Establishment.id == establishment_id))
+    establishment = result.scalar_one_or_none()
+    if not establishment:
+        raise NotFoundError("Estabelecimento")
+
+    if establishment.owner_id != current_user.id and current_user.role != UserRole.admin:
+        raise ForbiddenError()
+
+    content = await file.read()
+    if not content:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Arquivo vazio.")
+
+    storage = await _get_storage_or_503(db)
+    url = await storage.upload_establishment_cover(
+        establishment_id=establishment_id,
+        content=content,
+        content_type=file.content_type or "image/jpeg",
+    )
+
+    establishment.cover_url = url
+    await db.commit()
+    await db.refresh(establishment)
+    return establishment_to_response(establishment)

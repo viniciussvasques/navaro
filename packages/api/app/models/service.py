@@ -56,6 +56,11 @@ class Service(BaseModel):
         doc="Service description",
     )
 
+    image_url: Mapped[str | None] = mapped_column(
+        String(500),
+        doc="Service image URL",
+    )
+
     price: Mapped[float] = mapped_column(
         Numeric(10, 2),
         nullable=False,

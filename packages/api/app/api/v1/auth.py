@@ -1,6 +1,6 @@
 """Auth endpoints."""
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Response
 from pydantic import BaseModel, Field
 
 from app.api.deps import DBSession
@@ -21,11 +21,34 @@ class SendCodeRequest(BaseModel):
     phone: str = Field(..., min_length=10, max_length=20, description="Phone number (E.164)")
 
 
+class LoginRequest(BaseModel):
+    """Request to login with email and password."""
+
+    email: str = Field(..., description="Email address")
+    password: str = Field(..., description="Password")
+
+
 class SendCodeResponse(BaseModel):
     """Response after sending code."""
 
     message: str
     expires_in_seconds: int = 300
+    sms_sent: bool | None = Field(
+        None,
+        description="True = SMS enviado; False = falha; None = SMS desativado",
+    )
+    sms_error: str | None = Field(
+        None,
+        description="Motivo da falha quando sms_sent for False",
+    )
+    whatsapp_sent: bool | None = Field(
+        None,
+        description="True = WhatsApp enviado; False = falha; None = WhatsApp desativado",
+    )
+    whatsapp_error: str | None = Field(
+        None,
+        description="Motivo da falha quando whatsapp_sent for False",
+    )
 
 
 class VerifyCodeRequest(BaseModel):
@@ -87,24 +110,13 @@ async def send_verification_code(request: SendCodeRequest, db: DBSession) -> Sen
     from app.core.config import settings
 
     auth_service = AuthService(db)
-    await auth_service.send_verification_code(request.phone)
-
-    # In development, we can hint the code if needed, but AuthService stores in Redis.
-    # We can peek Redis or just rely on logs/debug mode.
-    # But for API contract compat with existing tests (which expect message with code in dev):
+    sms_sent, sms_error, whatsapp_sent, whatsapp_error = await auth_service.send_verification_code(
+        request.phone
+    )
 
     message = "Código enviado com sucesso"
     if settings.ENVIRONMENT == "development" or settings.is_debug:
-        # Try to retrieve from Redis to show in message?
-        # Or just say "check logs/redis"
-        # However, conftest.py parses the message!
-        # "msg.split(': ')[1].strip()"
-        # I need to fetch the code from Redis to maintain compat?
-        # Or I can update conftest.py.
-        # Updating conftest.py is better practice but might break other things.
-        # Let's see if I can fetch it.
         from app.core.redis import get_redis
-
         redis = await get_redis()
         code = await redis.get(f"{settings.REDIS_PREFIX}otp:{request.phone}")
         if code:
@@ -113,13 +125,17 @@ async def send_verification_code(request: SendCodeRequest, db: DBSession) -> Sen
     return SendCodeResponse(
         message=message,
         expires_in_seconds=300,
+        sms_sent=sms_sent,
+        sms_error=sms_error,
+        whatsapp_sent=whatsapp_sent,
+        whatsapp_error=whatsapp_error,
     )
 
 
 @router.post("/verify", response_model=AuthResponse)
 async def verify_code(request: VerifyCodeRequest, db: DBSession) -> AuthResponse:
     """
-    Verify code and return tokens.
+    Verify code.
     """
     from app.services.auth_service import AuthService
 
@@ -129,9 +145,43 @@ async def verify_code(request: VerifyCodeRequest, db: DBSession) -> AuthResponse
     )
 
     if not token_response:
-        raise InvalidCodeError()
+        raise HTTPException(status_code=400, detail="Código inválido ou expirado")
 
-    # Map shared schema to local schema to preserve API contract
+    return AuthResponse(
+        tokens=TokenResponse(
+            access_token=token_response.access_token,
+            refresh_token=token_response.refresh_token,
+            expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        ),
+        user=UserResponse(**token_response.user.model_dump(mode="json")),
+    )
+
+
+@router.post("/login", response_model=AuthResponse)
+async def login_with_password(request: LoginRequest, response: Response, db: DBSession) -> AuthResponse:
+    """
+    Login with email and password.
+    """
+    from app.services.auth_service import AuthService
+    from app.models.user import UserRole
+
+    auth_service = AuthService(db)
+    token_response = await auth_service.login_with_password(
+        email=request.email, password=request.password
+    )
+
+    if not token_response:
+        raise HTTPException(status_code=401, detail="Email ou senha inválidos")
+
+    response.set_cookie(
+        key="access_token",
+        value=token_response.access_token,
+        httponly=True,
+        secure=settings.is_production,  # Secure only in prod (HTTPS)
+        samesite="lax",
+        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+    )
+
     return AuthResponse(
         tokens=TokenResponse(
             access_token=token_response.access_token,
@@ -158,3 +208,17 @@ async def refresh_tokens(request: RefreshTokenRequest, db: DBSession) -> TokenRe
         refresh_token=token_response.refresh_token,
         expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
     )
+
+
+@router.post("/logout")
+async def logout(response: Response):
+    """
+    Logout user by clearing the access_token cookie.
+    """
+    response.delete_cookie(
+        key="access_token",
+        httponly=True,
+        secure=settings.is_production,
+        samesite="lax",
+    )
+    return {"message": "Sessão encerrada com sucesso"}

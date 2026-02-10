@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.appointment import Appointment, AppointmentStatus, Checkin
 from app.models.establishment import Establishment
 from app.models.queue import QueueEntry, QueueStatus
+from app.models.user import User
 
 
 class CheckinService:
@@ -124,6 +125,17 @@ class CheckinService:
             )
             self.db.add(queue_entry)
             await self.db.commit()
+
+            # WhatsApp: aviso de entrada na fila (check-in sem agendamento)
+            try:
+                from app.services.whatsapp_service import get_whatsapp_service
+                user = await self.db.get(User, user_id)
+                if user and getattr(user, "phone", None):
+                    await get_whatsapp_service().send_queue_joined(
+                        user.phone, establishment.name, next_position
+                    )
+            except Exception:
+                pass
 
             return {
                 "success": True,

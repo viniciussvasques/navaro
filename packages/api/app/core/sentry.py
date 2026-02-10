@@ -32,7 +32,7 @@ def init_sentry() -> bool:
         sentry_sdk.init(
             dsn=sentry_dsn,
             environment=settings.ENVIRONMENT,
-            release=f"navaro-api@{settings.APP_VERSION}",
+            release=f"dunnaa-api@{settings.APP_VERSION}",
             # Performance monitoring
             traces_sample_rate=0.1 if settings.ENVIRONMENT == "production" else 1.0,
             profiles_sample_rate=0.1 if settings.ENVIRONMENT == "production" else 1.0,
@@ -52,7 +52,7 @@ def init_sentry() -> bool:
         logger.info(
             "Sentry initialized",
             environment=settings.ENVIRONMENT,
-            release=f"navaro-api@{settings.APP_VERSION}",
+            release=f"dunnaa-api@{settings.APP_VERSION}",
         )
         return True
 

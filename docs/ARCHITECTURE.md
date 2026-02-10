@@ -1,13 +1,13 @@
-# 🏗️ Navaro - Arquitetura para Escalabilidade
+# 🏗️ DUNNAA - Arquitetura para Escalabilidade
 
 ## Aplicações
 
 | App | Plataforma | Stack | Público |
 |-----|------------|-------|---------|
-| **Navaro** | Mobile | Expo (React Native) | Clientes |
-| **Navaro Pro** | Mobile | Expo (React Native) | Estabelecimentos |
-| **Navaro Pro Web** | Web | Next.js | Estabelecimentos (desktop/tablet) |
-| **Admin** | Web | Next.js | Equipe Navaro |
+| **DUNNAA** | Mobile | Expo (React Native) | Clientes |
+| **DUNNAA Pro** | Mobile | Expo (React Native) | Estabelecimentos |
+| **DUNNAA Pro Web** | Web | Next.js | Estabelecimentos (desktop/tablet) |
+| **Admin** | Web | Next.js | Equipe DUNNAA |
 
 ---
 

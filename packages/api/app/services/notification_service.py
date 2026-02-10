@@ -73,55 +73,89 @@ class NotificationService:
         await self.db.commit()
         return result.rowcount
 
-    async def send_sms(self, phone: str, message: str) -> bool:
-        """Send SMS via nVoIP."""
-        # Check if SMS is enabled
+    async def send_sms(self, phone: str, message: str) -> tuple[bool, str | None]:
+        """
+        Send SMS via Twilio ou nVoIP conforme sms_provider.
+        Returns (success, error_message).
+        """
         enabled = await self.settings.get_bool(SettingsKeys.SMS_ENABLED)
         if not enabled:
             logger.info("SMS disabled, skipping", phone=phone)
-            return False
+            return False, "SMS desativado no painel"
 
-        # Get credentials
+        provider = (await self.settings.get(SettingsKeys.SMS_PROVIDER)) or "twilio"
+        if provider == "twilio":
+            return await self._send_sms_twilio(phone, message)
+        return await self._send_sms_nvoip(phone, message)
+
+    async def _send_sms_twilio(self, phone: str, message: str) -> tuple[bool, str | None]:
+        """Send SMS via Twilio API."""
+        sid = await self.settings.get(SettingsKeys.TWILIO_ACCOUNT_SID)
+        token = await self.settings.get(SettingsKeys.TWILIO_AUTH_TOKEN)
+        from_num = await self.settings.get(SettingsKeys.TWILIO_SMS_FROM)
+        if not sid or not token or not from_num:
+            return False, "Twilio: preencha Account SID, Auth Token e numero SMS (twilio_sms_from)"
+        from_num = from_num.strip().replace(" ", "")
+        if not from_num.startswith("+"):
+            from_num = "+" + from_num
+        to_num = "".join(filter(str.isdigit, phone))
+        if not to_num.startswith("+"):
+            to_num = "+" + to_num
+        if len(to_num) <= 11 and not to_num.startswith("+55"):
+            to_num = "+55" + to_num
+        url = f"https://api.twilio.com/2010-04-01/Accounts/{sid}/Messages.json"
+        auth = (sid, token)
+        data = {"From": from_num, "To": to_num, "Body": message}
+        try:
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                response = await client.post(url, auth=auth, data=data)
+                if response.status_code in (200, 201):
+                    logger.info("Twilio SMS sent", phone=phone)
+                    return True, None
+                try:
+                    body = response.json()
+                    err_msg = body.get("message") or body.get("error_text") or response.text[:200]
+                except Exception:
+                    err_msg = response.text[:200] or f"HTTP {response.status_code}"
+                logger.error("Twilio SMS failed", phone=phone, status=response.status_code, response=err_msg)
+                return False, err_msg
+        except Exception as e:
+            logger.error("Twilio SMS error", error=str(e), phone=phone)
+            return False, str(e)
+
+    async def _send_sms_nvoip(self, phone: str, message: str) -> tuple[bool, str | None]:
+        """Send SMS via nVoIP API."""
         token = await self.settings.get(SettingsKeys.NVOIP_TOKEN)
         if not token:
-            logger.error("nVoIP token not configured")
-            return False
-
-        # Format number (ensure it has just digits)
+            return False, "Token nVoIP nao configurado"
         clean_phone = "".join(filter(str.isdigit, phone))
-
-        # nVoIP typically expects 55 + DDD + Number for Brazil
         if len(clean_phone) <= 11 and not clean_phone.startswith("55"):
             clean_phone = f"55{clean_phone}"
-
+        from urllib.parse import urlencode
+        from app.services.sms_service import _normalize_sms_message, _is_napikey
+        token = (token or "").strip()
+        use_napikey = _is_napikey(token)
+        url = "https://api.nvoip.com.br/v2/sms"
+        if use_napikey:
+            url = f"{url}?{urlencode({'napikey': token})}"
+        headers = {"Content-Type": "application/json"}
+        if not use_napikey:
+            headers["Authorization"] = f"Bearer {token}"
+        payload = {"numberPhone": clean_phone, "message": _normalize_sms_message(message), "flashSms": False}
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
-                headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
-                # Check Nvoip API documentation for exact structure
-                # https://nvoip.docs.apiary.io/#
-                # Using standard structure based on widespread providers
-                payload = {"number": clean_phone, "message": message, "flashSms": False}
-
-                # Using the URL from docs (hypothetical, need to verify exact endpoint)
-                # Assuming v2 based on typical SaaS: https://api.nvoip.com.br/v2/sms
-                response = await client.post(
-                    "https://api.nvoip.com.br/v2/sms", json=payload, headers=headers
-                )
-
+                response = await client.post(url, json=payload, headers=headers)
                 if response.status_code in (200, 201):
-                    logger.info("SMS sent successfully", phone=phone)
-                    return True
-                else:
-                    logger.error(
-                        "Failed to send SMS",
-                        phone=phone,
-                        status=response.status_code,
-                        response=response.text,
-                    )
-                    return False
+                    logger.info("SMS sent (nVoIP)", phone=phone)
+                    return True, None
+                try:
+                    body = response.json()
+                    err_msg = body.get("message") or body.get("error") or response.text[:200]
+                except Exception:
+                    err_msg = response.text[:200] or f"HTTP {response.status_code}"
+                return False, err_msg
         except Exception as e:
-            logger.error("Error sending SMS", error=str(e), phone=phone)
-            return False
+            return False, str(e)
 
     async def create_in_app(
         self,

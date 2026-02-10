@@ -98,8 +98,32 @@ class PaymentService:
         if total_amount <= 0:
             raise ValueError("Valor inválido para pagamento")
 
+        # Load payment provider credentials from dynamic config (admin)
+        from app.models.system_settings import SettingsKeys
+        from app.services.settings_service import SettingsService
+
+        settings_svc = SettingsService(self.db)
+        stripe_secret_key = await settings_svc.get(SettingsKeys.STRIPE_SECRET_KEY) or getattr(
+            settings, "STRIPE_SECRET_KEY", ""
+        )
+        mercadopago_access_token = await settings_svc.get(SettingsKeys.MERCADOPAGO_ACCESS_TOKEN) or ""
+
         # 3. Create Intent via Provider
-        provider = PaymentProviderFactory.get_provider(provider_name)
+        provider = PaymentProviderFactory.get_provider(
+            provider_name,
+            stripe_secret_key=stripe_secret_key or None,
+            mercadopago_access_token=mercadopago_access_token or None,
+        )
+
+        # Calculate fees for split (dynamic config)
+        tier = appointment.establishment.subscription_tier or "free"
+        key = f"commission_{tier}" if tier != "free" else "commission_free"
+        commission_rate = await settings_svc.get_float(
+            key, getattr(settings, "STRIPE_PLATFORM_FEE_PERCENT", 5.0)
+        )
+        application_fee = total_amount * (commission_rate / 100)
+        total_platform = application_fee + pending_fees
+
         intent_data = await provider.create_intent(
             user_id=user_id,
             amount=total_amount,
@@ -112,11 +136,13 @@ class PaymentService:
                 if appointment.status == AppointmentStatus.awaiting_deposit
                 else "false",
                 "recovered_fees": str(pending_fees),
+                "application_fee": str(total_platform),
+                "seller_id": str(appointment.establishment.mercadopago_user_id or ""),
             },
         )
 
         # 4. Create local Payment record (Pending)
-        current_platform_fee = total_amount * (settings.STRIPE_PLATFORM_FEE_PERCENT / 100)
+        current_platform_fee = total_amount * (commission_rate / 100)
         total_platform_fee = current_platform_fee + pending_fees
 
         payment = Payment(

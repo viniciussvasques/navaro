@@ -127,7 +127,9 @@ async def test_cashback_commission_and_referral(client: AsyncClient, auth_header
         headers=headers,
     )
     await client.put(
-        "/api/v1/admin/settings/referral_bonus_amount", json={"value": "7.0"}, headers=headers
+        f"/api/v1/admin/settings/{SettingsKeys.REFERRAL_BONUS_AMOUNT}",
+        json={"value": "7.0"},
+        headers=headers,
     )
 
     # 2. Setup Establishment

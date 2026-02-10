@@ -12,6 +12,7 @@ from sqlalchemy.orm import selectinload
 from app.models.appointment import Appointment, AppointmentProduct, AppointmentStatus, PaymentMethod
 from app.models.establishment import Establishment
 from app.models.product import Product
+from app.models.user import User
 from app.models.service import Service
 from app.models.staff import StaffMember
 from app.models.staff_block import StaffBlock
@@ -226,6 +227,22 @@ class AppointmentService:
                     selectinload(Appointment.products).selectinload(AppointmentProduct.product)
                 )
             )
+            appointment = result.scalar_one()
+
+            # WhatsApp: confirmação de agendamento
+            try:
+                user_res = await self.db.execute(select(User).where(User.id == appointment.user_id))
+                user = user_res.scalar_one_or_none()
+                if user and getattr(user, "phone", None):
+                    from app.services.whatsapp_service import get_whatsapp_service
+                    wa = get_whatsapp_service()
+                    date_str = appointment.scheduled_at.strftime("%d/%m/%Y")
+                    time_str = appointment.scheduled_at.strftime("%H:%M")
+                    await wa.send_appointment_confirmation(
+                        user.phone, establishment.name, date_str, time_str
+                    )
+            except Exception:
+                pass  # não falhar o create por falha de notificação
 
             # Metric: Success
             metrics.count(
@@ -233,7 +250,7 @@ class AppointmentService:
             )
             metrics.measure_time("appointment_create_duration", time.time() - start_time)
 
-            return result.scalar_one()
+            return appointment
 
         except Exception as e:
             # Metric: Failure
@@ -258,6 +275,7 @@ class AppointmentService:
             .options(
                 selectinload(Appointment.products).selectinload(AppointmentProduct.product),
                 selectinload(Appointment.service),
+                selectinload(Appointment.establishment),
             )
         )
         result = await self.db.execute(query)
@@ -267,6 +285,25 @@ class AppointmentService:
             return None
 
         if data.status:
+            # WhatsApp: quando status muda para confirmed (ex.: dono confirma agendamento pendente)
+            if (
+                data.status == AppointmentStatus.confirmed
+                and appointment.status != AppointmentStatus.confirmed
+            ):
+                try:
+                    user_res = await self.db.execute(select(User).where(User.id == appointment.user_id))
+                    user = user_res.scalar_one_or_none()
+                    est = appointment.establishment
+                    if user and getattr(user, "phone", None) and est:
+                        from app.services.whatsapp_service import get_whatsapp_service
+                        date_str = appointment.scheduled_at.strftime("%d/%m/%Y")
+                        time_str = appointment.scheduled_at.strftime("%H:%M")
+                        await get_whatsapp_service().send_appointment_confirmation(
+                            user.phone, est.name, date_str, time_str
+                        )
+                except Exception:
+                    pass
+
             # Metric: Status Change
             if (
                 data.status == AppointmentStatus.completed
@@ -372,7 +409,7 @@ class AppointmentService:
                     if user.referred_by_id:
                         # Get referral bonus from settings
                         referral_bonus = await settings_service.get_float(
-                            "referral_bonus_amount", 5.0
+                            SettingsKeys.REFERRAL_BONUS_AMOUNT, 5.0
                         )
                         wallet_service = WalletService(self.db)
                         from app.models.wallet import TransactionType
@@ -467,6 +504,18 @@ class AppointmentService:
             appointment.cancel_reason = reason
 
         await self.db.commit()
+
+        # WhatsApp: aviso de cancelamento
+        try:
+            user_res = await self.db.execute(select(User).where(User.id == appointment.user_id))
+            user = user_res.scalar_one_or_none()
+            if user and getattr(user, "phone", None) and appointment.establishment:
+                from app.services.whatsapp_service import get_whatsapp_service
+                await get_whatsapp_service().send_appointment_cancelled(
+                    user.phone, appointment.establishment.name, reason
+                )
+        except Exception:
+            pass
 
         metrics.count(
             "appointment_cancelled", tags={"establishment_id": str(appointment.establishment_id)}

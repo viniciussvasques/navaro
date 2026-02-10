@@ -1,18 +1,18 @@
-# Navaro
+# DUNNAA
 
 > 💈 Sistema de agendamento e assinaturas para barbearias e salões
 
 ## 📱 Apps
 
-- **Navaro** - App para clientes (React Native/Expo)
-- **Navaro Pro** - App para estabelecimentos (React Native/Expo)
-- **Navaro Pro Web** - App web para estabelecimentos (Next.js)
+- **DUNNAA** - App para clientes (React Native/Expo)
+- **DUNNAA Pro** - App para estabelecimentos (React Native/Expo)
+- **DUNNAA Pro Web** - App web para estabelecimentos (Next.js)
 - **Admin** - Painel administrativo (Next.js)
 
 ## 🏗️ Arquitetura
 
 ```
-navaro/
+dunnaa/
 ├── apps/
 │   ├── cliente/              # App Cliente (Expo)
 │   ├── barbeiro/             # App Estabelecimento mobile (Expo)
@@ -39,27 +39,23 @@ navaro/
 
 ```bash
 # Clone o repositório
-git clone https://github.com/seu-usuario/navaro.git
-cd navaro
+git clone https://github.com/seu-usuario/dunnaa.git
+cd dunnaa
 
 # Instale dependências
 pnpm install
 
-# Inicie banco de dados
-docker-compose up -d
+# Suba tudo no container (DB, Redis, API, Admin, WhatsApp Bridge)
+pnpm docker:up
 
-# Rode migrations
-cd packages/api
-alembic upgrade head
-
-# Inicie o backend
-pnpm dev:api
-
-# Inicie os apps (em outro terminal)
-pnpm dev:cliente
-pnpm dev:barbeiro
-pnpm dev:estabelecimento-web
-pnpm dev:admin
+# Para desenvolvimento local, todos os processos rodam nos containers.
+# API: http://localhost:8000 | Admin: http://localhost:3005 | WhatsApp Bridge: http://localhost:3100
+#
+# Ou inicie apenas alguns apps fora do Docker (se preferir):
+# pnpm dev:api
+# pnpm dev:cliente
+# pnpm dev:barbeiro
+# pnpm dev:admin
 ```
 
 ## 📚 Documentação

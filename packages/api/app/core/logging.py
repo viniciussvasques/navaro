@@ -2,6 +2,7 @@
 
 import logging
 import sys
+from datetime import datetime
 from typing import Any
 
 import structlog
@@ -50,6 +51,75 @@ def _drop_color_message(
     return event_dict
 
 
+# ─── Live Log Broadcaster ──────────────────────────────────────────────────
+
+import asyncio
+from collections import deque
+
+class LogBroadcaster:
+    """Simple broadcaster for log events."""
+    def __init__(self, maxlen: int = 100):
+        self.queue = deque(maxlen=maxlen)
+        self.listeners = set()
+
+    def broadcast(self, event: dict[str, Any]):
+        self.queue.append(event)
+        for listener in self.listeners:
+            try:
+                listener.put_nowait(event.copy())
+            except asyncio.QueueFull:
+                pass
+
+    async def subscribe(self):
+        queue = asyncio.Queue()
+        # Seed with history
+        for event in self.queue:
+            queue.put_nowait(event)
+        self.listeners.add(queue)
+        try:
+            while True:
+                yield await queue.get()
+        finally:
+            self.listeners.remove(queue)
+
+class BroadcastingLogHandler(logging.Handler):
+    """Logging handler that broadcasts events to live listeners."""
+    def emit(self, record: logging.LogRecord):
+        try:
+            # We want to broadcast the formatted message
+            event = {
+                "event": self.format(record),
+                "level": record.levelname.lower(),
+                "timestamp": datetime.fromtimestamp(record.created).isoformat(),
+                "logger": record.name,
+            }
+            # Avoid double-broadcasting if it's already a structlog event 
+            # (though structlog usually doesn't hit standard handlers if configured correctly)
+            if hasattr(record, "msg") and isinstance(record.msg, dict):
+                return
+                
+            # Add extra attributes if they exist
+            if hasattr(record, "props"):
+                event.update(record.props)
+            
+            broadcaster.broadcast(event)
+        except Exception:
+            pass
+
+broadcaster = LogBroadcaster()
+
+def _broadcast_log(
+    logger: logging.Logger, method_name: str, event_dict: dict[str, Any]
+) -> dict[str, Any]:
+    """Broadcast structlog event to live listeners."""
+    try:
+        broadcaster.broadcast(event_dict.copy())
+    except Exception:
+        pass
+    return event_dict
+
+# ─── Existing Setup ─────────────────────────────────────────────────────────
+
 def get_processors() -> list[Processor]:
     """Get log processors based on settings."""
     processors: list[Processor] = [
@@ -71,6 +141,9 @@ def get_processors() -> list[Processor]:
         processors.append(structlog.processors.format_exc_info)
 
     processors.append(structlog.processors.UnicodeDecoder())
+    
+    # Always broadcast to live admin console
+    processors.append(_broadcast_log)
 
     return processors
 
@@ -100,11 +173,18 @@ def setup_logging() -> None:
     )
 
     # Configure standard logging
-    logging.basicConfig(
-        format="%(message)s",
-        stream=sys.stdout,
-        level=log_level,
-    )
+    root_logger = logging.getLogger()
+    root_logger.setLevel(log_level)
+    
+    # Add broadcasting handler
+    broadcast_handler = BroadcastingLogHandler()
+    broadcast_handler.setLevel(log_level)
+    root_logger.addHandler(broadcast_handler)
+
+    # Console output
+    console_handler = logging.StreamHandler(sys.stdout)
+    console_handler.setFormatter(logging.Formatter("%(message)s"))
+    root_logger.addHandler(console_handler)
 
     # Suppress noisy loggers
     logging.getLogger("uvicorn.access").setLevel(logging.WARNING)

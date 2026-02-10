@@ -221,6 +221,16 @@ class Establishment(BaseModel):
         doc="Stripe Connect account ID",
     )
 
+    mercadopago_user_id: Mapped[str | None] = mapped_column(
+        String(255),
+        doc="Mercado Pago User ID (Seller)",
+    )
+
+    mercadopago_access_token: Mapped[str | None] = mapped_column(
+        String(500),
+        doc="Mercado Pago Seller Access Token (OAuth)",
+    )
+
     cancellation_fee_fixed: Mapped[float | None] = mapped_column(
         Numeric(10, 2),
         default=0.0,

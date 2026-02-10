@@ -3,7 +3,11 @@
 from fastapi import APIRouter
 
 from app.api.v1 import (
+    admin_analytics,
+    admin_establishments,
+    admin_payouts,
     admin_settings,
+    admin_whatsapp_bridge,
     analytics,
     appointments,
     auth,
@@ -25,6 +29,8 @@ from app.api.v1 import (
     subscriptions,
     tips,
     users,
+    support,
+    admin_logs,
 )
 
 router = APIRouter(prefix="/api/v1", tags=["API v1"])
@@ -52,3 +58,9 @@ router.include_router(tips.router)
 router.include_router(payments.router, prefix="/payments", tags=["Payments"])
 router.include_router(payouts.router, prefix="/payouts", tags=["Payouts"])
 router.include_router(admin_settings.router)
+router.include_router(admin_analytics.router)
+router.include_router(admin_establishments.router)
+router.include_router(admin_payouts.router)
+router.include_router(admin_logs.router, prefix="/admin/logs", tags=["Admin Logs"])
+router.include_router(admin_whatsapp_bridge.router)
+router.include_router(support.router)

@@ -1,5 +1,5 @@
 {
-  "name": "navaro",
+  "name": "dunnaa",
   "private": true,
   "scripts": {
     "build": "turbo build",
@@ -8,6 +8,10 @@
     "dev:cliente": "cd apps/cliente && npx expo start",
     "dev:barbeiro": "cd apps/barbeiro && npx expo start",
     "dev:admin": "cd apps/admin && npm run dev",
+    "docker:up": "docker compose up -d --build",
+    "docker:down": "docker compose down",
+    "docker:build": "docker compose up -d --build",
+    "docker:logs": "docker compose logs -f",
     "lint": "turbo lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "clean": "turbo clean"

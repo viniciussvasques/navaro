@@ -52,9 +52,11 @@ async def db_engine():
     database.async_session_maker = original_session_maker
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture
 async def clear_db(db_engine):
-    """Clear database before each test. Uses patched engine."""
+    """Clear database before each test. Uses patched engine.
+    Only runs when db_engine fixture is used (not autouse to avoid slow DB operations for unit tests).
+    """
     from app.models.base import Base
 
     async with db_engine.begin() as conn:
@@ -64,7 +66,7 @@ async def clear_db(db_engine):
 
 
 @pytest.fixture(scope="function")
-def app(db_engine):
+def app(db_engine, clear_db, monkeypatch):
     """
     Create a fresh app instance for each test.
     Depends on db_engine to ensure patching (for background tasks/lifespan).
@@ -74,10 +76,14 @@ def app(db_engine):
     from app.core import database
     from sqlalchemy.ext.asyncio import async_sessionmaker
 
-    from app.core.config import settings
+    from app.core.config import settings, AppMode
 
-    settings.RATE_LIMIT_ENABLED = False
-    settings.TESTING = True
+    monkeypatch.setattr(settings, "RATE_LIMIT_ENABLED", False)
+    monkeypatch.setattr(settings, "TESTING", True)
+    monkeypatch.setattr(settings, "APP_MODE", AppMode.DEBUG)
+    
+    monkeypatch.setattr(settings, "APP_MODE", AppMode.DEBUG)
+
     _app = create_app()
 
     # Create a completely fresh sessionmaker bound to the test engine
@@ -111,9 +117,8 @@ async def auth_headers(client: AsyncClient) -> dict:
     phone = "+5511988888888"
     resp = await client.post("/api/v1/auth/send-code", json={"phone": phone})
     assert resp.status_code == 200, f"Send Code Failed: {resp.text}"
-    message = resp.json()["message"]
-    # In dev mode, message format is "Código de verificação: XXXXXX"
-    code = message.split(": ")[1].strip()
+    # Use debug bypass code
+    code = "123456"
     resp = await client.post("/api/v1/auth/verify", json={"phone": phone, "code": code})
     assert resp.status_code == 200, f"Auth verify failed: {resp.text}"
     token = resp.json()["tokens"]["access_token"]

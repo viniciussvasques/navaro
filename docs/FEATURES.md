@@ -1,4 +1,4 @@
-# 📱 Navaro - Features Completas
+# 📱 DUNNAA - Features Completas
 
 > MVP 1.0 | MVP 1.1 | MVP 2.0 (Plugins)
 
@@ -14,7 +14,7 @@
 
 ---
 
-## �📱 App Cliente (Navaro)
+## �📱 App Cliente (DUNNAA)
 
 ### Autenticação
 | ID | Feature | Versão |
@@ -106,7 +106,7 @@
 
 ---
 
-## 💈 App Barbeiro (Navaro Pro)
+## 💈 App Barbeiro (DUNNAA Pro)
 
 ### Cadastro
 | ID | Feature | Versão |
@@ -215,12 +215,12 @@
 
 ---
 
-## 🌐 App Web Estabelecimento (Navaro Pro Web)
+## 🌐 App Web Estabelecimento (DUNNAA Pro Web)
 
 > Versão web do app para estabelecimentos. Mesmas funcionalidades do App Barbeiro (mobile), acessíveis pelo navegador para uso em desktop/tablet.
 
 ### Escopo
-- Todas as features do **App Barbeiro (Navaro Pro)** (B01–B121) disponíveis na interface web.
+- Todas as features do **App Barbeiro (DUNNAA Pro)** (B01–B121) disponíveis na interface web.
 - Foco em uso em computador/tablet na barbearia (agenda, fila, check-in, financeiro, etc.).
 - Autenticação e permissões alinhadas ao app mobile (mesma API e roles).
 

@@ -10,10 +10,11 @@ from app.services.payment_providers.base import PaymentProvider
 
 
 class StripeProvider(PaymentProvider):
-    """Stripe payment provider."""
+    """Stripe payment provider. Uses dynamic config (admin) when secret_key is passed."""
 
-    def __init__(self):
-        stripe.api_key = settings.STRIPE_SECRET_KEY
+    def __init__(self, secret_key: str | None = None):
+        self._secret_key = secret_key or getattr(settings, "STRIPE_SECRET_KEY", "") or ""
+        stripe.api_key = self._secret_key
 
     async def create_intent(
         self, user_id: UUID, amount: float, metadata: dict[str, Any]

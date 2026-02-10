@@ -29,8 +29,8 @@ class EmailService:
                 "user": await settings_service.get(SettingsKeys.SMTP_USER, "") or "",
                 "password": await settings_service.get(SettingsKeys.SMTP_PASSWORD, "") or "",
                 "from_email": await settings_service.get(SettingsKeys.SMTP_FROM_EMAIL, "") or "",
-                "from_name": await settings_service.get(SettingsKeys.SMTP_FROM_NAME, "Navaro")
-                or "Navaro",
+                "from_name": await settings_service.get(SettingsKeys.SMTP_FROM_NAME, "DUNNAA")
+                or "DUNNAA",
                 "use_tls": await settings_service.get_bool(SettingsKeys.SMTP_USE_TLS, True),
             }
 
@@ -134,7 +134,7 @@ class EmailService:
                     <p>Até lá! 👋</p>
                 </div>
                 <div class="footer">
-                    <p>Este email foi enviado pelo Navaro</p>
+                    <p>Este email foi enviado pelo DUNNAA</p>
                 </div>
             </div>
         </body>

@@ -1,8 +1,8 @@
-# 📋 Navaro - Plano de Implementação
+# 📋 DUNNAA - Plano de Implementação
 
 ## Visão Geral
 
-Este documento define o plano de implementação do MVP 1.0 do Navaro.
+Este documento define o plano de implementação do MVP 1.0 do DUNNAA.
 
 ---
 
@@ -152,7 +152,7 @@ A API já cobre a maior parte do MVP (auth, establishments, services, staff, app
 - [ ] Assinantes
 - [ ] Financeiro
 
-### 6.3 App Web Estabelecimento (Navaro Pro Web)
+### 6.3 App Web Estabelecimento (DUNNAA Pro Web)
 - [ ] Setup Next.js em apps/estabelecimento-web
 - [ ] Auth (login/cadastro) reutilizando API do app barbeiro
 - [ ] Dashboard (métricas, agenda do dia)
