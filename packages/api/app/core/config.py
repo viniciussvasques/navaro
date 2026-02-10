@@ -46,7 +46,8 @@ class Settings(BaseSettings):
 
     # ─── Redis ─────────────────────────────────────────────────────────────────
     REDIS_URL: str = "redis://localhost:6379/0"
-    REDIS_PREFIX: str = "dunnaa:"
+    # Prefix for Redis keys (kept as 'navaro:' for backward compatibility with tests and scripts)
+    REDIS_PREFIX: str = "navaro:"
 
     # ─── Security ──────────────────────────────────────────────────────────────
     SECRET_KEY: str = "CHANGE-ME-IN-PRODUCTION-USE-STRONG-SECRET"
