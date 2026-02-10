@@ -1,11 +1,14 @@
-import json
 import asyncio
-from fastapi import APIRouter, Depends
+import json
+
+from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
+
 from app.api.deps import AdminUser
 from app.core.logging import broadcaster
 
 router = APIRouter()
+
 
 @router.get("/stream")
 async def stream_logs(admin: AdminUser):
@@ -24,13 +27,15 @@ async def stream_logs(admin: AdminUser):
             "Cache-Control": "no-cache",
             "Connection": "keep-alive",
             "X-Accel-Buffering": "no",  # Disable Nginx buffering
-        }
+        },
     )
+
 
 @router.post("/test")
 async def trigger_test_log(admin: AdminUser):
     """Trigger a test log message to verify broadcasting."""
     from app.core.logging import get_logger
+
     logger = get_logger("app.admin.logs")
     logger.info("TEST: Evento de log disparado manualmente via painel admin.")
     return {"message": "Log disparado com sucesso."}

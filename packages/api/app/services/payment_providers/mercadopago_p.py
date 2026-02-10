@@ -21,7 +21,7 @@ class MercadoPagoProvider(PaymentProvider):
         # In a real Marketplace implementation:
         # application_fee = metadata.get("application_fee")
         # seller_id = metadata.get("seller_id")
-        
+
         # sdk = mercadopago.SDK(self.access_token)
         # payment_data = {
         #     "transaction_amount": amount,
@@ -34,21 +34,22 @@ class MercadoPagoProvider(PaymentProvider):
 
         # Mocking the response with split context
         payment_id = f"mp_{secrets.token_hex(8)}"
-        
+
         # Log the split for operational transparency (visible in our new Live Logs!)
         from app.core.logging import get_logger
+
         logger = get_logger(__name__)
         logger.info(
-            "MercadoPago: Intent created with split", 
-            total=amount, 
-            commission=metadata.get("application_fee"), 
-            seller=metadata.get("seller_id")
+            "MercadoPago: Intent created with split",
+            total=amount,
+            commission=metadata.get("application_fee"),
+            seller=metadata.get("seller_id"),
         )
 
         return {
             "provider_payment_id": payment_id,
             "qr_code": "00020101021226850014br.gov.bcb.pix...",  # Mock PIX
-            "qr_code_base64": "iVBORw0KGgoAAAANSUhEUg...", 
+            "qr_code_base64": "iVBORw0KGgoAAAANSUhEUg...",
             "provider": "mercadopago",
             "status": "pending",
             "client_secret": payment_id,

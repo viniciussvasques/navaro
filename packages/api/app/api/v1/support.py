@@ -1,15 +1,14 @@
 """Support endpoints."""
 
-from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import APIRouter, HTTPException, Query, status
 
-from app.api.deps import DBSession, CurrentUser
+from app.api.deps import CurrentUser, DBSession
 from app.models.support import TicketCategory, TicketPriority, TicketStatus
 from app.models.user import UserRole
 from app.schemas.support import (
+    CancelAppointmentRequest,
     TicketCreate,
     TicketListResponse,
     TicketMessageCreate,
@@ -17,7 +16,6 @@ from app.schemas.support import (
     TicketResponse,
     TicketUpdate,
     UserSupportContext,
-    CancelAppointmentRequest,
 )
 from app.services.support_service import SupportService
 

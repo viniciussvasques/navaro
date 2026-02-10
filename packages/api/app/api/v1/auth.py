@@ -5,7 +5,6 @@ from pydantic import BaseModel, Field
 
 from app.api.deps import DBSession
 from app.core.config import settings
-from app.core.exceptions import InvalidCodeError
 from app.core.logging import get_logger
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
@@ -163,7 +162,6 @@ async def login_with_password(request: LoginRequest, response: Response, db: DBS
     Login with email and password.
     """
     from app.services.auth_service import AuthService
-    from app.models.user import UserRole
 
     auth_service = AuthService(db)
     token_response = await auth_service.login_with_password(

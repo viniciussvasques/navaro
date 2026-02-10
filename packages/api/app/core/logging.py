@@ -4,6 +4,8 @@ import logging
 import sys
 from datetime import datetime
 from typing import Any
+import asyncio
+from collections import deque
 
 import structlog
 from structlog.types import Processor
@@ -53,9 +55,6 @@ def _drop_color_message(
 
 # ─── Live Log Broadcaster ──────────────────────────────────────────────────
 
-import asyncio
-from collections import deque
-
 class LogBroadcaster:
     """Simple broadcaster for log events."""
     def __init__(self, maxlen: int = 100):
@@ -93,15 +92,15 @@ class BroadcastingLogHandler(logging.Handler):
                 "timestamp": datetime.fromtimestamp(record.created).isoformat(),
                 "logger": record.name,
             }
-            # Avoid double-broadcasting if it's already a structlog event 
+            # Avoid double-broadcasting if it's already a structlog event
             # (though structlog usually doesn't hit standard handlers if configured correctly)
             if hasattr(record, "msg") and isinstance(record.msg, dict):
                 return
-                
+
             # Add extra attributes if they exist
             if hasattr(record, "props"):
                 event.update(record.props)
-            
+
             broadcaster.broadcast(event)
         except Exception:
             pass

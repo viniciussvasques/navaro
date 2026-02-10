@@ -3,14 +3,20 @@
 from datetime import datetime
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
+from fastapi import APIRouter, File, HTTPException, Query, UploadFile, status
 from pydantic import BaseModel, ConfigDict, Field
 from slugify import slugify
 from sqlalchemy import case, func, select
 
 from app.api.deps import CurrentUser, DBSession
 from app.core.exceptions import ForbiddenError, NotFoundError
-from app.models import Establishment, EstablishmentCategory, EstablishmentStatus, SubscriptionTier, UserRole
+from app.models import (
+    Establishment,
+    EstablishmentCategory,
+    EstablishmentStatus,
+    SubscriptionTier,
+    UserRole,
+)
 from app.services.storage_service import StorageService
 
 router = APIRouter(prefix="/establishments", tags=["Establishments"])

@@ -2,7 +2,7 @@
 
 from typing import Annotated
 
-from fastapi import Depends
+from fastapi import Depends, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -22,8 +22,6 @@ DBSession = Annotated[AsyncSession, Depends(get_db)]
 
 # ─── Authentication ────────────────────────────────────────────────────────────
 
-
-from fastapi import Request
 
 async def get_current_user(
     request: Request,

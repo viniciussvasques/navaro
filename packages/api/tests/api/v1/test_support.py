@@ -1,7 +1,5 @@
 import pytest
 from httpx import AsyncClient
-from app.models.support import TicketPriority, TicketCategory, TicketStatus
-from app.models.user import UserRole
 
 pytestmark = pytest.mark.asyncio
 

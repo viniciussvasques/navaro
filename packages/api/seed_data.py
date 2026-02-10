@@ -1,10 +1,24 @@
 import asyncio
-import sys
 import random
+import sys
 from datetime import datetime, timedelta, timezone
-from uuid import uuid4
 
-# Add /app to python path
+from sqlalchemy import select
+
+from app.core.database import async_session_maker, init_db
+
+# Import Models
+from app.models.appointment import Appointment, AppointmentStatus, PaymentMethod, PaymentType
+from app.models.establishment import Establishment, EstablishmentCategory, EstablishmentStatus
+from app.models.payment import Payment, PaymentPurpose, PaymentStatus
+from app.models.product import Product
+from app.models.review import Review
+from app.models.service import Service
+from app.models.staff import StaffContractType, StaffMember
+from app.models.user import User, UserRole
+from app.models.wallet import UserWallet as Wallet
+
+# Add /app to python path (after imports to keep E402 happy)
 sys.path.append("/app")
 
 # Direct bcrypt hashing workaround
@@ -13,21 +27,6 @@ if not hasattr(bcrypt, '__about__'):
     class About:
         __version__ = bcrypt.__version__
     bcrypt.__about__ = About()
-
-from sqlalchemy import select
-from app.core.database import init_db, async_session_maker
-from app.core.security import hash_password
-
-# Import Models
-from app.models.user import User, UserRole
-from app.models.establishment import Establishment, EstablishmentStatus, EstablishmentCategory
-from app.models.service import Service
-from app.models.staff import StaffMember, StaffContractType
-from app.models.product import Product
-from app.models.appointment import Appointment, AppointmentStatus, PaymentType, PaymentMethod
-from app.models.payment import Payment, PaymentStatus, PaymentPurpose
-from app.models.review import Review
-from app.models.wallet import UserWallet as Wallet, WalletTransaction, TransactionType, TransactionStatus
 
 # Mock Data Arrays
 MALE_NAMES = ["Carlos", "João", "Pedro", "Lucas", "Mateus", "Gabriel", "Rafael", "Bruno", "Felipe", "Thiago", "Rodrigo", "André"]
@@ -296,8 +295,12 @@ async def seed_data():
                 status = random.choice([AppointmentStatus.confirmed, AppointmentStatus.pending])
 
             # Randomize hour
-            appt_date = appt_date.replace(hour=random.randint(9, 19), minute=random.choice([0, 30]), second=0, microsecond=0)
-            end_date = appt_date + timedelta(minutes=service.duration_minutes)
+            appt_date = appt_date.replace(
+                hour=random.randint(9, 19),
+                minute=random.choice([0, 30]),
+                second=0,
+                microsecond=0,
+            )
 
             appt = Appointment(
                 establishment_id=est.id,

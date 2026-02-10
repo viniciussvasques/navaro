@@ -3,19 +3,22 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
-from uuid import UUID
+from typing import TYPE_CHECKING, Any
 
 import boto3
 from botocore.client import Config as BotoConfig
 from fastapi import HTTPException, status
 from fastapi.concurrency import run_in_threadpool
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings as app_settings
 from app.core.logging import get_logger
 from app.models.system_settings import SettingsKeys
 from app.services.settings_service import SettingsService
+
+if TYPE_CHECKING:
+    from uuid import UUID
+
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = get_logger(__name__)
 

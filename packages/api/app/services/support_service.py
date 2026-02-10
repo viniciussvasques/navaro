@@ -1,9 +1,8 @@
 """Support service."""
 
-from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import and_, func, select, or_
+from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -103,8 +102,8 @@ class SupportService:
         # Pagination and Ordering
         # Urgent priority first, then date desc
         query = query.order_by(
-            Ticket.priority == TicketPriority.urgent,  # Urgent first (True sorts after False in SQL usually, wait. Boolean sort depends on dialect. Let's stick to created_at desc for now to be safe, or multiple sorts)
-            Ticket.created_at.desc()
+            Ticket.priority == TicketPriority.urgent,
+            Ticket.created_at.desc(),
         )
         query = query.offset((page - 1) * page_size).limit(page_size)
 
@@ -186,9 +185,6 @@ class SupportService:
             .options(selectinload(TicketMessage.sender))
             .where(TicketMessage.id == message.id)
         )
-        return result.scalar_one()
-
-        result = await self.db.execute(query)
         return result.scalar_one()
 
     async def update_ticket(

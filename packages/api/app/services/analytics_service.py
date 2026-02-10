@@ -179,7 +179,7 @@ class AnalyticsService:
         )
         top_est_res = await self.db.execute(top_est_query)
         leaderboard = [
-            {"name": name, "revenue": float(revenue or 0)} 
+            {"name": name, "revenue": float(revenue or 0)}
             for name, revenue in top_est_res.all()
         ]
 

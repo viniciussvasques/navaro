@@ -388,7 +388,6 @@ class AppointmentService:
                 # --- Referral Reward ---
                 # Check if this is the user's first completed appointment
                 from sqlalchemy import and_, func
-                from app.models.user import User
 
                 first_appt_query = select(func.count(Appointment.id)).where(
                     and_(

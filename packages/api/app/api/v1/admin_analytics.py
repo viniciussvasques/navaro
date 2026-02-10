@@ -1,9 +1,8 @@
 """Admin analytics endpoints."""
 
 from datetime import date, timedelta
-from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Query
 
 from app.api.deps import AdminUser, DBSession
 from app.services.analytics_service import AnalyticsService

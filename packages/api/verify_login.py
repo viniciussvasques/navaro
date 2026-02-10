@@ -1,6 +1,5 @@
 import asyncio
 import httpx
-import sys
 
 # Define base URL (internal container network)
 API_URL = "http://localhost:8000/api/v1"
