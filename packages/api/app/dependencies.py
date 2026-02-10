@@ -25,14 +25,14 @@ async def get_current_user(
     credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(security)] = None,
 ) -> User:
     token = None
-    
+
     # 1. Try Header
     if credentials:
         token = credentials.credentials
     # 2. Try Cookie
     elif "access_token" in request.cookies:
         token = request.cookies["access_token"]
-    
+
     if not token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

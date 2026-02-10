@@ -59,4 +59,3 @@ async def test_upload_public_uses_client_and_returns_url(monkeypatch) -> None:
     assert called["ContentType"] == "image/jpeg"
     assert called["ACL"] == "public-read"
     assert called["Metadata"] == {"x-test": "1"}
-

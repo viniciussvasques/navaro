@@ -58,7 +58,7 @@ class Ticket(BaseModel):
     )
 
     title: Mapped[str] = mapped_column(String(255), nullable=False)
-    
+
     status: Mapped[TicketStatus] = mapped_column(
         Enum(TicketStatus),
         default=TicketStatus.open,

@@ -55,8 +55,7 @@ async def list_products(
     products = result.scalars().all()
 
     return ProductListResponse(
-        items=[ProductResponse.model_validate(p) for p in products],
-        total=total
+        items=[ProductResponse.model_validate(p) for p in products], total=total
     )
 
 

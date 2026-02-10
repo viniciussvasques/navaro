@@ -36,6 +36,7 @@ class SMSService:
 
     def __init__(self):
         from app.core.config import settings
+
         self.api_url = getattr(settings, "NVOIP_API_URL", "https://api.nvoip.com.br/v2")
 
     async def get_settings(self) -> dict:
@@ -83,6 +84,7 @@ class SMSService:
         url = f"{self.api_url}/sms"
         if use_napikey:
             from urllib.parse import urlencode
+
             url = f"{url}?{urlencode({'napikey': token})}"
         headers = {"Content-Type": "application/json"}
         if not use_napikey:

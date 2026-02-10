@@ -81,7 +81,7 @@ def app(db_engine, clear_db, monkeypatch):
     monkeypatch.setattr(settings, "RATE_LIMIT_ENABLED", False)
     monkeypatch.setattr(settings, "TESTING", True)
     monkeypatch.setattr(settings, "APP_MODE", AppMode.DEBUG)
-    
+
     monkeypatch.setattr(settings, "APP_MODE", AppMode.DEBUG)
 
     _app = create_app()

@@ -104,7 +104,7 @@ async def add_message(
 ):
     """Add message to ticket."""
     service = SupportService(db)
-    
+
     # Check access first
     ticket = await service.get_ticket(ticket_id, current_user)
     if not ticket:

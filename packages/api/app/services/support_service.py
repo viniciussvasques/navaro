@@ -45,13 +45,17 @@ class SupportService:
         )
         self.db.add(ticket)
         await self.db.commit()
-        
+
         # Reload with relationships to satisfy Pydantic
-        query = select(Ticket).options(
-             selectinload(Ticket.user),
-             selectinload(Ticket.assigned_to),
-             selectinload(Ticket.messages)
-        ).where(Ticket.id == ticket.id)
+        query = (
+            select(Ticket)
+            .options(
+                selectinload(Ticket.user),
+                selectinload(Ticket.assigned_to),
+                selectinload(Ticket.messages),
+            )
+            .where(Ticket.id == ticket.id)
+        )
 
         result = await self.db.execute(query)
         return result.scalar_one()
@@ -74,7 +78,7 @@ class SupportService:
 
         # Filters
         filters = []
-        
+
         # Role-based access
         if user.role not in [UserRole.admin, UserRole.support]:
             # Users only see their own tickets
@@ -117,26 +121,27 @@ class SupportService:
 
         # Count how many older 'open' tickets exist
         query = select(func.count()).where(
-            and_(
-                Ticket.status == TicketStatus.open,
-                Ticket.created_at < ticket.created_at
-            )
+            and_(Ticket.status == TicketStatus.open, Ticket.created_at < ticket.created_at)
         )
         result = await self.db.execute(query)
         pos = result.scalar_one() + 1
-        
+
         # Heuristic: 10 minutes per ticket in queue
         wait_time = pos * 10
-        
+
         return pos, wait_time
 
     async def get_ticket(self, ticket_id: UUID, user: User) -> Ticket | None:
         """Get ticket details."""
-        query = select(Ticket).options(
-            selectinload(Ticket.user),
-            selectinload(Ticket.assigned_to),
-            selectinload(Ticket.messages).selectinload(TicketMessage.sender)
-        ).where(Ticket.id == ticket_id)
+        query = (
+            select(Ticket)
+            .options(
+                selectinload(Ticket.user),
+                selectinload(Ticket.assigned_to),
+                selectinload(Ticket.messages).selectinload(TicketMessage.sender),
+            )
+            .where(Ticket.id == ticket_id)
+        )
 
         result = await self.db.execute(query)
         ticket = result.scalar_one_or_none()
@@ -166,18 +171,21 @@ class SupportService:
             attachments=data.attachments,
         )
         self.db.add(message)
-        
+
         # Auto-reopen ticket if client replies
         ticket_res = await self.db.execute(select(Ticket).where(Ticket.id == ticket_id))
         ticket = ticket_res.scalar_one()
-        
-        if ticket.user_id == sender_id and ticket.status in [TicketStatus.resolved, TicketStatus.closed]:
-             ticket.status = TicketStatus.in_progress
-             self.db.add(ticket)
+
+        if ticket.user_id == sender_id and ticket.status in [
+            TicketStatus.resolved,
+            TicketStatus.closed,
+        ]:
+            ticket.status = TicketStatus.in_progress
+            self.db.add(ticket)
 
         await self.db.commit()
         await self.db.refresh(message)
-        
+
         # Load sender for response
         # We need to reload the message with sender relationship
         result = await self.db.execute(
@@ -187,9 +195,7 @@ class SupportService:
         )
         return result.scalar_one()
 
-    async def update_ticket(
-        self, ticket_id: UUID, data: TicketUpdate
-    ) -> Ticket | None:
+    async def update_ticket(self, ticket_id: UUID, data: TicketUpdate) -> Ticket | None:
         """Update ticket status, priority or assignee."""
         query = select(Ticket).where(Ticket.id == ticket_id)
         result = await self.db.execute(query)
@@ -207,13 +213,17 @@ class SupportService:
 
         self.db.add(ticket)
         await self.db.commit()
-        
+
         # Reload with relationships
-        query = select(Ticket).options(
-             selectinload(Ticket.user),
-             selectinload(Ticket.assigned_to),
-             selectinload(Ticket.messages)
-        ).where(Ticket.id == ticket.id)
+        query = (
+            select(Ticket)
+            .options(
+                selectinload(Ticket.user),
+                selectinload(Ticket.assigned_to),
+                selectinload(Ticket.messages),
+            )
+            .where(Ticket.id == ticket.id)
+        )
 
         result = await self.db.execute(query)
         return result.scalar_one()
@@ -237,13 +247,15 @@ class SupportService:
         recent_appointments = []
         for row in appointments_res.all():
             app, service_name, staff_name = row
-            recent_appointments.append(SupportContextAppointment(
-                id=app.id,
-                service_name=service_name,
-                staff_name=staff_name,
-                status=app.status.value,
-                start_at=app.start_at
-            ))
+            recent_appointments.append(
+                SupportContextAppointment(
+                    id=app.id,
+                    service_name=service_name,
+                    staff_name=staff_name,
+                    status=app.status.value,
+                    start_at=app.start_at,
+                )
+            )
 
         # 3. Recent Payments
         payments_query = (
@@ -256,13 +268,15 @@ class SupportService:
         recent_payments = []
         total_spent = 0
         for p in payments_res.scalars().all():
-            recent_payments.append(SupportContextPayment(
-                id=p.id,
-                amount=float(p.amount),
-                status=p.status.value,
-                provider=p.provider,
-                created_at=p.created_at
-            ))
+            recent_payments.append(
+                SupportContextPayment(
+                    id=p.id,
+                    amount=float(p.amount),
+                    status=p.status.value,
+                    provider=p.provider,
+                    created_at=p.created_at,
+                )
+            )
             if p.status == "succeeded":
                 total_spent += float(p.amount)
 
@@ -271,7 +285,7 @@ class SupportService:
             recent_appointments=recent_appointments,
             recent_payments=recent_payments,
             total_spent=total_spent,
-            subscription_tier="Premium" if user.role == UserRole.owner else "N/A"
+            subscription_tier="Premium" if user.role == UserRole.owner else "N/A",
         )
 
     async def cancel_appointment(self, appointment_id: UUID, reason: str) -> Appointment:
@@ -299,10 +313,13 @@ class SupportService:
         # WhatsApp: aviso de cancelamento ao cliente
         try:
             user = await self.db.get(User, appointment.user_id)
-            est = appointment.establishment or await self.db.get(Establishment, appointment.establishment_id)
-            est_name = (est.name if est else "Estabelecimento")
+            est = appointment.establishment or await self.db.get(
+                Establishment, appointment.establishment_id
+            )
+            est_name = est.name if est else "Estabelecimento"
             if user and getattr(user, "phone", None):
                 from app.services.whatsapp_service import get_whatsapp_service
+
                 await get_whatsapp_service().send_appointment_cancelled(
                     user.phone, est_name, reason
                 )

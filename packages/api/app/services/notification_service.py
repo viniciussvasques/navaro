@@ -117,7 +117,9 @@ class NotificationService:
                     err_msg = body.get("message") or body.get("error_text") or response.text[:200]
                 except Exception:
                     err_msg = response.text[:200] or f"HTTP {response.status_code}"
-                logger.error("Twilio SMS failed", phone=phone, status=response.status_code, response=err_msg)
+                logger.error(
+                    "Twilio SMS failed", phone=phone, status=response.status_code, response=err_msg
+                )
                 return False, err_msg
         except Exception as e:
             logger.error("Twilio SMS error", error=str(e), phone=phone)
@@ -133,6 +135,7 @@ class NotificationService:
             clean_phone = f"55{clean_phone}"
         from urllib.parse import urlencode
         from app.services.sms_service import _normalize_sms_message, _is_napikey
+
         token = (token or "").strip()
         use_napikey = _is_napikey(token)
         url = "https://api.nvoip.com.br/v2/sms"
@@ -141,7 +144,11 @@ class NotificationService:
         headers = {"Content-Type": "application/json"}
         if not use_napikey:
             headers["Authorization"] = f"Bearer {token}"
-        payload = {"numberPhone": clean_phone, "message": _normalize_sms_message(message), "flashSms": False}
+        payload = {
+            "numberPhone": clean_phone,
+            "message": _normalize_sms_message(message),
+            "flashSms": False,
+        }
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.post(url, json=payload, headers=headers)

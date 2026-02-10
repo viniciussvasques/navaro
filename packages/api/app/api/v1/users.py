@@ -38,7 +38,9 @@ class UserUpdateRequest(BaseModel):
 
 class RoleUpdateRequest(BaseModel):
     """Role update request."""
+
     role: str
+
 
 class UserListResponse(BaseModel):
     """User list response."""
@@ -134,11 +136,13 @@ async def update_user_role(
 ) -> UserResponse:
     """Update user role (admin only)."""
     from uuid import UUID
+
     result = await db.execute(select(User).where(User.id == UUID(user_id)))
     user = result.scalar_one_or_none()
-    
+
     if not user:
         from fastapi import HTTPException
+
         raise HTTPException(status_code=404, detail="User not found")
 
     user.role = request.role

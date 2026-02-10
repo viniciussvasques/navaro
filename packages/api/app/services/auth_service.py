@@ -24,6 +24,7 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 class AuthService:
     """Authentication service."""
 
@@ -33,9 +34,7 @@ class AuthService:
     @staticmethod
     def verify_password(plain_password: str, hashed_password: str) -> bool:
         """Verify password."""
-        return bcrypt.checkpw(
-            plain_password.encode("utf-8"), hashed_password.encode("utf-8")
-        )
+        return bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password.encode("utf-8"))
 
     @staticmethod
     def get_password_hash(password: str) -> str:
@@ -68,7 +67,6 @@ class AuthService:
             refresh_token=refresh_token,
             user=UserResponse.model_validate(user),
         )
-
 
     async def send_verification_code(
         self, phone: str
@@ -125,7 +123,7 @@ class AuthService:
         redis = await redis_module.get_redis()
         key = f"{settings.REDIS_PREFIX}otp:{phone}"
         stored_code = await redis.get(key)
-        
+
         if settings.is_debug and code == "123456":
             # Development bypass
             pass

@@ -164,9 +164,7 @@ class QueueService:
                 user = await self.db.get(User, entry.user_id)
                 establishment = await self.db.get(Establishment, entry.establishment_id)
                 if user and getattr(user, "phone", None) and establishment:
-                    await get_whatsapp_service().send_queue_called(
-                        user.phone, establishment.name
-                    )
+                    await get_whatsapp_service().send_queue_called(user.phone, establishment.name)
             except Exception:
                 pass
         elif status == QueueStatus.serving:
@@ -176,9 +174,7 @@ class QueueService:
                 user = await self.db.get(User, entry.user_id)
                 establishment = await self.db.get(Establishment, entry.establishment_id)
                 if user and getattr(user, "phone", None) and establishment:
-                    await get_whatsapp_service().send_queue_serving(
-                        user.phone, establishment.name
-                    )
+                    await get_whatsapp_service().send_queue_serving(user.phone, establishment.name)
             except Exception:
                 pass
         elif status in [QueueStatus.completed, QueueStatus.left]:

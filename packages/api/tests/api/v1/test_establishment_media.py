@@ -6,19 +6,25 @@ from uuid import UUID
 
 
 class _FakeStorage:
-    async def upload_establishment_logo(self, *, establishment_id: UUID, content: bytes, content_type: str) -> str:  # type: ignore[override]
+    async def upload_establishment_logo(
+        self, *, establishment_id: UUID, content: bytes, content_type: str
+    ) -> str:  # type: ignore[override]
         assert content  # non-empty
         assert content_type.startswith("image/")
         return f"https://cdn.test/establishments/{establishment_id}/logo.jpg"
 
-    async def upload_establishment_cover(self, *, establishment_id: UUID, content: bytes, content_type: str) -> str:  # type: ignore[override]
+    async def upload_establishment_cover(
+        self, *, establishment_id: UUID, content: bytes, content_type: str
+    ) -> str:  # type: ignore[override]
         assert content
         assert content_type.startswith("image/")
         return f"https://cdn.test/establishments/{establishment_id}/cover.jpg"
 
 
 @pytest.mark.asyncio
-async def test_upload_logo_success(client: AsyncClient, auth_headers: dict, establishment_id: str, monkeypatch):
+async def test_upload_logo_success(
+    client: AsyncClient, auth_headers: dict, establishment_id: str, monkeypatch
+):
     from app.api.v1 import establishments as est_module
 
     async def fake_from_db(db):
@@ -38,7 +44,9 @@ async def test_upload_logo_success(client: AsyncClient, auth_headers: dict, esta
 
 
 @pytest.mark.asyncio
-async def test_upload_cover_success(client: AsyncClient, auth_headers: dict, establishment_id: str, monkeypatch):
+async def test_upload_cover_success(
+    client: AsyncClient, auth_headers: dict, establishment_id: str, monkeypatch
+):
     from app.api.v1 import establishments as est_module
 
     async def fake_from_db(db):
@@ -58,7 +66,9 @@ async def test_upload_cover_success(client: AsyncClient, auth_headers: dict, est
 
 
 @pytest.mark.asyncio
-async def test_upload_logo_empty_file_returns_400(client: AsyncClient, auth_headers: dict, establishment_id: str, monkeypatch):
+async def test_upload_logo_empty_file_returns_400(
+    client: AsyncClient, auth_headers: dict, establishment_id: str, monkeypatch
+):
     from app.api.v1 import establishments as est_module
 
     async def fake_from_db(db):
@@ -76,4 +86,3 @@ async def test_upload_logo_empty_file_returns_400(client: AsyncClient, auth_head
     assert resp.status_code == 400
     body = resp.json()
     assert body["detail"] == "Arquivo vazio."
-

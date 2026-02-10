@@ -116,6 +116,7 @@ async def send_verification_code(request: SendCodeRequest, db: DBSession) -> Sen
     message = "Código enviado com sucesso"
     if settings.ENVIRONMENT == "development" or settings.is_debug:
         from app.core.redis import get_redis
+
         redis = await get_redis()
         code = await redis.get(f"{settings.REDIS_PREFIX}otp:{request.phone}")
         if code:
@@ -157,7 +158,9 @@ async def verify_code(request: VerifyCodeRequest, db: DBSession) -> AuthResponse
 
 
 @router.post("/login", response_model=AuthResponse)
-async def login_with_password(request: LoginRequest, response: Response, db: DBSession) -> AuthResponse:
+async def login_with_password(
+    request: LoginRequest, response: Response, db: DBSession
+) -> AuthResponse:
     """
     Login with email and password.
     """

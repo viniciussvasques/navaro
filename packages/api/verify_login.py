@@ -4,24 +4,25 @@ import httpx
 # Define base URL (internal container network)
 API_URL = "http://localhost:8000/api/v1"
 
+
 async def test_login():
     print("🧪 Testing Login...")
-    
+
     # login with admin
     async with httpx.AsyncClient() as client:
         # 1. Login
         login_data = {
-            "username": "admin@dunnaa.com", # OAuth2PasswordRequestForm uses username for email
-            "password": "admin123"
+            "username": "admin@dunnaa.com",  # OAuth2PasswordRequestForm uses username for email
+            "password": "admin123",
         }
         # Try both JSON and Form Data (FastAPI OAuth2 expects Form Data usually, but let's check custom auth)
         # Looking at previous logs, it was a JSON endpoint /api/auth/login or similar?
         # Step 5399 curl used JSON to http://localhost:3005/api/auth/login (Admin API Proxy) -> JSON
         # The Backend usually has /api/v1/user/auth or /api/v1/auth/access-token
-        
+
         # Let's try the endpoint that the Admin Wrapper calls.
         # But here I am inside the API container. checking routes would be good but let's try standard patterns.
-        
+
         try:
             # The original `test_login` function's content is being replaced by the new `verify_login` logic.
             # This block is the new content for the login attempts.
@@ -69,18 +70,19 @@ async def test_login():
 
             except Exception as e:
                 print(f"❌ Erro de conexão: {e}")
-            
+
             # Attempt 2: Form to /api/v1/login/access-token (original part, kept as per instruction)
             print("  > Attempting Form login to /api/v1/login/access-token...")
             response = await client.post(f"{API_URL}/login/access-token", data=login_data)
             print(f"    Status: {response.status_code}")
             if response.status_code == 200:
-                 print("    ✅ Success!")
-                 print(response.json())
-                 return
+                print("    ✅ Success!")
+                print(response.json())
+                return
 
         except Exception as e:
             print(f"    ❌ Connection Error: {e}")
+
 
 if __name__ == "__main__":
     asyncio.run(test_login())

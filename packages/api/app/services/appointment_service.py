@@ -235,6 +235,7 @@ class AppointmentService:
                 user = user_res.scalar_one_or_none()
                 if user and getattr(user, "phone", None):
                     from app.services.whatsapp_service import get_whatsapp_service
+
                     wa = get_whatsapp_service()
                     date_str = appointment.scheduled_at.strftime("%d/%m/%Y")
                     time_str = appointment.scheduled_at.strftime("%H:%M")
@@ -291,11 +292,14 @@ class AppointmentService:
                 and appointment.status != AppointmentStatus.confirmed
             ):
                 try:
-                    user_res = await self.db.execute(select(User).where(User.id == appointment.user_id))
+                    user_res = await self.db.execute(
+                        select(User).where(User.id == appointment.user_id)
+                    )
                     user = user_res.scalar_one_or_none()
                     est = appointment.establishment
                     if user and getattr(user, "phone", None) and est:
                         from app.services.whatsapp_service import get_whatsapp_service
+
                         date_str = appointment.scheduled_at.strftime("%d/%m/%Y")
                         time_str = appointment.scheduled_at.strftime("%H:%M")
                         await get_whatsapp_service().send_appointment_confirmation(
@@ -510,6 +514,7 @@ class AppointmentService:
             user = user_res.scalar_one_or_none()
             if user and getattr(user, "phone", None) and appointment.establishment:
                 from app.services.whatsapp_service import get_whatsapp_service
+
                 await get_whatsapp_service().send_appointment_cancelled(
                     user.phone, appointment.establishment.name, reason
                 )

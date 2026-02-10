@@ -56,16 +56,18 @@ class Settings(BaseSettings):
     ADMIN_TOKEN: str = "CHANGE-ME-ADMIN-TOKEN"  # For debug endpoints
 
     # ─── CORS ──────────────────────────────────────────────────────────────────
-    CORS_ORIGINS: list[str] = Field(default=[
-        "http://localhost:3000",
-        "http://localhost:8081",
-        "http://localhost:3005",
-        "http://173.212.248.236:3005",
-        "https://admin.dunnaa.com.br",
-        "http://admin.dunnaa.com.br",
-        "https://api.dunnaa.com.br",
-        "http://api.dunnaa.com.br"
-    ])
+    CORS_ORIGINS: list[str] = Field(
+        default=[
+            "http://localhost:3000",
+            "http://localhost:8081",
+            "http://localhost:3005",
+            "http://173.212.248.236:3005",
+            "https://admin.dunnaa.com.br",
+            "http://admin.dunnaa.com.br",
+            "https://api.dunnaa.com.br",
+            "http://api.dunnaa.com.br",
+        ]
+    )
     CORS_ALLOW_CREDENTIALS: bool = True
     CORS_ALLOW_METHODS: list[str] = Field(default=["*"])
     CORS_ALLOW_HEADERS: list[str] = Field(default=["*"])

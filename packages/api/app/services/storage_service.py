@@ -188,4 +188,3 @@ class StorageService:
     ) -> str:
         key = self._build_key(kind="cover", establishment_id=establishment_id, extension="jpg")
         return await self.upload_public(content=content, content_type=content_type, key=key)
-

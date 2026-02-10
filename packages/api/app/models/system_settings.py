@@ -83,7 +83,9 @@ class SettingsKeys:
     # Twilio
     TWILIO_ACCOUNT_SID = "twilio_account_sid"
     TWILIO_AUTH_TOKEN = "twilio_auth_token"
-    TWILIO_WHATSAPP_FROM = "twilio_whatsapp_from"  # ex: +14155238886 (sandbox) ou whatsapp:+14155238886
+    TWILIO_WHATSAPP_FROM = (
+        "twilio_whatsapp_from"  # ex: +14155238886 (sandbox) ou whatsapp:+14155238886
+    )
     # Meta Cloud API (opcional)
     WHATSAPP_API_URL = "whatsapp_api_url"
     WHATSAPP_ACCESS_TOKEN = "whatsapp_access_token"

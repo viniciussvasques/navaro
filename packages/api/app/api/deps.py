@@ -30,14 +30,14 @@ async def get_current_user(
 ) -> User:
     """Get current authenticated user from token (Header or Cookie)."""
     token = None
-    
+
     # 1. Try Header
     if credentials:
         token = credentials.credentials
     # 2. Try Cookie
     elif "access_token" in request.cookies:
         token = request.cookies["access_token"]
-    
+
     if not token:
         raise UnauthorizedError("Não autenticado")
 

@@ -26,13 +26,22 @@ class WhatsAppService:
                 # Meta Cloud
                 "api_url": await settings_service.get(
                     SettingsKeys.WHATSAPP_API_URL, "https://graph.facebook.com/v18.0"
-                ) or "https://graph.facebook.com/v18.0",
-                "access_token": await settings_service.get(SettingsKeys.WHATSAPP_ACCESS_TOKEN, "") or "",
-                "phone_number_id": await settings_service.get(SettingsKeys.WHATSAPP_PHONE_NUMBER_ID, "") or "",
+                )
+                or "https://graph.facebook.com/v18.0",
+                "access_token": await settings_service.get(SettingsKeys.WHATSAPP_ACCESS_TOKEN, "")
+                or "",
+                "phone_number_id": await settings_service.get(
+                    SettingsKeys.WHATSAPP_PHONE_NUMBER_ID, ""
+                )
+                or "",
                 # Twilio
                 "twilio_sid": await settings_service.get(SettingsKeys.TWILIO_ACCOUNT_SID, "") or "",
-                "twilio_token": await settings_service.get(SettingsKeys.TWILIO_AUTH_TOKEN, "") or "",
-                "twilio_whatsapp_from": await settings_service.get(SettingsKeys.TWILIO_WHATSAPP_FROM, "") or "",
+                "twilio_token": await settings_service.get(SettingsKeys.TWILIO_AUTH_TOKEN, "")
+                or "",
+                "twilio_whatsapp_from": await settings_service.get(
+                    SettingsKeys.TWILIO_WHATSAPP_FROM, ""
+                )
+                or "",
                 # Bridge (Baileys)
                 # Usa URL do .env quando não houver override em banco.
                 "bridge_url": settings.WHATSAPP_BRIDGE_URL,
@@ -52,7 +61,9 @@ class WhatsAppService:
         if provider == "bridge":
             return await self._send_bridge(to_phone, message, settings)
 
-        logger.warning("WhatsApp provider desconhecido, usando Twilio como fallback", provider=provider)
+        logger.warning(
+            "WhatsApp provider desconhecido, usando Twilio como fallback", provider=provider
+        )
         return await self._send_twilio(to_phone, message, settings)
 
     async def _send_twilio(self, to_phone: str, message: str, settings: dict) -> bool:
@@ -79,7 +90,11 @@ class WhatsAppService:
                 if response.status_code in (200, 201):
                     logger.info("WhatsApp sent (Twilio)", to=to_phone)
                     return True
-                logger.error("Twilio WhatsApp failed", status=response.status_code, response=response.text[:200])
+                logger.error(
+                    "Twilio WhatsApp failed",
+                    status=response.status_code,
+                    response=response.text[:200],
+                )
                 return False
         except Exception as e:
             logger.error("WhatsApp Twilio error", error=str(e))
@@ -95,7 +110,10 @@ class WhatsAppService:
             async with httpx.AsyncClient() as client:
                 response = await client.post(
                     f"{settings['api_url']}/{settings['phone_number_id']}/messages",
-                    headers={"Authorization": f"Bearer {settings['access_token']}", "Content-Type": "application/json"},
+                    headers={
+                        "Authorization": f"Bearer {settings['access_token']}",
+                        "Content-Type": "application/json",
+                    },
                     json={
                         "messaging_product": "whatsapp",
                         "recipient_type": "individual",
@@ -108,7 +126,11 @@ class WhatsAppService:
                 if response.status_code in (200, 201):
                     logger.info("WhatsApp sent (Meta)", to=to_phone)
                     return True
-                logger.error("Meta WhatsApp failed", status=response.status_code, response=response.text[:200])
+                logger.error(
+                    "Meta WhatsApp failed",
+                    status=response.status_code,
+                    response=response.text[:200],
+                )
                 return False
         except Exception as e:
             logger.error("WhatsApp Meta error", error=str(e))
@@ -151,7 +173,9 @@ class WhatsAppService:
         settings = await self.get_settings()
         if not settings["enabled"] or (settings.get("provider") or "twilio") != "meta":
             return False
-        return await self._send_meta_template(to_phone, template_name, language_code, components, settings)
+        return await self._send_meta_template(
+            to_phone, template_name, language_code, components, settings
+        )
 
     async def _send_meta_template(
         self,
@@ -174,7 +198,10 @@ class WhatsAppService:
             async with httpx.AsyncClient() as client:
                 response = await client.post(
                     f"{settings['api_url']}/{settings['phone_number_id']}/messages",
-                    headers={"Authorization": f"Bearer {settings['access_token']}", "Content-Type": "application/json"},
+                    headers={
+                        "Authorization": f"Bearer {settings['access_token']}",
+                        "Content-Type": "application/json",
+                    },
                     json=payload,
                     timeout=15.0,
                 )

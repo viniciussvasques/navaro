@@ -106,7 +106,9 @@ class PaymentService:
         stripe_secret_key = await settings_svc.get(SettingsKeys.STRIPE_SECRET_KEY) or getattr(
             settings, "STRIPE_SECRET_KEY", ""
         )
-        mercadopago_access_token = await settings_svc.get(SettingsKeys.MERCADOPAGO_ACCESS_TOKEN) or ""
+        mercadopago_access_token = (
+            await settings_svc.get(SettingsKeys.MERCADOPAGO_ACCESS_TOKEN) or ""
+        )
 
         # 3. Create Intent via Provider
         provider = PaymentProviderFactory.get_provider(

@@ -55,8 +55,10 @@ def _drop_color_message(
 
 # ─── Live Log Broadcaster ──────────────────────────────────────────────────
 
+
 class LogBroadcaster:
     """Simple broadcaster for log events."""
+
     def __init__(self, maxlen: int = 100):
         self.queue = deque(maxlen=maxlen)
         self.listeners = set()
@@ -81,8 +83,10 @@ class LogBroadcaster:
         finally:
             self.listeners.remove(queue)
 
+
 class BroadcastingLogHandler(logging.Handler):
     """Logging handler that broadcasts events to live listeners."""
+
     def emit(self, record: logging.LogRecord):
         try:
             # We want to broadcast the formatted message
@@ -105,7 +109,9 @@ class BroadcastingLogHandler(logging.Handler):
         except Exception:
             pass
 
+
 broadcaster = LogBroadcaster()
+
 
 def _broadcast_log(
     logger: logging.Logger, method_name: str, event_dict: dict[str, Any]
@@ -117,7 +123,9 @@ def _broadcast_log(
         pass
     return event_dict
 
+
 # ─── Existing Setup ─────────────────────────────────────────────────────────
+
 
 def get_processors() -> list[Processor]:
     """Get log processors based on settings."""
@@ -140,7 +148,7 @@ def get_processors() -> list[Processor]:
         processors.append(structlog.processors.format_exc_info)
 
     processors.append(structlog.processors.UnicodeDecoder())
-    
+
     # Always broadcast to live admin console
     processors.append(_broadcast_log)
 
@@ -174,7 +182,7 @@ def setup_logging() -> None:
     # Configure standard logging
     root_logger = logging.getLogger()
     root_logger.setLevel(log_level)
-    
+
     # Add broadcasting handler
     broadcast_handler = BroadcastingLogHandler()
     broadcast_handler.setLevel(log_level)

@@ -134,8 +134,20 @@ class SettingsService:
             # SMS (nVoIP ou Twilio)
             (SettingsKeys.SMS_ENABLED, "false", "Ativar envio de SMS", False, "sms"),
             (SettingsKeys.SMS_PROVIDER, "twilio", "Provedor SMS: twilio ou nvoip", False, "sms"),
-            (SettingsKeys.NVOIP_TOKEN, "", "nVoIP: Napikey (so quando sms_provider=nvoip)", True, "sms"),
-            (SettingsKeys.NVOIP_FROM_NUMBER, "", "nVoIP: numero de origem (opcional)", False, "sms"),
+            (
+                SettingsKeys.NVOIP_TOKEN,
+                "",
+                "nVoIP: Napikey (so quando sms_provider=nvoip)",
+                True,
+                "sms",
+            ),
+            (
+                SettingsKeys.NVOIP_FROM_NUMBER,
+                "",
+                "nVoIP: numero de origem (opcional)",
+                False,
+                "sms",
+            ),
             # Payments: Stripe
             (
                 SettingsKeys.STRIPE_ENABLED,
@@ -198,13 +210,49 @@ class SettingsService:
             (SettingsKeys.ONESIGNAL_APP_ID, "", "OneSignal App ID", False, "push"),
             (SettingsKeys.ONESIGNAL_API_KEY, "", "OneSignal API Key", True, "push"),
             # Twilio (SMS + WhatsApp) - mesmo Account SID e Auth Token
-            (SettingsKeys.TWILIO_ACCOUNT_SID, "", "Twilio Account SID (Console Twilio)", False, "twilio"),
-            (SettingsKeys.TWILIO_AUTH_TOKEN, "", "Twilio Auth Token (Console Twilio)", True, "twilio"),
-            (SettingsKeys.TWILIO_SMS_FROM, "", "Twilio: numero para SMS (ex: +15551234567)", False, "twilio"),
-            (SettingsKeys.TWILIO_WHATSAPP_FROM, "", "Twilio WhatsApp: numero (ex: +14155238886 sandbox)", False, "twilio"),
+            (
+                SettingsKeys.TWILIO_ACCOUNT_SID,
+                "",
+                "Twilio Account SID (Console Twilio)",
+                False,
+                "twilio",
+            ),
+            (
+                SettingsKeys.TWILIO_AUTH_TOKEN,
+                "",
+                "Twilio Auth Token (Console Twilio)",
+                True,
+                "twilio",
+            ),
+            (
+                SettingsKeys.TWILIO_SMS_FROM,
+                "",
+                "Twilio: numero para SMS (ex: +15551234567)",
+                False,
+                "twilio",
+            ),
+            (
+                SettingsKeys.TWILIO_WHATSAPP_FROM,
+                "",
+                "Twilio WhatsApp: numero (ex: +14155238886 sandbox)",
+                False,
+                "twilio",
+            ),
             # WhatsApp
-            (SettingsKeys.WHATSAPP_ENABLED, "false", "Ativar envio via WhatsApp (Twilio)", False, "whatsapp"),
-            (SettingsKeys.WHATSAPP_PROVIDER, "twilio", "Provedor WhatsApp: twilio ou meta", False, "whatsapp"),
+            (
+                SettingsKeys.WHATSAPP_ENABLED,
+                "false",
+                "Ativar envio via WhatsApp (Twilio)",
+                False,
+                "whatsapp",
+            ),
+            (
+                SettingsKeys.WHATSAPP_PROVIDER,
+                "twilio",
+                "Provedor WhatsApp: twilio ou meta",
+                False,
+                "whatsapp",
+            ),
             (
                 SettingsKeys.WHATSAPP_API_URL,
                 "https://graph.facebook.com/v18.0",
@@ -212,8 +260,20 @@ class SettingsService:
                 False,
                 "whatsapp",
             ),
-            (SettingsKeys.WHATSAPP_ACCESS_TOKEN, "", "Meta: Access Token (so quando provider=meta)", True, "whatsapp"),
-            (SettingsKeys.WHATSAPP_PHONE_NUMBER_ID, "", "Meta: Phone Number ID (so quando provider=meta)", False, "whatsapp"),
+            (
+                SettingsKeys.WHATSAPP_ACCESS_TOKEN,
+                "",
+                "Meta: Access Token (so quando provider=meta)",
+                True,
+                "whatsapp",
+            ),
+            (
+                SettingsKeys.WHATSAPP_PHONE_NUMBER_ID,
+                "",
+                "Meta: Phone Number ID (so quando provider=meta)",
+                False,
+                "whatsapp",
+            ),
             # Storage
             (SettingsKeys.STORAGE_ENABLED, "false", "Ativar storage S3/R2", False, "storage"),
             (SettingsKeys.S3_ENDPOINT, "", "S3 Endpoint URL", False, "storage"),
@@ -230,7 +290,13 @@ class SettingsService:
             # Loyalty
             (SettingsKeys.CASHBACK_ENABLED, "false", "Ativar cashback global", False, "loyalty"),
             (SettingsKeys.CASHBACK_PERCENT, "2.0", "Percentual de cashback (%)", False, "loyalty"),
-            (SettingsKeys.REFERRAL_BONUS_AMOUNT, "5.0", "Valor do bônus por indicação (R$)", False, "loyalty"),
+            (
+                SettingsKeys.REFERRAL_BONUS_AMOUNT,
+                "5.0",
+                "Valor do bônus por indicação (R$)",
+                False,
+                "loyalty",
+            ),
         ]
 
         count = 0

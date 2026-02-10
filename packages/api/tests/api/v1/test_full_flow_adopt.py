@@ -160,7 +160,9 @@ async def test_full_flow_appointment_without_products(
     Fluxo mínimo: estabelecimento → profissional → serviço → cliente → agendamento (sem produtos).
     """
     owner_headers = auth_headers
-    business_hours = {d: {"open": "08:00", "close": "20:00"} for d in ["mon", "tue", "wed", "thu", "fri", "sat"]}
+    business_hours = {
+        d: {"open": "08:00", "close": "20:00"} for d in ["mon", "tue", "wed", "thu", "fri", "sat"]
+    }
     resp = await client.post(
         "/api/v1/establishments",
         json={
@@ -179,7 +181,12 @@ async def test_full_flow_appointment_without_products(
 
     resp = await client.post(
         f"/api/v1/establishments/{est_id}/staff",
-        json={"name": "Maria", "role": "barbeiro", "commission_rate": 40.0, "work_schedule": business_hours},
+        json={
+            "name": "Maria",
+            "role": "barbeiro",
+            "commission_rate": 40.0,
+            "work_schedule": business_hours,
+        },
         headers=owner_headers,
     )
     assert resp.status_code == 201

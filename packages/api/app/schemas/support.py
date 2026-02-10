@@ -90,12 +90,14 @@ class TicketListResponse(BaseModel):
     page: int
     page_size: int
 
+
 class SupportContextAppointment(BaseModel):
     id: UUID
     service_name: str
     staff_name: str
     status: str
     start_at: datetime
+
 
 class SupportContextPayment(BaseModel):
     id: UUID
@@ -104,13 +106,16 @@ class SupportContextPayment(BaseModel):
     provider: str
     created_at: datetime
 
+
 class UserSupportContext(BaseModel):
     """Schema for unified support context for a user."""
+
     user: UserResponse
     recent_appointments: list[SupportContextAppointment]
     recent_payments: list[SupportContextPayment]
     total_spent: float
     subscription_tier: str | None = None
+
 
 class CancelAppointmentRequest(BaseModel):
     reason: str

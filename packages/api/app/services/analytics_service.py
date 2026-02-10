@@ -93,7 +93,7 @@ class AnalyticsService:
         # We query platform_fee directly from successful single payments
         finance_query = select(
             func.sum(Payment.amount).label("gmv"),
-            func.sum(Payment.platform_fee).label("commissions")
+            func.sum(Payment.platform_fee).label("commissions"),
         ).where(
             and_(
                 Payment.status == PaymentStatus.succeeded,
@@ -134,7 +134,10 @@ class AnalyticsService:
             .group_by(Appointment.status)
         )
         appt_stats_res = await self.db.execute(appt_stats_query)
-        stats_dict = {status.value if hasattr(status, 'value') else status: count for status, count in appt_stats_res.all()}
+        stats_dict = {
+            status.value if hasattr(status, "value") else status: count
+            for status, count in appt_stats_res.all()
+        }
 
         total_appts = sum(stats_dict.values())
         completed_appts = stats_dict.get(AppointmentStatus.completed.value, 0)
@@ -142,13 +145,16 @@ class AnalyticsService:
 
         # 5. Products Sold
         from app.models.appointment import AppointmentProduct
-        products_query = select(func.sum(AppointmentProduct.quantity)).join(
-            Appointment, Appointment.id == AppointmentProduct.appointment_id
-        ).where(
-            and_(
-                Appointment.status == AppointmentStatus.completed,
-                Appointment.scheduled_at >= start_date,
-                Appointment.scheduled_at < end_date + timedelta(days=1),
+
+        products_query = (
+            select(func.sum(AppointmentProduct.quantity))
+            .join(Appointment, Appointment.id == AppointmentProduct.appointment_id)
+            .where(
+                and_(
+                    Appointment.status == AppointmentStatus.completed,
+                    Appointment.scheduled_at >= start_date,
+                    Appointment.scheduled_at < end_date + timedelta(days=1),
+                )
             )
         )
         products_res = await self.db.execute(products_query)
@@ -163,6 +169,7 @@ class AnalyticsService:
 
         # 7. Top Establishments Leaderboard
         from app.models.establishment import Establishment
+
         top_est_query = (
             select(Establishment.name, func.sum(Payment.amount).label("revenue"))
             .join(Payment, Establishment.id == Payment.establishment_id)
@@ -179,8 +186,7 @@ class AnalyticsService:
         )
         top_est_res = await self.db.execute(top_est_query)
         leaderboard = [
-            {"name": name, "revenue": float(revenue or 0)}
-            for name, revenue in top_est_res.all()
+            {"name": name, "revenue": float(revenue or 0)} for name, revenue in top_est_res.all()
         ]
 
         # 6. New Establishments count
@@ -195,6 +201,7 @@ class AnalyticsService:
 
         # 7. Total Active Users
         from app.models.user import User
+
         user_count_query = select(func.count(User.id))
         user_count_res = await self.db.execute(user_count_query)
         total_active_users = user_count_res.scalar() or 0

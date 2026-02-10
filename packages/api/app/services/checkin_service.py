@@ -129,6 +129,7 @@ class CheckinService:
             # WhatsApp: aviso de entrada na fila (check-in sem agendamento)
             try:
                 from app.services.whatsapp_service import get_whatsapp_service
+
                 user = await self.db.get(User, user_id)
                 if user and getattr(user, "phone", None):
                     await get_whatsapp_service().send_queue_joined(

@@ -1,4 +1,3 @@
-
 import asyncio
 import logging
 from sqlalchemy import select, update
@@ -11,6 +10,7 @@ from app.services.auth_service import AuthService
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 async def reset_password() -> None:
     """Reset support user password."""
     engine = create_async_engine(str(settings.DATABASE_URL))
@@ -18,9 +18,7 @@ async def reset_password() -> None:
 
     async with async_session() as session:
         # Check if support exists
-        result = await session.execute(
-            select(User).where(User.email == "support@dunnaa.com")
-        )
+        result = await session.execute(select(User).where(User.email == "support@dunnaa.com"))
         user = result.scalar_one_or_none()
 
         if not user:
@@ -31,15 +29,14 @@ async def reset_password() -> None:
         logger.info(f"Current Hash: {user.hashed_password}")
 
         new_hash = AuthService.get_password_hash("support123")
-        
+
         # Direct update
         await session.execute(
-            update(User)
-            .where(User.email == "support@dunnaa.com")
-            .values(hashed_password=new_hash)
+            update(User).where(User.email == "support@dunnaa.com").values(hashed_password=new_hash)
         )
         await session.commit()
         logger.info("Password reset to 'support123' (hash updated).")
+
 
 if __name__ == "__main__":
     asyncio.run(reset_password())

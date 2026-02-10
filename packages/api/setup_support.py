@@ -1,4 +1,3 @@
-
 import asyncio
 import logging
 
@@ -13,6 +12,7 @@ from app.services.auth_service import AuthService
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 async def setup_support() -> None:
     """Setup initial support user."""
     engine = create_async_engine(str(settings.DATABASE_URL))
@@ -20,9 +20,7 @@ async def setup_support() -> None:
 
     async with async_session() as session:
         # Check if support exists
-        result = await session.execute(
-            select(User).where(User.email == "support@dunnaa.com")
-        )
+        result = await session.execute(select(User).where(User.email == "support@dunnaa.com"))
         user = result.scalar_one_or_none()
 
         if user:
@@ -30,9 +28,9 @@ async def setup_support() -> None:
             return
 
         logger.info("Creating support user...")
-        
+
         hashed_password = AuthService.get_password_hash("support123")
-        
+
         user = User(
             email="support@dunnaa.com",
             name="Support Agent",
@@ -40,10 +38,11 @@ async def setup_support() -> None:
             hashed_password=hashed_password,
             role=UserRole.support,
         )
-        
+
         session.add(user)
         await session.commit()
         logger.info("Support user created successfully: support@dunnaa.com / support123")
+
 
 if __name__ == "__main__":
     asyncio.run(setup_support())
