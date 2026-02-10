@@ -3,7 +3,7 @@
 from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, status
-from sqlalchemy import select, func
+from sqlalchemy import select
 
 from app.api.deps import CurrentUser, DBSession
 from app.core.exceptions import ForbiddenError, NotFoundError
