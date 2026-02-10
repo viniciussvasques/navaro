@@ -2,7 +2,7 @@
 
 import httpx
 
-from app.core.config import settings
+from app.core.config import settings as app_settings
 from app.core.logging import get_logger
 from app.models.system_settings import SettingsKeys
 
@@ -19,7 +19,8 @@ class WhatsAppService:
 
         async with database.async_session_maker() as session:
             settings_service = SettingsService(session)
-            provider = (await settings_service.get(SettingsKeys.WHATSAPP_PROVIDER)) or "twilio"
+            # Default provider is Meta Cloud API when not explicitly set.
+            provider = (await settings_service.get(SettingsKeys.WHATSAPP_PROVIDER)) or "meta"
             return {
                 "enabled": await settings_service.get_bool(SettingsKeys.WHATSAPP_ENABLED, False),
                 "provider": provider,
@@ -44,7 +45,7 @@ class WhatsAppService:
                 or "",
                 # Bridge (Baileys)
                 # Usa URL do .env quando não houver override em banco.
-                "bridge_url": settings.WHATSAPP_BRIDGE_URL,
+                "bridge_url": app_settings.WHATSAPP_BRIDGE_URL,
             }
 
     async def send_text(self, to_phone: str, message: str) -> bool:
@@ -53,7 +54,7 @@ class WhatsAppService:
         if not settings["enabled"]:
             logger.info("WhatsApp disabled", to=to_phone)
             return True
-        provider = (settings.get("provider") or "twilio").lower()
+        provider = (settings.get("provider") or "meta").lower()
         if provider == "twilio":
             return await self._send_twilio(to_phone, message, settings)
         if provider == "meta":
@@ -136,9 +137,9 @@ class WhatsAppService:
             logger.error("WhatsApp Meta error", error=str(e))
             return False
 
-    async def _send_bridge(self, to_phone: str, message: str, settings: dict) -> bool:
+    async def _send_bridge(self, to_phone: str, message: str, cfg: dict) -> bool:
         """Send via self-hosted Bridge (Baileys)."""
-        bridge_url = (settings.get("bridge_url") or settings.WHATSAPP_BRIDGE_URL).rstrip("/")
+        bridge_url = (cfg.get("bridge_url") or app_settings.WHATSAPP_BRIDGE_URL).rstrip("/")
         if not bridge_url:
             logger.warning("WhatsApp Bridge URL not configured")
             return False
@@ -171,7 +172,7 @@ class WhatsAppService:
     ) -> bool:
         """Send template message via WhatsApp (apenas Meta; Twilio usa mensagem livre)."""
         settings = await self.get_settings()
-        if not settings["enabled"] or (settings.get("provider") or "twilio") != "meta":
+        if not settings["enabled"] or (settings.get("provider") or "meta") != "meta":
             return False
         return await self._send_meta_template(
             to_phone, template_name, language_code, components, settings

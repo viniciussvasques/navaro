@@ -8,7 +8,7 @@ from sqlalchemy import select, func
 from app.api.deps import CurrentUser, DBSession
 from app.core.exceptions import ForbiddenError, NotFoundError
 from app.models import Establishment, Product, UserRole
-from app.schemas.product import ProductCreate, ProductResponse, ProductUpdate, ProductListResponse
+from app.schemas.product import ProductCreate, ProductResponse, ProductUpdate
 
 router = APIRouter(prefix="/establishments/{establishment_id}/products", tags=["Products"])
 
@@ -34,29 +34,22 @@ def check_ownership(establishment: Establishment, user: CurrentUser) -> None:
 # ─── Endpoints ─────────────────────────────────────────────────────────────────
 
 
-@router.get("", response_model=ProductListResponse)
+@router.get("", response_model=list[ProductResponse])
 async def list_products(
     establishment_id: UUID,
     db: DBSession,
     active_only: bool = True,
-) -> ProductListResponse:
+) -> list[ProductResponse]:
     """List products for an establishment."""
     query = select(Product).where(Product.establishment_id == establishment_id)
 
     if active_only:
         query = query.where(Product.active == True)
 
-    # Count total
-    count_query = select(func.count()).select_from(query.subquery())
-    total_res = await db.execute(count_query)
-    total = total_res.scalar() or 0
-
     result = await db.execute(query)
     products = result.scalars().all()
 
-    return ProductListResponse(
-        items=[ProductResponse.model_validate(p) for p in products], total=total
-    )
+    return [ProductResponse.model_validate(p) for p in products]
 
 
 @router.post("", response_model=ProductResponse, status_code=201)
