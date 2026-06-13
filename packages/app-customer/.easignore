@@ -1,0 +1,22 @@
+# Build isolado do app cliente — evita pnpm install do monorepo inteiro no EAS
+../../pnpm-workspace.yaml
+../../pnpm-lock.yaml
+../../package-lock.json
+../../packages/api
+../../packages/web-admin
+../../packages/dunnaa-pro-web
+../../packages/website
+../../packages/app-pro
+../../packages/whatsapp-bridge
+../../apps
+../../docker
+../../docs
+../../scripts
+../../.cursor
+../../node_modules
+../api
+../web-admin
+../dunnaa-pro-web
+../website
+../app-pro
+../whatsapp-bridge

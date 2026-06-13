@@ -1,0 +1,98 @@
+{
+  "expo": {
+    "name": "DUNNAA",
+    "slug": "dunnaa",
+    "version": "1.0.0",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "enabled": false
+    },
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "dunnaa",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0a0a0a"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.dunnaa.customer",
+      "associatedDomains": [
+        "applinks:dunnaa.com.br"
+      ],
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Precisamos da sua localização para mostrar estabelecimentos perto de você.",
+        "NSLocationAlwaysUsageDescription": "Precisamos da sua localização para validar sua posição na fila.",
+        "NSCameraUsageDescription": "Precisamos da câmera para escanear QR Codes de estabelecimentos."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#005F73"
+      },
+      "edgeToEdgeEnabled": true,
+      "package": "com.dunnaa.customer",
+      "versionCode": 1,
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "CAMERA",
+        "REQUEST_INSTALL_PACKAGES",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "dunnaa.com.br",
+              "pathPrefix": "/go/"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Permite que o DUNNAA acesse a câmera para escanear QR Codes de estabelecimentos."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Permite que o DUNNAA acesse sua localização para mostrar serviços perto de você e validar presença na fila."
+        }
+      ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "a313f030-aebf-4676-84be-9f3ecbd334e4"
+      }
+    },
+    "owner": "vinivasques"
+  }
+}
