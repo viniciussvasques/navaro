@@ -1,9 +1,9 @@
 """Auth endpoints."""
 
 from fastapi import APIRouter, HTTPException, Response
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, EmailStr, Field
 
-from app.api.deps import DBSession
+from app.api.deps import CurrentUser, DBSession
 from app.core.config import settings
 from app.core.logging import get_logger
 
@@ -48,6 +48,7 @@ class SendCodeResponse(BaseModel):
         None,
         description="Motivo da falha quando whatsapp_sent for False",
     )
+    is_registered: bool = Field(False, description="True se o usuário já existe, False se for novo cadastro")
 
 
 class VerifyCodeRequest(BaseModel):
@@ -75,6 +76,14 @@ class RefreshTokenRequest(BaseModel):
     """Request to refresh token."""
 
     refresh_token: str
+
+
+class CompleteRegistrationRequest(BaseModel):
+    """Complete registration after OTP - add name, email, password."""
+
+    name: str = Field(..., min_length=2, max_length=200)
+    email: EmailStr = Field(..., description="Email address")
+    password: str = Field(..., min_length=6, description="Password")
 
 
 class UserResponse(BaseModel):
@@ -106,21 +115,27 @@ async def send_verification_code(request: SendCodeRequest, db: DBSession) -> Sen
     Send verification code.
     """
     from app.services.auth_service import AuthService
-    from app.core.config import settings
 
-    auth_service = AuthService(db)
-    sms_sent, sms_error, whatsapp_sent, whatsapp_error = await auth_service.send_verification_code(
-        request.phone
-    )
+    try:
+        auth_service = AuthService(db)
+        sms_sent, sms_error, whatsapp_sent, whatsapp_error = await auth_service.send_verification_code(
+            request.phone
+        )
+    except Exception as e:
+        logger.exception("Send verification code failed: %s", e)
+        raise HTTPException(
+            status_code=500,
+            detail={"message": str(e) if settings.is_debug else "Não foi possível enviar o código. Tente novamente."},
+        ) from e
 
     message = "Código enviado com sucesso"
-    if settings.ENVIRONMENT == "development" or settings.is_debug:
-        from app.core.redis import get_redis
-
-        redis = await get_redis()
-        code = await redis.get(f"{settings.REDIS_PREFIX}otp:{request.phone}")
-        if code:
-            message = f"Código de verificação: {code}"
+    
+    # Check if user exists
+    from app.models.user import User
+    from sqlalchemy import select
+    
+    result = await db.execute(select(User.id).where(User.phone == request.phone))
+    is_registered = result.scalar_one_or_none() is not None
 
     return SendCodeResponse(
         message=message,
@@ -129,6 +144,7 @@ async def send_verification_code(request: SendCodeRequest, db: DBSession) -> Sen
         sms_error=sms_error,
         whatsapp_sent=whatsapp_sent,
         whatsapp_error=whatsapp_error,
+        is_registered=is_registered,
     )
 
 
@@ -141,20 +157,34 @@ async def verify_code(request: VerifyCodeRequest, db: DBSession) -> AuthResponse
 
     auth_service = AuthService(db)
     token_response = await auth_service.verify_code(
-        phone=request.phone, code=request.code, referral_code=request.referral_code
+        phone=request.phone,
+        code=request.code,
+        referral_code=request.referral_code,
+        email=request.email,
+        name=request.name
     )
 
     if not token_response:
         raise HTTPException(status_code=400, detail="Código inválido ou expirado")
 
-    return AuthResponse(
-        tokens=TokenResponse(
-            access_token=token_response.access_token,
-            refresh_token=token_response.refresh_token,
-            expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-        ),
-        user=UserResponse(**token_response.user.model_dump(mode="json")),
-    )
+    user_dump = token_response.user.model_dump(mode="json")
+    # Only fields expected by this API's UserResponse (no created_at etc.)
+    user_payload = {k: user_dump.get(k) for k in ("id", "phone", "name", "email", "avatar_url", "role", "referral_code", "referred_by_id") if k in user_dump}
+    if "id" in user_payload and user_payload["id"] is not None:
+        user_payload["id"] = str(user_payload["id"])
+    if "referred_by_id" in user_payload and user_payload["referred_by_id"] is not None:
+        user_payload["referred_by_id"] = str(user_payload["referred_by_id"])
+    if "role" in user_payload and not isinstance(user_payload.get("role"), str):
+        user_payload["role"] = getattr(user_payload["role"], "value", user_payload["role"])
+    return AuthResponse.model_validate({
+        "tokens": {
+            "access_token": token_response.access_token,
+            "refresh_token": token_response.refresh_token,
+            "token_type": "bearer",
+            "expires_in": settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        },
+        "user": user_payload,
+    })
 
 
 @router.post("/login", response_model=AuthResponse)
@@ -166,31 +196,57 @@ async def login_with_password(
     """
     from app.services.auth_service import AuthService
 
-    auth_service = AuthService(db)
-    token_response = await auth_service.login_with_password(
-        email=request.email, password=request.password
-    )
+    try:
+        auth_service = AuthService(db)
+        token_response = await auth_service.login_with_password(
+            email=request.email, password=request.password
+        )
+    except Exception as e:
+        logger.exception("Login with password failed: %s", e)
+        raise HTTPException(
+            status_code=500,
+            detail=({"message": str(e)} if settings.is_debug else {"message": "Erro interno ao fazer login. Tente novamente."}),
+        ) from e
 
     if not token_response:
         raise HTTPException(status_code=401, detail="Email ou senha inválidos")
 
-    response.set_cookie(
-        key="access_token",
-        value=token_response.access_token,
-        httponly=True,
-        secure=settings.is_production,  # Secure only in prod (HTTPS)
-        samesite="lax",
-        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-    )
+    try:
+        response.set_cookie(
+            key="access_token",
+            value=token_response.access_token,
+            httponly=True,
+            secure=settings.is_production,  # Secure only in prod (HTTPS)
+            samesite="lax",
+            max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        )
 
-    return AuthResponse(
-        tokens=TokenResponse(
-            access_token=token_response.access_token,
-            refresh_token=token_response.refresh_token,
-            expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-        ),
-        user=UserResponse(**token_response.user.model_dump(mode="json")),
-    )
+        user_dump = token_response.user.model_dump(mode="json")
+        user_payload = {k: user_dump.get(k) for k in ("id", "phone", "name", "email", "avatar_url", "role", "referral_code", "referred_by_id") if k in user_dump}
+        if "id" in user_payload and user_payload["id"] is not None:
+            user_payload["id"] = str(user_payload["id"])
+        if "referred_by_id" in user_payload and user_payload["referred_by_id"] is not None:
+            user_payload["referred_by_id"] = str(user_payload["referred_by_id"])
+        if "role" in user_payload and user_payload["role"] is not None and not isinstance(user_payload.get("role"), str):
+            user_payload["role"] = getattr(user_payload["role"], "value", user_payload["role"])
+        elif "role" in user_payload and user_payload["role"] is None:
+            user_payload["role"] = "customer"  # fallback para usuários sem role
+
+        return AuthResponse.model_validate({
+            "tokens": {
+                "access_token": token_response.access_token,
+                "refresh_token": token_response.refresh_token,
+                "token_type": "bearer",
+                "expires_in": settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+            },
+            "user": user_payload,
+        })
+    except Exception as e:
+        logger.exception("Login response build failed: %s", e)
+        raise HTTPException(
+            status_code=500,
+            detail=({"message": str(e)} if settings.is_debug else {"message": "Erro interno ao fazer login. Tente novamente."}),
+        ) from e
 
 
 @router.post("/refresh", response_model=TokenResponse)
@@ -209,6 +265,37 @@ async def refresh_tokens(request: RefreshTokenRequest, db: DBSession) -> TokenRe
         refresh_token=token_response.refresh_token,
         expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
     )
+
+
+@router.post("/complete-registration")
+async def complete_registration(
+    request: CompleteRegistrationRequest,
+    db: DBSession,
+    current_user: CurrentUser,
+):
+    """
+    Complete registration after OTP login: add name, email and password.
+    Allows login by email/password later.
+    """
+    from sqlalchemy import select
+
+    from app.models import User
+    from app.services.auth_service import AuthService
+
+    # Check email unique (exclude current user)
+    result = await db.execute(
+        select(User.id).where(User.email == request.email, User.id != current_user.id)
+    )
+    if result.scalar_one_or_none():
+        raise HTTPException(status_code=400, detail="E-mail já está em uso")
+
+    auth_service = AuthService(db)
+    current_user.name = request.name
+    current_user.email = request.email
+    current_user.hashed_password = auth_service.get_password_hash(request.password)
+
+    await db.commit()
+    return {"message": "Cadastro concluído com sucesso"}
 
 
 @router.post("/logout")

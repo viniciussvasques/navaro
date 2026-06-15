@@ -1,6 +1,7 @@
 """Favorite endpoints."""
 
 from typing import Annotated
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -63,6 +64,11 @@ async def list_favorites(
                     establishment_name=f.establishment.name,
                     establishment_slug=f.establishment.slug,
                     establishment_logo_url=f.establishment.logo_url,
+                    establishment_cover_url=f.establishment.cover_url,
+                    establishment_category=f.establishment.category,
+                    establishment_city=f.establishment.city,
+                    establishment_state=f.establishment.state,
+                    establishment_avg_rating=None,
                 )
             )
 
@@ -80,3 +86,16 @@ async def list_favorites(
             )
 
     return UserFavoritesResponse(establishments=establishment_items, staff=staff_items)
+
+
+@router.get("/{establishment_id}/check", status_code=status.HTTP_200_OK)
+async def check_favorite_status(
+    establishment_id: str,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> dict[str, bool]:
+    """Check if an establishment is in user favorites."""
+    service = FavoriteService(db)
+    is_fav = await service.is_favorite(current_user.id, UUID(establishment_id))
+    return {"is_favorite": is_fav}
+

@@ -3,9 +3,9 @@
  * Scans QR codes from establishment posters and navigates to the establishment.
  * Auto-favorites the establishment.
  */
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
-    View, Text, StyleSheet, TouchableOpacity, Alert, Linking, ActivityIndicator,
+    View, Text, StyleSheet, TouchableOpacity, Alert, Linking, ActivityIndicator, Platform,
 } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useRouter } from 'expo-router';
@@ -13,11 +13,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, typography, spacing, radius } from '../src/theme';
 import { useAuth } from '../src/contexts/AuthContext';
+import { useSafeBack } from '../src/hooks/useSafeBack';
 import { favoritesService } from '../src/services/favorites';
 import api from '../src/services/api';
 
 export default function ScanScreen() {
     const router = useRouter();
+    const goBack = useSafeBack();
     const insets = useSafeAreaInsets();
     const { isAuthenticated } = useAuth();
     const [permission, requestPermission] = useCameraPermissions();
@@ -90,12 +92,12 @@ export default function ScanScreen() {
             Alert.alert(
                 'Check-in realizado!',
                 result.message || 'Aguarde ser chamado.',
-                [{ text: 'OK', onPress: () => router.back() }]
+                [{ text: 'OK', onPress: goBack }]
             );
             if (result.establishment_id) {
                 router.replace(`/establishment/${result.establishment_id}`);
             } else {
-                router.back();
+                goBack();
             }
         } catch (e: any) {
             const detail = e?.response?.data?.detail;
@@ -113,7 +115,7 @@ export default function ScanScreen() {
             const { data: est } = await api.get(`/establishments/slug/${slug}`);
             if (est?.id) {
                 // Register scan on API
-                api.post(`/qr/scan/${slug}`, { source: 'app_scanner' }).catch(() => {});
+                api.post(`/qr/scan/${slug}`, { source: Platform.OS === 'web' ? 'pwa_scanner' : 'app_scanner' }).catch(() => {});
 
                 await autoFavoriteAndNavigate(est.id);
             } else {
@@ -191,7 +193,7 @@ export default function ScanScreen() {
                 {/* Close Button */}
                 <TouchableOpacity
                     style={[styles.closeBtn, { top: insets.top + spacing.md }]}
-                    onPress={() => router.back()}
+                    onPress={goBack}
                 >
                     <Ionicons name="close" size={24} color={colors.textMain} />
                 </TouchableOpacity>
@@ -203,8 +205,9 @@ export default function ScanScreen() {
                     <Text style={styles.permissionTitle}>Camera necessaria</Text>
                     <Text style={styles.permissionText}>
                         Precisamos da camera para escanear QR Codes de estabelecimentos.
+                        {Platform.OS === 'web' ? ' Toque abaixo e permita o acesso quando o navegador pedir.' : ''}
                     </Text>
-                    <TouchableOpacity style={styles.permissionBtn} onPress={requestPermission}>
+                    <TouchableOpacity style={styles.permissionBtn} onPress={() => void requestPermission()}>
                         <Text style={styles.permissionBtnText}>Permitir Camera</Text>
                     </TouchableOpacity>
                 </View>
@@ -216,17 +219,19 @@ export default function ScanScreen() {
         <View style={styles.container}>
             <CameraView
                 style={StyleSheet.absoluteFillObject}
+                facing="back"
                 barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
                 onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
             />
 
             {/* Overlay */}
-            <View style={[styles.overlay, { paddingTop: insets.top }]}>
+            <View style={[styles.overlay, { paddingTop: insets.top }]} pointerEvents="box-none">
                 {/* Top bar */}
-                <View style={styles.topBar}>
+                <View style={styles.topBar} pointerEvents="box-none">
                     <TouchableOpacity
                         style={styles.closeBtnCamera}
-                        onPress={() => router.back()}
+                        onPress={goBack}
+                        hitSlop={12}
                     >
                         <Ionicons name="close" size={24} color={colors.white} />
                     </TouchableOpacity>
@@ -313,6 +318,8 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(0,0,0,0.4)',
         alignItems: 'center',
         justifyContent: 'center',
+        zIndex: 30,
+        ...(Platform.OS === 'web' ? { cursor: 'pointer' as const } : {}),
     },
     closeBtn: {
         position: 'absolute',
@@ -323,6 +330,8 @@ const styles = StyleSheet.create({
         backgroundColor: colors.surface,
         alignItems: 'center',
         justifyContent: 'center',
+        zIndex: 30,
+        ...(Platform.OS === 'web' ? { cursor: 'pointer' as const } : {}),
         ...{
             shadowColor: '#000',
             shadowOffset: { width: 0, height: 2 },

@@ -2,10 +2,10 @@
  * Reusable header
  */
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { useRouter } from 'expo-router';
+import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeBack } from '../hooks/useSafeBack';
 import { colors, typography, spacing } from '../theme';
 
 interface Props {
@@ -16,7 +16,7 @@ interface Props {
 }
 
 export function Header({ title, showBack = true, rightAction, transparent = false }: Props) {
-    const router = useRouter();
+    const goBack = useSafeBack();
     const insets = useSafeAreaInsets();
 
     return (
@@ -29,7 +29,7 @@ export function Header({ title, showBack = true, rightAction, transparent = fals
                 {showBack ? (
                     <TouchableOpacity
                         style={[styles.backBtn, transparent && styles.backBtnTransparent]}
-                        onPress={() => router.back()}
+                        onPress={goBack}
                         hitSlop={12}
                         activeOpacity={0.8}
                     >
@@ -79,6 +79,8 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         borderRadius: 20,
         backgroundColor: colors.surface + 'CC',
+        zIndex: 20,
+        ...(Platform.OS === 'web' ? { cursor: 'pointer' as const } : {}),
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.2,

@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppState, Platform } from 'react-native';
 import * as Application from 'expo-application';
 import * as FileSystem from 'expo-file-system/legacy';
-import * as IntentLauncher from 'expo-intent-launcher';
 import Constants from 'expo-constants';
 import {
     AppUpdateManifest,
@@ -120,6 +119,7 @@ export function useAppUpdate() {
 
             const installUri = await FileSystem.getContentUriAsync(result.uri);
 
+            const IntentLauncher = await import('expo-intent-launcher');
             await IntentLauncher.startActivityAsync('android.intent.action.VIEW', {
                 data: installUri,
                 flags: 1,

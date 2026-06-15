@@ -34,6 +34,7 @@ export function EstablishmentCard({ establishment, onPress, compact }: Props) {
                         <Text style={styles.name} numberOfLines={1}>{establishment.name}</Text>
                         {establishment.is_sponsored && (
                             <View style={styles.sponsoredBadge}>
+                                <Ionicons name="flash" size={10} color={colors.accentDark} />
                                 <Text style={styles.sponsoredText}>Destaque</Text>
                             </View>
                         )}
@@ -117,14 +118,17 @@ const styles = StyleSheet.create({
         flexShrink: 1,
     },
     sponsoredBadge: {
-        backgroundColor: colors.primary,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 3,
+        backgroundColor: colors.accentLight,
         paddingHorizontal: spacing.sm,
         paddingVertical: 2,
         borderRadius: radius.full,
     },
     sponsoredText: {
         ...typography.caption,
-        color: colors.white,
+        color: colors.accentDark,
         fontWeight: '700',
         fontSize: 10,
     },

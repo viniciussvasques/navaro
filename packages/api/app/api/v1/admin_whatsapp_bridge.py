@@ -31,7 +31,7 @@ async def _get_bridge(path: str) -> dict:
     except httpx.ConnectError as e:
         raise HTTPException(
             status_code=503,
-            detail="WhatsApp Bridge indisponível. Verifique se o serviço está rodando (ex: npm start em packages/whatsapp-bridge).",
+            detail="WhatsApp Bridge indisponível. O serviço pode estar reiniciando ou não está rodando. Verifique: docker compose logs whatsapp-bridge",
         ) from e
     except httpx.HTTPStatusError as e:
         raise HTTPException(status_code=e.response.status_code, detail=e.response.text[:200]) from e
@@ -66,7 +66,7 @@ async def _post_bridge(path: str, payload: dict | None = None) -> dict:
     except httpx.ConnectError as e:
         raise HTTPException(
             status_code=503,
-            detail="WhatsApp Bridge indisponível. Verifique se o serviço está rodando (ex: npm start em packages/whatsapp-bridge).",
+            detail="WhatsApp Bridge indisponível. O serviço pode estar reiniciando ou não está rodando. Verifique: docker compose logs whatsapp-bridge",
         ) from e
     except httpx.HTTPStatusError as e:
         raise HTTPException(status_code=e.response.status_code, detail=e.response.text[:200]) from e

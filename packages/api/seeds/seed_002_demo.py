@@ -40,7 +40,7 @@ async def seed(db: AsyncSession) -> None:
             phone="+5511888888888",
             name="João Silva",
             email="joao@demo.com",
-            role=UserRole.OWNER,
+            role=UserRole.owner,
         )
         db.add(owner)
         await db.flush()
@@ -50,7 +50,7 @@ async def seed(db: AsyncSession) -> None:
         owner_id=owner.id,
         name="Barbearia Demo",
         slug="barbearia-demo",
-        category=EstablishmentCategory.BARBERSHOP,
+        category=EstablishmentCategory.barbershop,
         description="Barbearia tradicional com atendimento de qualidade e profissionais experientes.",
         address="Rua das Flores, 123",
         city="São Paulo",
@@ -58,16 +58,16 @@ async def seed(db: AsyncSession) -> None:
         zip_code="01234-567",
         phone="+5511888888888",
         whatsapp="+5511888888888",
-        status=EstablishmentStatus.ACTIVE,
-        subscription_tier=SubscriptionTier.ACTIVE,
+        status=EstablishmentStatus.active,
+        subscription_tier=SubscriptionTier.active,
         business_hours={
-            "monday": {"open": "09:00", "close": "19:00"},
-            "tuesday": {"open": "09:00", "close": "19:00"},
-            "wednesday": {"open": "09:00", "close": "19:00"},
-            "thursday": {"open": "09:00", "close": "19:00"},
-            "friday": {"open": "09:00", "close": "19:00"},
-            "saturday": {"open": "09:00", "close": "17:00"},
-            "sunday": None,
+            "mon": {"open": "09:00", "close": "19:00"},
+            "tue": {"open": "09:00", "close": "19:00"},
+            "wed": {"open": "09:00", "close": "19:00"},
+            "thu": {"open": "09:00", "close": "19:00"},
+            "fri": {"open": "09:00", "close": "19:00"},
+            "sat": {"open": "09:00", "close": "17:00"},
+            "sun": None,
         },
     )
     db.add(establishment)
@@ -106,13 +106,13 @@ async def seed(db: AsyncSession) -> None:
     ]
 
     default_schedule = {
-        "monday": {"start": "09:00", "end": "19:00"},
-        "tuesday": {"start": "09:00", "end": "19:00"},
-        "wednesday": {"start": "09:00", "end": "19:00"},
-        "thursday": {"start": "09:00", "end": "19:00"},
-        "friday": {"start": "09:00", "end": "19:00"},
-        "saturday": {"start": "09:00", "end": "17:00"},
-        "sunday": None,
+        "mon": {"open": "09:00", "close": "19:00"},
+        "tue": {"open": "09:00", "close": "19:00"},
+        "wed": {"open": "09:00", "close": "19:00"},
+        "thu": {"open": "09:00", "close": "19:00"},
+        "fri": {"open": "09:00", "close": "19:00"},
+        "sat": {"open": "09:00", "close": "17:00"},
+        "sun": None,
     }
 
     staff_members = []

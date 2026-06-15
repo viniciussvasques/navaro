@@ -125,7 +125,7 @@ export function SearchFiltersModal({ visible, filters, onClose, onApply }: Props
                                     onPress={() => setLocal({ ...local, minRating: r })}
                                 >
                                     <Text style={[styles.chipText, local.minRating === r && styles.chipTextActive]}>
-                                        {r == null ? 'Qualquer' : `${r}+ ★`}
+                                        {r == null ? 'Qualquer' : `${r}+ estrelas`}
                                     </Text>
                                 </TouchableOpacity>
                             ))}

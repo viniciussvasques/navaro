@@ -1,11 +1,12 @@
 """User endpoints."""
 
-from fastapi import APIRouter
+from fastapi import APIRouter, File, HTTPException, Query, UploadFile
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
-from sqlalchemy import select
+from sqlalchemy import func, select
 
 from app.api.deps import AdminUser, CurrentUser, DBSession
 from app.models import User
+from app.models.user import UserRole
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -34,6 +35,7 @@ class UserUpdateRequest(BaseModel):
     name: str | None = Field(None, max_length=200)
     email: EmailStr | None = None
     avatar_url: str | None = Field(None, max_length=500)
+    device_token: str | None = Field(None, max_length=512)
 
 
 class RoleUpdateRequest(BaseModel):
@@ -57,11 +59,11 @@ async def get_current_user_info(current_user: CurrentUser) -> UserResponse:
     """Get current authenticated user info."""
     return UserResponse(
         id=str(current_user.id),
-        phone=current_user.phone,
+        phone=current_user.phone or "",
         name=current_user.name,
         email=current_user.email,
         avatar_url=current_user.avatar_url,
-        role=current_user.role.value,
+        role=getattr(current_user.role, "value", str(current_user.role)) if current_user.role else "customer",
         referral_code=current_user.referral_code,
         referred_by_id=str(current_user.referred_by_id) if current_user.referred_by_id else None,
     )
@@ -80,6 +82,8 @@ async def update_current_user(
         current_user.email = request.email
     if request.avatar_url is not None:
         current_user.avatar_url = request.avatar_url
+    if request.device_token is not None:
+        current_user.device_token = request.device_token.strip() or None
 
     await db.commit()
     await db.refresh(current_user)
@@ -101,13 +105,23 @@ async def list_users(
     admin: AdminUser,
     skip: int = 0,
     limit: int = 50,
+    q: str | None = Query(None, min_length=1, max_length=100),
 ) -> UserListResponse:
     """List all users (admin only)."""
-    result = await db.execute(select(User).offset(skip).limit(limit))
-    users = result.scalars().all()
+    query = select(User)
+    if q:
+        term = f"%{q.strip()}%"
+        query = query.where(
+            (User.name.ilike(term))
+            | (User.phone.ilike(term))
+            | (User.email.ilike(term))
+        )
 
-    total_result = await db.execute(select(User))
-    total = len(total_result.scalars().all())
+    count_result = await db.execute(select(func.count()).select_from(query.subquery()))
+    total = count_result.scalar() or 0
+
+    result = await db.execute(query.order_by(User.created_at.desc()).offset(skip).limit(limit))
+    users = result.scalars().all()
 
     return UserListResponse(
         items=[
@@ -141,11 +155,17 @@ async def update_user_role(
     user = result.scalar_one_or_none()
 
     if not user:
-        from fastapi import HTTPException
-
         raise HTTPException(status_code=404, detail="User not found")
 
-    user.role = request.role
+    try:
+        user.role = UserRole(request.role)
+    except ValueError:
+        valid = [r.value for r in UserRole]
+        raise HTTPException(
+            status_code=400,
+            detail=f"Role inválido. Valores permitidos: {', '.join(valid)}",
+        )
+
     await db.commit()
     await db.refresh(user)
 
@@ -157,4 +177,47 @@ async def update_user_role(
         avatar_url=user.avatar_url,
         role=user.role.value,
         referral_code=user.referral_code,
+    )
+
+
+# ─── Avatar Upload ─────────────────────────────────────────────────────────────
+
+
+@router.post("/me/avatar", response_model=UserResponse)
+async def upload_my_avatar(
+    db: DBSession,
+    current_user: CurrentUser,
+    file: UploadFile = File(...),
+) -> UserResponse:
+    """Upload user avatar."""
+    from app.services.storage_service import StorageService
+
+    content = await file.read()
+    if not content:
+        raise HTTPException(status_code=400, detail="Arquivo vazio.")
+
+    # Get storage service (might raise 503 if disabled)
+    storage = await StorageService.from_db(db)
+    
+    # Upload
+    url = await storage.upload_user_avatar(
+        user_id=current_user.id,
+        content=content,
+        content_type=file.content_type or "image/jpeg",
+    )
+
+    # Update user
+    current_user.avatar_url = url
+    await db.commit()
+    await db.refresh(current_user)
+
+    return UserResponse(
+        id=str(current_user.id),
+        phone=current_user.phone,
+        name=current_user.name,
+        email=current_user.email,
+        avatar_url=current_user.avatar_url,
+        role=getattr(current_user.role, "value", str(current_user.role)) if current_user.role else "customer",
+        referral_code=current_user.referral_code,
+        referred_by_id=str(current_user.referred_by_id) if current_user.referred_by_id else None,
     )

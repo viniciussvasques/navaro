@@ -1,0 +1,40 @@
+---
+description: Contexto geral do monorepo DUNNAA — sempre aplicar
+alwaysApply: true
+---
+
+# DUNNAA — Regras Gerais
+
+## Marca
+
+- **App:** DUNNAA (cliente) · **DUNNAA Pro** (barbeiro/profissional)
+- **Domínio:** [dunnaa.com.br](https://dunnaa.com.br)
+- **API produção:** `https://api.dunnaa.com.br/api/v1`
+- **Admin:** `https://admin.dunnaa.com.br`
+- **Packages npm:** `@dunnaa/*` (ex.: `@dunnaa/shared`)
+
+## Projeto
+
+Monorepo DUNNAA (codebase Navaro). Backend em `packages/api`; frontends em `packages/web-admin`, `packages/dunnaa-pro-web`, `packages/website`, `packages/app-customer`, `packages/app-pro`; WhatsApp em `packages/whatsapp-bridge`.
+
+## Comandos
+
+- API dev: `pnpm dev:api` (raiz) ou `uvicorn app.main:app --reload` (em `packages/api`)
+- Docker: `docker-compose up -d` (Postgres 5455, Redis 6385)
+- Migrations: `cd packages/api && alembic upgrade head`
+- Testes: `cd packages/api && pytest tests/ -v`
+- Lint: `cd packages/api && ruff check .`
+
+## Convenções
+
+- Docs e mensagens de API/SMS/email em português (BR), assinatura **DUNNAA**
+- Commits: `feat`, `fix`, `refactor`, `test`, `docs` + escopo
+- Não commitar secrets, `.env`, arquivos `test_*.txt` de debug
+- Preferir `app/api/deps.py` e `app/core/config.py` sobre imports legados
+
+## Monorepo
+
+- pnpm workspaces: `packages/*` (apps legados em `apps/*` vazios — ignorar README antigo)
+- Turborepo para `build`, `dev`, `lint`
+- Tipos compartilhados: criar `packages/shared` (pendente) — até lá, duplicar mínimo necessário
+- Rename em curso: `navaro` → `dunnaa` (Redis, env, logs)

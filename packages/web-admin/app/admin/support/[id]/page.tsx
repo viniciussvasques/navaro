@@ -30,13 +30,16 @@ export default function TicketDetailPage({ params }: { params: Promise<{ id: str
     const { data: ticket, isLoading } = useQuery<Ticket>({
         queryKey: ['ticket', id],
         queryFn: () => SupportService.get(id),
-        refetchInterval: 5000,
+        refetchInterval: 15000,
+        refetchIntervalInBackground: false,
     });
 
     const { data: context, isLoading: isLoadingContext } = useQuery({
         queryKey: ['ticket-context', id],
         queryFn: () => SupportService.getContext(id),
         enabled: !!ticket,
+        retry: 1,
+        refetchOnWindowFocus: false,
     });
 
     const sendMessageMutation = useMutation({

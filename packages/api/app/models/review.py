@@ -103,6 +103,13 @@ class Review(BaseModel):
         doc="Google review ID",
     )
 
+    is_hidden: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        nullable=False,
+        doc="Hidden from public by admin moderation",
+    )
+
     sent_to_google_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
         doc="When sent to Google",

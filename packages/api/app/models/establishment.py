@@ -5,7 +5,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 from uuid import UUID
 
-from sqlalchemy import JSON, Boolean, DateTime, Enum, ForeignKey, Index, Numeric, String
+from sqlalchemy import JSON, Boolean, DateTime, Enum, ForeignKey, Index, Integer, Numeric, String
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -185,6 +185,13 @@ class Establishment(BaseModel):
         doc="Enable queue mode instead of appointments",
     )
 
+    queue_geofence_meters: Mapped[int] = mapped_column(
+        Integer,
+        default=200,
+        nullable=False,
+        doc="Max distance (m) to join virtual queue",
+    )
+
     # ─── Status ────────────────────────────────────────────────────────────────
 
     status: Mapped[EstablishmentStatus] = mapped_column(
@@ -231,6 +238,82 @@ class Establishment(BaseModel):
         doc="Mercado Pago Seller Access Token (OAuth)",
     )
 
+    mercadopago_refresh_token: Mapped[str | None] = mapped_column(
+        String(500),
+        doc="Mercado Pago OAuth refresh token",
+    )
+
+    mercadopago_connected_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        doc="When Mercado Pago OAuth was connected",
+    )
+
+    accept_online_payment: Mapped[bool] = mapped_column(
+        Boolean,
+        default=True,
+        server_default="true",
+        nullable=False,
+        doc="Accept online payments (PIX, card) via app",
+    )
+
+    accept_cash_payment: Mapped[bool] = mapped_column(
+        Boolean,
+        default=True,
+        server_default="true",
+        nullable=False,
+        doc="Accept cash/card payment at the establishment",
+    )
+
+    # ─── Dados bancarios para repasse automatico ────────────────────────────
+
+    pix_key: Mapped[str | None] = mapped_column(
+        String(255),
+        doc="Chave PIX do estabelecimento para receber repasses",
+    )
+
+    pix_key_type: Mapped[str | None] = mapped_column(
+        String(20),
+        doc="Tipo da chave PIX: cpf, cnpj, email, phone, random",
+    )
+
+    bank_name: Mapped[str | None] = mapped_column(
+        String(100),
+        doc="Nome do banco (ex: Nubank, Itau, Bradesco)",
+    )
+
+    bank_agency: Mapped[str | None] = mapped_column(
+        String(20),
+        doc="Agencia bancaria",
+    )
+
+    bank_account: Mapped[str | None] = mapped_column(
+        String(30),
+        doc="Numero da conta bancaria",
+    )
+
+    bank_account_type: Mapped[str | None] = mapped_column(
+        String(20),
+        doc="Tipo da conta: corrente, poupanca",
+    )
+
+    bank_holder_name: Mapped[str | None] = mapped_column(
+        String(200),
+        doc="Nome do titular da conta",
+    )
+
+    bank_holder_document: Mapped[str | None] = mapped_column(
+        String(20),
+        doc="CPF ou CNPJ do titular",
+    )
+
+    auto_payout_enabled: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        server_default="false",
+        nullable=False,
+        doc="Se True, repasse automatico apos pagamento confirmado",
+    )
+
     cancellation_fee_fixed: Mapped[float | None] = mapped_column(
         Numeric(10, 2),
         default=0.0,
@@ -257,6 +340,19 @@ class Establishment(BaseModel):
         default=0.0,
         nullable=False,
         doc="Accrued platform fees from cash/manual transactions",
+    )
+
+    platform_subscription_expires_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        doc="When platform SaaS subscription expires (trial or paid)",
+    )
+
+    platform_auto_renew: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        server_default="false",
+        nullable=False,
+        doc="Auto-charge owner wallet before SaaS subscription expires",
     )
 
     # ─── Relationships ─────────────────────────────────────────────────────────

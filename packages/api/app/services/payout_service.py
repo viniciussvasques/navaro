@@ -5,7 +5,7 @@ from uuid import UUID
 from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.payment import Payment, PaymentStatus, Payout
+from app.models.payment import Payment, PaymentStatus, Payout, PayoutStatus
 
 
 class PayoutService:
@@ -29,9 +29,18 @@ class PayoutService:
         revenue_res = await self.db.execute(revenue_query)
         total_net_revenue = float(revenue_res.scalar() or 0)
 
-        # 2. Total Paid Out
+        # 2. Total já solicitado ou pago (reserva saldo)
         payout_query = select(func.sum(Payout.amount)).where(
-            and_(Payout.establishment_id == establishment_id, Payout.status == "paid")
+            and_(
+                Payout.establishment_id == establishment_id,
+                Payout.status.in_(
+                    [
+                        PayoutStatus.pending,
+                        PayoutStatus.processing,
+                        PayoutStatus.succeeded,
+                    ]
+                ),
+            )
         )
         payout_res = await self.db.execute(payout_query)
         total_payouts = float(payout_res.scalar() or 0)
@@ -48,7 +57,11 @@ class PayoutService:
         if amount < 50.0:
             raise ValueError("O valor mínimo para saque é R$ 50,00")
 
-        payout = Payout(establishment_id=establishment_id, amount=amount, status="pending")
+        payout = Payout(
+            establishment_id=establishment_id,
+            amount=amount,
+            status=PayoutStatus.pending,
+        )
         self.db.add(payout)
         await self.db.commit()
         await self.db.refresh(payout)

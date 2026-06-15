@@ -181,6 +181,12 @@ class ServiceBundle(BaseModel):
         doc="Discount percentage",
     )
 
+    image_url: Mapped[str | None] = mapped_column(
+        String(500),
+        nullable=True,
+        doc="Bundle image URL",
+    )
+
     active: Mapped[bool] = mapped_column(
         Boolean,
         default=True,

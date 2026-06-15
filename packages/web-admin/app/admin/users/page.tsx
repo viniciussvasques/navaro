@@ -26,22 +26,37 @@ import { Button } from '@/components/ui/button';
 
 export default function UsersPage() {
     const queryClient = useQueryClient();
+    const [search, setSearch] = React.useState("");
+    const [debouncedSearch, setDebouncedSearch] = React.useState("");
+
+    React.useEffect(() => {
+        const t = setTimeout(() => setDebouncedSearch(search.trim()), 300);
+        return () => clearTimeout(t);
+    }, [search]);
+
     const { data, isLoading } = useQuery({
-        queryKey: ['admin-users'],
+        queryKey: ['admin-users', debouncedSearch],
         queryFn: async () => {
-            const res = await api.get('/users');
+            const res = await api.get('/users', {
+                params: debouncedSearch ? { q: debouncedSearch, limit: 100 } : { limit: 100 },
+            });
             return res.data;
         }
     });
+
+    const [error, setError] = React.useState<string | null>(null);
 
     const updateRoleMutation = useMutation({
         mutationFn: ({ userId, role }: { userId: string, role: string }) =>
             UserService.updateRole(userId, role),
         onSuccess: () => {
+            setError(null);
             queryClient.invalidateQueries({ queryKey: ['admin-users'] });
-            alert('Cargo atualizado com sucesso.');
         },
-        onError: () => alert('Erro ao atualizar cargo. Verifique suas permissões.')
+        onError: (err: any) => {
+            const msg = err.response?.data?.detail ?? err.message ?? 'Erro ao atualizar cargo.';
+            setError(typeof msg === 'string' ? msg : JSON.stringify(msg));
+        }
     });
 
     if (isLoading) {
@@ -56,6 +71,12 @@ export default function UsersPage() {
 
     return (
         <div className="space-y-6">
+            {error && (
+                <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-sm py-3 px-4 rounded-xl flex items-center justify-between gap-4">
+                    <span>{error}</span>
+                    <button type="button" onClick={() => setError(null)} className="text-red-400 hover:text-red-300">×</button>
+                </div>
+            )}
             <div className="flex items-center justify-between">
                 <div>
                     <h2 className="text-3xl font-bold uppercase tracking-tight">Gestão de Usuários</h2>
@@ -65,7 +86,9 @@ export default function UsersPage() {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 transition-colors group-focus-within:text-blue-500" size={16} />
                     <input
                         type="text"
-                        placeholder="Buscar por nome ou CPF..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        placeholder="Buscar por nome, telefone ou e-mail..."
                         className="pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all text-sm w-72"
                     />
                 </div>
@@ -147,6 +170,7 @@ function RoleBadge({ role }: { role: string }) {
         admin: { icon: ShieldCheck, color: "text-red-400", bg: "bg-red-500/10", border: "border-red-500/20", label: "Administrador" },
         owner: { icon: Crown, color: "text-amber-400", bg: "bg-amber-500/10", border: "border-amber-500/20", label: "Dono de Loja" },
         staff: { icon: Shield, color: "text-blue-400", bg: "bg-blue-500/10", border: "border-blue-500/20", label: "Profissional" },
+        support: { icon: Shield, color: "text-blue-400", bg: "bg-blue-500/10", border: "border-blue-500/20", label: "Suporte" },
         customer: { icon: User, color: "text-gray-400", bg: "bg-gray-500/10", border: "border-gray-500/20", label: "Cliente" },
     };
 

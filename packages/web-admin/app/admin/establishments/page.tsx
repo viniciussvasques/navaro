@@ -1,6 +1,7 @@
 "use client";
 
 import React from 'react';
+import Link from 'next/link';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import {
@@ -13,16 +14,23 @@ import {
     ExternalLink,
     MoreVertical,
     Loader2,
-    AlertCircle
+    AlertCircle,
+    Banknote,
+    Zap,
+    Download,
 } from 'lucide-react';
+import { downloadAdminCsv } from '@/lib/exportCsv';
 
 export default function EstablishmentsPage() {
     const queryClient = useQueryClient();
+    const [statusFilter, setStatusFilter] = React.useState<string>('');
 
     const { data, isLoading } = useQuery({
-        queryKey: ['admin-establishments'],
+        queryKey: ['admin-establishments', statusFilter],
         queryFn: async () => {
-            const res = await api.get('/admin/establishments');
+            const params: Record<string, string | number> = { page_size: 100 };
+            if (statusFilter) params.status = statusFilter;
+            const res = await api.get('/admin/establishments', { params });
             return res.data;
         }
     });
@@ -53,7 +61,25 @@ export default function EstablishmentsPage() {
                     <h2 className="text-3xl font-bold">Estabelecimentos</h2>
                     <p className="text-gray-400 mt-1">Gerencie e modere os negócios da plataforma.</p>
                 </div>
-                <div className="flex gap-3">
+                <div className="flex gap-3 items-center flex-wrap">
+                    <select
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                        className="bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white"
+                    >
+                        <option value="">Todos os status</option>
+                        <option value="pending">Pendentes</option>
+                        <option value="active">Ativos</option>
+                        <option value="suspended">Suspensos</option>
+                    </select>
+                    <button
+                        type="button"
+                        onClick={() => downloadAdminCsv('/admin/exports/establishments.csv', 'dunnaa-estabelecimentos.csv')}
+                        className="flex items-center gap-2 px-3 py-2 bg-emerald-600/20 border border-emerald-500/30 rounded-xl text-emerald-300 hover:bg-emerald-600/30 text-sm"
+                    >
+                        <Download size={16} />
+                        CSV
+                    </button>
                     <Badge variant="outline">{establishments.length} Total</Badge>
                     <Badge variant="warning">{establishments.filter((e: any) => e.status === 'pending').length} Pendentes</Badge>
                 </div>
@@ -67,6 +93,7 @@ export default function EstablishmentsPage() {
                             <th className="px-6 py-4 font-medium">Localização</th>
                             <th className="px-6 py-4 font-medium">Status</th>
                             <th className="px-6 py-4 font-medium">Plano</th>
+                            <th className="px-6 py-4 font-medium">Recebimento</th>
                             <th className="px-6 py-4 font-medium text-right">Ações</th>
                         </tr>
                     </thead>
@@ -79,7 +106,9 @@ export default function EstablishmentsPage() {
                                             <Store className="text-blue-400" size={20} />
                                         </div>
                                         <div>
-                                            <p className="font-semibold text-sm">{est.name}</p>
+                                            <Link href={`/admin/establishments/${est.id}`} className="font-semibold text-sm hover:text-blue-400 transition-colors">
+                                                {est.name}
+                                            </Link>
                                             <p className="text-xs text-gray-500">{est.category}</p>
                                         </div>
                                     </div>
@@ -104,6 +133,26 @@ export default function EstablishmentsPage() {
                                         {est.subscription_tier}
                                     </span>
                                 </td>
+                                <td className="px-6 py-4">
+                                    {est.pix_key ? (
+                                        <div className="flex flex-col gap-1">
+                                            <div className="flex items-center gap-1.5">
+                                                <Zap size={12} className={est.auto_payout_enabled ? "text-emerald-400" : "text-gray-500"} />
+                                                <span className={`text-[10px] font-bold uppercase ${est.auto_payout_enabled ? "text-emerald-400" : "text-gray-500"}`}>
+                                                    {est.auto_payout_enabled ? "Auto" : "Manual"}
+                                                </span>
+                                            </div>
+                                            <span className="text-[10px] text-gray-500 font-mono">
+                                                PIX: {est.pix_key_type?.toUpperCase()} ···{est.pix_key?.slice(-4)}
+                                            </span>
+                                        </div>
+                                    ) : (
+                                        <span className="text-[10px] text-gray-600 flex items-center gap-1">
+                                            <Banknote size={12} />
+                                            Nao cadastrado
+                                        </span>
+                                    )}
+                                </td>
                                 <td className="px-6 py-4 text-right">
                                     <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                         {est.status === 'pending' && (
@@ -115,9 +164,13 @@ export default function EstablishmentsPage() {
                                                 <CheckCircle size={18} />
                                             </button>
                                         )}
-                                        <button className="p-2 border border-white/10 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+                                        <Link
+                                            href={`/admin/establishments/${est.id}`}
+                                            className="p-2 border border-white/10 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                                            title="Ver detalhes"
+                                        >
                                             <ExternalLink size={18} />
-                                        </button>
+                                        </Link>
                                     </div>
                                 </td>
                             </tr>

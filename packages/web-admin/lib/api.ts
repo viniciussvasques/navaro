@@ -1,7 +1,8 @@
 import axios from 'axios';
 import { getCookie } from 'cookies-next';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+// Em Docker: use /api (proxy Next.js → dunnaa-api). Fora do Docker: defina NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 
 export const api = axios.create({
     baseURL: API_URL,
@@ -21,13 +22,23 @@ api.interceptors.request.use((config) => {
     return config;
 });
 
+let isRedirecting = false;
+
 api.interceptors.response.use(
     (response) => response,
     (error) => {
-        if (error.response?.status === 401) {
-            // Handle unauthorized (redirect to login)
+        if (error.response?.status === 401 && !isRedirecting) {
+            isRedirecting = true;
+            // Clear all auth cookies
             if (typeof window !== 'undefined') {
-                window.location.href = '/login';
+                const { deleteCookie } = require('cookies-next');
+                deleteCookie('admin_token', { path: '/' });
+                deleteCookie('access_token', { path: '/' });
+                deleteCookie('user_role', { path: '/' });
+                // Small delay to prevent race conditions with multiple 401s
+                setTimeout(() => {
+                    window.location.href = '/login';
+                }, 100);
             }
         }
         return Promise.reject(error);
@@ -91,7 +102,7 @@ export const SupportService = {
 
 export const UserService = {
     updateRole: async (id: string, role: string) => {
-        const res = await api.patch(`/admin/users/${id}/role`, { role });
+        const res = await api.patch(`/users/${id}/role`, { role });
         return res.data;
     }
 };

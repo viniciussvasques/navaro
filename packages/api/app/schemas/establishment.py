@@ -57,6 +57,18 @@ class EstablishmentUpdate(BaseModel):
     logo_url: str | None = None
     cover_url: str | None = None
     business_hours: dict | None = None
+    accept_online_payment: bool | None = None
+    accept_cash_payment: bool | None = None
+    # Bank / PIX data
+    pix_key: str | None = None
+    pix_key_type: str | None = None
+    bank_name: str | None = None
+    bank_agency: str | None = None
+    bank_account: str | None = None
+    bank_account_type: str | None = None
+    bank_holder_name: str | None = None
+    bank_holder_document: str | None = None
+    auto_payout_enabled: bool | None = None
 
 
 class EstablishmentResponse(BaseModel):
@@ -77,6 +89,12 @@ class EstablishmentResponse(BaseModel):
     distance: float | None = None
     status: EstablishmentStatus
     subscription_tier: SubscriptionTier
+    accept_online_payment: bool = True
+    accept_cash_payment: bool = True
+    pix_key: str | None = None
+    pix_key_type: str | None = None
+    bank_name: str | None = None
+    auto_payout_enabled: bool = False
     created_at: datetime
 
     model_config = {"from_attributes": True}
@@ -95,3 +113,12 @@ class EstablishmentListResponse(BaseModel):
 
     data: list[EstablishmentResponse]
     pagination: PaginationMeta
+
+
+class TimeSlot(BaseModel):
+    """Time slot schema."""
+
+    time: str
+    available: bool
+    staff_id: UUID | None = None
+    staff_name: str | None = None

@@ -2,10 +2,17 @@
  * Root layout — providers, splash screen, navigation
  */
 import React, { useEffect, useCallback } from 'react';
+import { Platform } from 'react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
+import {
+    PlusJakartaSans_400Regular,
+    PlusJakartaSans_500Medium,
+    PlusJakartaSans_600SemiBold,
+    PlusJakartaSans_700Bold,
+} from '@expo-google-fonts/plus-jakarta-sans';
 import { AuthProvider } from '../src/contexts/AuthContext';
 import { LocationProvider } from '../src/contexts/LocationContext';
 import { AppUpdateModal } from '../src/components/AppUpdateModal';
@@ -27,10 +34,10 @@ function AppUpdateChecker() {
 
 export default function RootLayout() {
     const [fontsLoaded] = useFonts({
-        PlusJakartaSans_400Regular: require('../assets/fonts/PlusJakartaSans-Regular.ttf'),
-        PlusJakartaSans_500Medium: require('../assets/fonts/PlusJakartaSans-Medium.ttf'),
-        PlusJakartaSans_600SemiBold: require('../assets/fonts/PlusJakartaSans-SemiBold.ttf'),
-        PlusJakartaSans_700Bold: require('../assets/fonts/PlusJakartaSans-Bold.ttf'),
+        PlusJakartaSans_400Regular,
+        PlusJakartaSans_500Medium,
+        PlusJakartaSans_600SemiBold,
+        PlusJakartaSans_700Bold,
     });
 
     const onLayoutRootView = useCallback(async () => {
@@ -42,6 +49,15 @@ export default function RootLayout() {
     useEffect(() => {
         onLayoutRootView();
     }, [onLayoutRootView]);
+
+    useEffect(() => {
+        if (Platform.OS !== 'android') return;
+        void import('expo-navigation-bar').then((NavigationBar) => {
+            void NavigationBar.setBackgroundColorAsync(colors.surface);
+            void NavigationBar.setButtonStyleAsync('dark');
+            void NavigationBar.setPositionAsync('relative');
+        });
+    }, []);
 
     if (!fontsLoaded) {
         return null;

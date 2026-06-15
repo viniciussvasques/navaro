@@ -42,6 +42,21 @@ class AuthService:
         salt = bcrypt.gensalt()
         return bcrypt.hashpw(password.encode("utf-8"), salt).decode("utf-8")
 
+    def _user_to_response(self, user: User) -> UserResponse:
+        """Build UserResponse from User, with safe role (never None)."""
+        role = user.role if user.role is not None else UserRole.customer
+        return UserResponse(
+            id=user.id,
+            phone=user.phone,
+            name=user.name,
+            email=user.email,
+            avatar_url=user.avatar_url,
+            role=role,
+            referral_code=user.referral_code,
+            referred_by_id=user.referred_by_id,
+            created_at=user.created_at,
+        )
+
     async def login_with_password(
         self, email: str, password: str, required_role: UserRole | None = None
     ) -> TokenResponse | None:
@@ -52,7 +67,10 @@ class AuthService:
         if not user or not user.hashed_password:
             return None
 
-        if not self.verify_password(password, user.hashed_password):
+        try:
+            if not self.verify_password(password, user.hashed_password):
+                return None
+        except Exception:
             return None
 
         if required_role and user.role != required_role:
@@ -61,11 +79,12 @@ class AuthService:
         # Generate tokens
         access_token = self._create_access_token(str(user.id))
         refresh_token = self._create_refresh_token(str(user.id))
+        user_response = self._user_to_response(user)
 
         return TokenResponse(
             access_token=access_token,
             refresh_token=refresh_token,
-            user=UserResponse.model_validate(user),
+            user=user_response,
         )
 
     async def send_verification_code(
@@ -115,7 +134,12 @@ class AuthService:
         return sms_sent, sms_error, whatsapp_sent, whatsapp_error
 
     async def verify_code(
-        self, phone: str, code: str, referral_code: str | None = None
+        self,
+        phone: str,
+        code: str,
+        referral_code: str | None = None,
+        email: str | None = None,
+        name: str | None = None,
     ) -> TokenResponse | None:
         """Verify code and return tokens."""
         import app.core.redis as redis_module
@@ -148,16 +172,46 @@ class AuthService:
                     select(User.id).where(User.referral_code == referral_code)
                 )
                 referred_by_id = result.scalar_one_or_none()
+            
+            # Check if email is already taken (if provided)
+            if email:
+                email_check = await self.db.execute(select(User.id).where(User.email == email))
+                if email_check.scalar_one_or_none():
+                     # If email taken, we iterate or just ignore it for now?
+                     # Ideally we should error, but this is inside otp flow.
+                     # Let's just ignore the email if it conflicts, to not block login.
+                     # Or maybe better: keep it None.
+                     email = None
 
             user = User(
                 phone=phone,
+                email=email,
+                name=name,
                 role=UserRole.customer,
                 referral_code=new_ref_code,
                 referred_by_id=referred_by_id,
             )
             self.db.add(user)
             await self.db.commit()
-            await self.db.refresh(user)
+            result = await self.db.execute(select(User).where(User.phone == phone))
+            user = result.scalar_one()
+        else:
+            # Usuário já existe: atualizar nome/email se enviados no login
+            updated = False
+            if name is not None and name.strip():
+                user.name = name.strip()
+                updated = True
+            if email is not None and email.strip() and "@" in email:
+                email_check = await self.db.execute(
+                    select(User.id).where(User.email == email.strip(), User.id != user.id)
+                )
+                if email_check.scalar_one_or_none() is None:
+                    user.email = email.strip()
+                    updated = True
+            if updated:
+                await self.db.commit()
+                result = await self.db.execute(select(User).where(User.id == user.id))
+                user = result.scalar_one()
 
         # Generate tokens
         access_token = self._create_access_token(str(user.id))
@@ -166,7 +220,7 @@ class AuthService:
         return TokenResponse(
             access_token=access_token,
             refresh_token=refresh_token,
-            user=UserResponse.model_validate(user),
+            user=self._user_to_response(user),
         )
 
     def _generate_referral_code(self) -> str:
@@ -199,7 +253,7 @@ class AuthService:
             return TokenResponse(
                 access_token=access_token,
                 refresh_token=new_refresh_token,
-                user=UserResponse.model_validate(user),
+                user=self._user_to_response(user),
             )
         except Exception:
             return None

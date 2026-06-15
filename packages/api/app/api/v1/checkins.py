@@ -83,3 +83,41 @@ async def perform_checkin(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail={"code": error_code, "message": message},
         )
+
+
+@router.post(
+    "/appointments/{appointment_id}",
+    response_model=CheckinResponse,
+)
+async def checkin_by_appointment(
+    appointment_id: UUID,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> CheckinResponse:
+    """Check-in by appointment ID (client with appointment today, e.g. after scanning /go/slug)."""
+    from sqlalchemy import select
+
+    service = CheckinService(db)
+    try:
+        result = await service.perform_checkin_by_appointment(
+            current_user.id, appointment_id
+        )
+        est_id = result.get("establishment_id")
+        if est_id:
+            est_result = await db.execute(select(Establishment).where(Establishment.id == est_id))
+            establishment = est_result.scalar_one_or_none()
+            if establishment:
+                notif_service = NotificationService(db)
+                await notif_service.create_in_app(
+                    user_id=establishment.owner_id,
+                    title="Novo Check-in!",
+                    message=f"O cliente {current_user.name or 'Anônimo'} acabou de fazer check-in.",
+                    type=NotificationType.checkin,
+                    data={"establishment_id": str(est_id), "user_id": str(current_user.id)},
+                )
+        return CheckinResponse(**result)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"code": "CHECKIN_ERROR", "message": str(e)},
+        )

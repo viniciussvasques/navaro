@@ -6,11 +6,15 @@ from datetime import datetime
 from typing import Any
 import asyncio
 from collections import deque
+from zoneinfo import ZoneInfo
 
 import structlog
 from structlog.types import Processor
 
 from app.core.config import AppMode, settings
+
+# Timezone oficial do sistema: Brasília
+SYSTEM_TIMEZONE = ZoneInfo("America/Sao_Paulo")
 
 
 def _add_app_context(
@@ -89,11 +93,14 @@ class BroadcastingLogHandler(logging.Handler):
 
     def emit(self, record: logging.LogRecord):
         try:
+            # Convert UTC timestamp to Brasília timezone for display
+            utc_dt = datetime.fromtimestamp(record.created, tz=ZoneInfo("UTC"))
+            br_dt = utc_dt.astimezone(SYSTEM_TIMEZONE)
             # We want to broadcast the formatted message
             event = {
                 "event": self.format(record),
                 "level": record.levelname.lower(),
-                "timestamp": datetime.fromtimestamp(record.created).isoformat(),
+                "timestamp": br_dt.isoformat(),
                 "logger": record.name,
             }
             # Avoid double-broadcasting if it's already a structlog event
@@ -118,7 +125,24 @@ def _broadcast_log(
 ) -> dict[str, Any]:
     """Broadcast structlog event to live listeners."""
     try:
-        broadcaster.broadcast(event_dict.copy())
+        # Convert timestamp to Brasília timezone if present
+        event_copy = event_dict.copy()
+        if "timestamp" in event_copy:
+            try:
+                # structlog TimeStamper creates ISO strings, parse and convert
+                ts_str = event_copy["timestamp"]
+                if isinstance(ts_str, str):
+                    # Parse ISO timestamp (may be UTC or naive)
+                    ts_dt = datetime.fromisoformat(ts_str.replace("Z", "+00:00"))
+                    if ts_dt.tzinfo is None:
+                        ts_dt = ts_dt.replace(tzinfo=ZoneInfo("UTC"))
+                    # Convert to Brasília
+                    br_dt = ts_dt.astimezone(SYSTEM_TIMEZONE)
+                    event_copy["timestamp"] = br_dt.isoformat()
+            except (ValueError, AttributeError):
+                # If parsing fails, keep original
+                pass
+        broadcaster.broadcast(event_copy)
     except Exception:
         pass
     return event_dict

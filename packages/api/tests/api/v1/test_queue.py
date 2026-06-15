@@ -3,6 +3,8 @@
 import pytest
 from httpx import AsyncClient
 
+QUEUE_LOCATION = {"latitude": -23.5505, "longitude": -46.6333}
+
 
 @pytest.mark.asyncio
 async def test_queue_flow(
@@ -24,6 +26,7 @@ async def test_queue_flow(
             "establishment_id": establishment_id,
             "service_id": service_id,
             "preferred_staff_id": staff_id,
+            **QUEUE_LOCATION,
         },
     )
     assert resp.status_code == 201
@@ -37,7 +40,7 @@ async def test_queue_flow(
     resp = await client.post(
         "/api/v1/queue",
         headers=auth_headers_second_user,
-        json={"establishment_id": establishment_id, "service_id": service_id},
+        json={"establishment_id": establishment_id, "service_id": service_id, **QUEUE_LOCATION},
     )
     assert resp.status_code == 201
     entry2 = resp.json()

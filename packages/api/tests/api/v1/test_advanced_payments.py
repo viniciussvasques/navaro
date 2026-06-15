@@ -9,7 +9,7 @@ async def test_no_show_and_wallet_flow(client: AsyncClient):
     # ─── 1. Setup ────────────────────────────────────────────────────────────
     phone = "+5511988887777"
     resp = await client.post("/api/v1/auth/send-code", json={"phone": phone})
-    code = resp.json()["message"].split(": ")[1].strip()
+    code = "123456"
     resp = await client.post("/api/v1/auth/verify", json={"phone": phone, "code": code})
     token = resp.json()["tokens"]["access_token"]
     headers = {"Authorization": f"Bearer {token}"}
@@ -107,7 +107,9 @@ async def test_no_show_and_wallet_flow(client: AsyncClient):
     with patch("stripe.PaymentIntent.create") as mock_stripe:
         mock_stripe.return_value = MagicMock(id="pi_debt", client_secret="secret_debt")
         intent_resp = await client.post(
-            "/api/v1/payments/create-intent", json={"appointment_id": appt2_id}, headers=headers
+            "/api/v1/payments/create-intent",
+            json={"appointment_id": appt2_id, "provider": "stripe"},
+            headers=headers,
         )
         assert intent_resp.status_code == 200
         # Deposit (20) + Debt (50) = 70
@@ -153,7 +155,9 @@ async def test_no_show_and_wallet_flow(client: AsyncClient):
             id="pi_double_debt", client_secret="secret_double_debt"
         )
         intent_resp = await client.post(
-            "/api/v1/payments/create-intent", json={"appointment_id": card_appt_id}, headers=headers
+            "/api/v1/payments/create-intent",
+            json={"appointment_id": card_appt_id, "provider": "stripe"},
+            headers=headers,
         )
         assert intent_resp.status_code == 200
         # Service (100) -> Deposit (20) + Debt1 (50) + Debt_Cash (50) = 120

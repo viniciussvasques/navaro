@@ -1,0 +1,47 @@
+---
+description: Regras de negócio — agendamentos, fila, pagamentos DUNNAA
+globs: packages/api/app/services/**/*,packages/api/app/api/v1/**/*
+alwaysApply: false
+---
+
+# Domínio — Agendamento & Pagamentos
+
+## Entidades Principais
+
+- `Establishment`, `StaffMember`, `Service`, `Appointment`
+- `QueueEntry`, `Subscription`, `Payment`, `Checkin`
+
+## Regras de Agendamento
+
+- Prevenir double-booking (constraint + validação no service)
+- Horário: usar `work_schedule` do staff; fallback para horário do establishment
+- Status: respeitar transições válidas (pending → confirmed → completed/cancelled/no_show)
+- Lembretes via `scheduler.py` (asyncio, não Celery)
+
+## Fila Virtual
+
+- Status: `waiting`, `called`, `serving`, `completed`, `cancelled`
+- Endpoint `/queue/my` — entradas ativas do usuário
+- Update de status exige acesso ao establishment
+
+## Pagamentos & Comissões
+
+| Tipo | Taxa plataforma |
+|------|-----------------|
+| Avulso | 8% |
+| Assinatura | 6% |
+
+- Mensalidade estabelecimento: R$29 (pequeno) / R$49 (médio-grande)
+- Webhooks Stripe/MP: idempotentes
+- Wallet, payouts, tips: ver services correspondentes
+
+## Check-in
+
+- QR gerado por staff/owner/admin do establishment
+- Mesma validação RBAC que fila e agendamentos
+
+## Referência
+
+- Schema completo: `docs/DATABASE.md`
+- API: `docs/API.md`
+- Features MVP: `docs/FEATURES.md`

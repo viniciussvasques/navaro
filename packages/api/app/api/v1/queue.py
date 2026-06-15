@@ -31,7 +31,8 @@ async def join_queue(
     service = QueueService(db)
     try:
         entry = await service.join_queue(current_user.id, data)
-        return QueueEntryResponse.model_validate(entry)
+        entries = await service.list_by_establishment(data.establishment_id)
+        return QueueEntryResponse.model_validate(service.entry_to_response(entry, entries))
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
@@ -46,12 +47,14 @@ async def list_establishment_queue(
     service = QueueService(db)
     entries = await service.list_by_establishment(establishment_id, status_filter)
 
-    # Calculate stats
     total_waiting = sum(1 for e in entries if e.status == QueueStatus.waiting)
     current_serving = sum(1 for e in entries if e.status == QueueStatus.serving)
 
     return QueueListResponse(
-        items=[QueueEntryResponse.model_validate(e) for e in entries],
+        items=[
+            QueueEntryResponse.model_validate(service.entry_to_response(e, entries))
+            for e in entries
+        ],
         total_waiting=total_waiting,
         current_serving=current_serving,
     )
@@ -65,7 +68,33 @@ async def list_my_queues(
     """List active queues the user has joined."""
     service = QueueService(db)
     entries = await service.list_by_user(current_user.id)
-    return [QueueEntryResponse.model_validate(entry) for entry in entries]
+    all_by_est: dict[UUID, list] = {}
+    for entry in entries:
+        if entry.establishment_id not in all_by_est:
+            all_by_est[entry.establishment_id] = await service.list_by_establishment(
+                entry.establishment_id
+            )
+    return [
+        QueueEntryResponse.model_validate(
+            service.entry_to_response(entry, all_by_est.get(entry.establishment_id, [entry]))
+        )
+        for entry in entries
+    ]
+
+
+@router.get("/{entry_id}", response_model=QueueEntryResponse)
+async def get_queue_entry(
+    entry_id: UUID,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> QueueEntryResponse:
+    """Get a queue entry for the current user."""
+    service = QueueService(db)
+    entry = await db.get(QueueEntry, entry_id)
+    if not entry or entry.user_id != current_user.id:
+        raise HTTPException(status_code=404, detail="Entrada na fila não encontrada")
+    entries = await service.list_by_establishment(entry.establishment_id)
+    return QueueEntryResponse.model_validate(service.entry_to_response(entry, entries))
 
 
 @router.patch("/{entry_id}/status", response_model=QueueEntryResponse)

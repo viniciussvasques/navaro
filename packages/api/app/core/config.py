@@ -40,20 +40,21 @@ class Settings(BaseSettings):
 
     # ─── Database ──────────────────────────────────────────────────────────────
     DATABASE_URL: str = "postgresql+asyncpg://dunnaa:dunnaa_dev@localhost:5432/dunnaa"
+    TEST_DATABASE_URL: str | None = None  # pytest usa dunnaa_test se não definido
     DATABASE_POOL_SIZE: int = 5
     DATABASE_MAX_OVERFLOW: int = 10
     DATABASE_ECHO: bool = False  # Log SQL queries
 
     # ─── Redis ─────────────────────────────────────────────────────────────────
     REDIS_URL: str = "redis://localhost:6379/0"
-    # Prefix for Redis keys (kept as 'navaro:' for backward compatibility with tests and scripts)
-    REDIS_PREFIX: str = "navaro:"
+    # Prefix for Redis keys (OTP, cache, rate limits)
+    REDIS_PREFIX: str = "dunnaa:"
 
     # ─── Security ──────────────────────────────────────────────────────────────
     SECRET_KEY: str = "CHANGE-ME-IN-PRODUCTION-USE-STRONG-SECRET"
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
-    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 10080  # 7 days
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 30
     ADMIN_TOKEN: str = "CHANGE-ME-ADMIN-TOKEN"  # For debug endpoints
 
     # ─── CORS ──────────────────────────────────────────────────────────────────

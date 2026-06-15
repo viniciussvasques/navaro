@@ -96,7 +96,7 @@ async def test_cashback_commission_and_referral(client: AsyncClient, auth_header
     from app.core import redis as redis_module
 
     r = await redis_module.get_redis()
-    code_b = await r.get(f"navaro:otp:{phone_b}")
+    code_b = await r.get(f"dunnaa:otp:{phone_b}")
     if hasattr(code_b, "decode"):
         code_b = code_b.decode()
     login_b = await client.post("/api/v1/auth/verify", json={"phone": phone_b, "code": code_b})
@@ -158,7 +158,7 @@ async def test_cashback_commission_and_referral(client: AsyncClient, auth_header
     staff_user_phone = "+5511966666666"
     await client.post("/api/v1/auth/send-code", json={"phone": staff_user_phone})
     r = await redis_module.get_redis()
-    code_s = await r.get(f"navaro:otp:{staff_user_phone}")
+    code_s = await r.get(f"dunnaa:otp:{staff_user_phone}")
     if hasattr(code_s, "decode"):
         code_s = code_s.decode()
     login_s = await client.post(

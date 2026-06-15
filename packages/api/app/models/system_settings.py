@@ -56,6 +56,9 @@ class SettingsKeys:
     MERCADOPAGO_PUBLIC_KEY = "mercadopago_public_key"
     MERCADOPAGO_WEBHOOK_SECRET = "mercadopago_webhook_secret"
     MERCADOPAGO_ENABLED = "mercadopago_enabled"
+    MERCADOPAGO_CLIENT_ID = "mercadopago_client_id"
+    MERCADOPAGO_CLIENT_SECRET = "mercadopago_client_secret"
+    MERCADOPAGO_OAUTH_REDIRECT_URI = "mercadopago_oauth_redirect_uri"
 
     # ─── Email: SMTP ────────────────────────────────────────────────────────────
     SMTP_HOST = "smtp_host"
@@ -109,3 +112,7 @@ class SettingsKeys:
     CASHBACK_ENABLED = "cashback_enabled"
     CASHBACK_PERCENT = "cashback_percent"
     REFERRAL_BONUS_AMOUNT = "referral_bonus_amount"
+
+    # ─── Platform SaaS ─────────────────────────────────────────────────────────
+    PLATFORM_SAAS_MONTHLY_PRICE = "platform_saas_monthly_price"
+    PLATFORM_TRIAL_DAYS = "platform_trial_days"

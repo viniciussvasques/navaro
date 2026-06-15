@@ -5,6 +5,8 @@ from httpx import AsyncClient
 
 from app.models.queue import QueueStatus
 
+QUEUE_LOCATION = {"latitude": -23.5505, "longitude": -46.6333}
+
 
 @pytest.mark.asyncio
 async def test_notifications_queue_flow(
@@ -20,7 +22,7 @@ async def test_notifications_queue_flow(
     resp = await client.post(
         "/api/v1/queue",
         headers=auth_headers_second_user,
-        json={"establishment_id": establishment_id},
+        json={"establishment_id": establishment_id, **QUEUE_LOCATION},
     )
     assert resp.status_code == 201, f"Response: {resp.text}"
     entry_id = resp.json()["id"]
@@ -71,13 +73,9 @@ async def test_notifications_checkin(
     # ----------------------------------------------------------------------------------
     from datetime import UTC, datetime, timedelta
 
-    # Use deterministic date (Next Monday 10:00) to match business hours
+    # Appointment today (check-in matches func.date(scheduled_at) == today UTC)
     today = datetime.now(UTC)
-    days_ahead = 0 - today.weekday()  # Target Monday (0)
-    if days_ahead <= 0:
-        days_ahead += 7
-    next_monday = today + timedelta(days=days_ahead)
-    scheduled_at = next_monday.replace(hour=10, minute=0, second=0, microsecond=0).isoformat()
+    scheduled_at = today.replace(hour=14, minute=0, second=0, microsecond=0).isoformat()
     resp = await client.post(
         "/api/v1/appointments",
         headers=auth_headers_second_user,

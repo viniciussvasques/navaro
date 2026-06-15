@@ -144,6 +144,89 @@ async def cleanup_expired_queue_entries() -> int:
         return 0
 
 
+async def mark_auto_no_shows() -> int:
+    """Mark past appointments as no-show after grace period (B64)."""
+    from app.models.appointment import Appointment, AppointmentStatus
+    from app.services.appointment_service import AppointmentService
+
+    logger.info("Running auto no-show job")
+    count = 0
+    grace = timedelta(minutes=30)
+    cutoff = datetime.now(UTC) - grace
+
+    try:
+        async with async_session_factory() as db:
+            result = await db.execute(
+                select(Appointment).where(
+                    Appointment.status.in_(
+                        [AppointmentStatus.pending, AppointmentStatus.confirmed]
+                    ),
+                    Appointment.scheduled_at < cutoff,
+                )
+            )
+            appointments = result.scalars().all()
+            service = AppointmentService(db)
+            for appt in appointments:
+                appt_end = appt.scheduled_at + timedelta(minutes=appt.duration_minutes)
+                if appt_end + grace < datetime.now(UTC):
+                    if await service.mark_no_show(appt.id):
+                        count += 1
+    except Exception as e:
+        logger.error("Auto no-show job error", error=str(e))
+        return 0
+
+    logger.info("Auto no-show job completed", count=count)
+    return count
+
+
+async def process_platform_auto_renewals() -> int:
+    """Attempt wallet auto-renewal for expiring SaaS subscriptions."""
+    from app.services.monetization_service import MonetizationService
+
+    logger.info("Running platform SaaS auto-renewal job")
+    try:
+        async with async_session_factory() as db:
+            service = MonetizationService(db)
+            count = await service.process_auto_renewals()
+            logger.info("Platform SaaS auto-renewal completed", count=count)
+            return count
+    except Exception as e:
+        logger.error("Platform SaaS auto-renewal error", error=str(e))
+        return 0
+
+
+async def expire_platform_subscriptions() -> int:
+    """Downgrade establishments with expired platform SaaS subscription."""
+    from app.services.monetization_service import MonetizationService
+
+    logger.info("Running platform subscription expiry job")
+    try:
+        async with async_session_factory() as db:
+            service = MonetizationService(db)
+            count = await service.expire_platform_subscriptions()
+            logger.info("Platform subscription expiry completed", count=count)
+            return count
+    except Exception as e:
+        logger.error("Platform subscription expiry error", error=str(e))
+        return 0
+
+
+async def reset_ad_campaign_daily_spend() -> int:
+    """Reset daily ad spend counters."""
+    from app.services.promotion_service import AdCampaignService
+
+    logger.info("Resetting ad campaign daily spend")
+    try:
+        async with async_session_factory() as db:
+            service = AdCampaignService(db)
+            count = await service.reset_daily_ad_spend()
+            logger.info("Ad campaign daily reset completed", count=count)
+            return count
+    except Exception as e:
+        logger.error("Ad campaign daily reset error", error=str(e))
+        return 0
+
+
 async def scheduler_loop():
     """Main scheduler loop that runs jobs periodically."""
     global _running
@@ -152,15 +235,26 @@ async def scheduler_loop():
 
     while _running:
         try:
-            current_minute = datetime.now().minute
+            now_utc = datetime.now(UTC)
+            current_minute = now_utc.minute
 
             # Run reminder job every hour (at minute 0)
             if current_minute == 0:
                 await send_appointment_reminders()
 
-            # Run cleanup job at midnight (at minute 5)
-            if current_minute == 5 and datetime.now().hour == 0:
+            # Run auto-renew before expiry (minute 4 UTC daily)
+            if current_minute == 4 and now_utc.hour == 6:
+                await process_platform_auto_renewals()
+
+            # Run cleanup job at midnight UTC (at minute 5)
+            if current_minute == 5 and now_utc.hour == 0:
                 await cleanup_expired_queue_entries()
+                await expire_platform_subscriptions()
+                await reset_ad_campaign_daily_spend()
+
+            # Auto no-show every hour at minute 30
+            if current_minute == 30:
+                await mark_auto_no_shows()
 
             # Sleep for 1 minute
             await asyncio.sleep(60)

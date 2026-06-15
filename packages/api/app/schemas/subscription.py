@@ -35,8 +35,6 @@ class SubscriptionPlanResponse(BaseModel):
     name: str
     description: str | None
     price: float
-    max_uses_per_week: int
-    max_uses_per_day: int
     active: bool
     created_at: datetime
 
@@ -44,22 +42,26 @@ class SubscriptionPlanResponse(BaseModel):
 
 
 class SubscriptionCreate(BaseModel):
-    """Create subscription schema."""
+    """Subscribe to a plan."""
 
     plan_id: UUID
-    payment_method_id: str = Field(
-        ...,
-        description="Stripe payment method ID",
+    payment_method: str = Field(
+        default="wallet",
+        description="wallet, mercadopago or stripe",
+    )
+    payment_method_id: str | None = Field(
+        None,
+        description="Stripe payment method ID (required when payment_method=stripe)",
     )
 
 
 class SubscriptionUsageResponse(BaseModel):
-    """Subscription usage response."""
+    """Subscription usage for current billing period."""
 
-    uses_this_week: int
-    max_uses_per_week: int
-    uses_today: int
-    max_uses_per_day: int
+    uses_this_month: int
+    max_uses_per_month: int
+    period_start: datetime
+    period_end: datetime
 
 
 class SubscriptionResponse(BaseModel):
@@ -76,5 +78,20 @@ class SubscriptionResponse(BaseModel):
     cancelled_at: datetime | None
     plan: SubscriptionPlanResponse | None = None
     usage: SubscriptionUsageResponse | None = None
+
+    model_config = {"from_attributes": True}
+
+
+class SubscriberSummaryResponse(BaseModel):
+    """Owner view of an active subscriber."""
+
+    subscription_id: UUID
+    user_id: UUID
+    user_name: str | None
+    plan_name: str
+    status: SubscriptionStatus
+    current_period_end: datetime
+    uses_this_month: int
+    max_uses_per_month: int
 
     model_config = {"from_attributes": True}

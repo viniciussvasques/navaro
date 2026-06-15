@@ -1,7 +1,7 @@
 """Queue service."""
 
 from collections.abc import Sequence
-from datetime import datetime
+from datetime import datetime, timezone
 from uuid import UUID
 
 from sqlalchemy import func, select
@@ -90,8 +90,69 @@ class QueueService:
         )
         return result.scalar_one_or_none()
 
+    @staticmethod
+    def estimated_wait_minutes(entry: QueueEntry, entries: Sequence[QueueEntry]) -> int | None:
+        """Estimate wait based on position and average service duration."""
+        if entry.status != QueueStatus.waiting:
+            return 0
+        ahead = sum(
+            1
+            for e in entries
+            if e.status == QueueStatus.waiting and e.position < entry.position
+        )
+        avg_minutes = 30
+        if entry.service and entry.service.duration_minutes:
+            avg_minutes = entry.service.duration_minutes
+        return ahead * avg_minutes
+
+    def entry_to_response(self, entry: QueueEntry, entries: Sequence[QueueEntry]) -> dict:
+        """Build queue response dict with estimated wait."""
+        return {
+            "id": entry.id,
+            "establishment_id": entry.establishment_id,
+            "user_id": entry.user_id,
+            "service_id": entry.service_id,
+            "preferred_staff_id": entry.preferred_staff_id,
+            "assigned_staff_id": entry.assigned_staff_id,
+            "position": entry.position,
+            "status": entry.status,
+            "entered_at": entry.entered_at,
+            "called_at": entry.called_at,
+            "started_at": entry.started_at,
+            "completed_at": entry.completed_at,
+            "user_name": entry.user.name if entry.user else None,
+            "service_name": entry.service.name if entry.service else None,
+            "staff_name": (
+                entry.assigned_staff.name
+                if entry.assigned_staff
+                else (entry.preferred_staff.name if entry.preferred_staff else None)
+            ),
+            "estimated_wait_minutes": self.estimated_wait_minutes(entry, entries),
+        }
+
     async def join_queue(self, user_id: UUID, data: QueueEntryCreate) -> QueueEntry:
         """Add user to queue."""
+        from app.core.geo import haversine_meters
+
+        est = await self.db.get(Establishment, data.establishment_id)
+        if not est:
+            raise ValueError("Estabelecimento não encontrado.")
+
+        if est.queue_geofence_meters and data.latitude is not None and data.longitude is not None:
+            if est.latitude is None or est.longitude is None:
+                raise ValueError("Estabelecimento sem localização configurada para fila.")
+            distance = haversine_meters(
+                data.latitude, data.longitude, float(est.latitude), float(est.longitude)
+            )
+            max_m = est.queue_geofence_meters
+            if distance > max_m:
+                raise ValueError(
+                    f"Você precisa estar a até {max_m}m do estabelecimento para entrar na fila "
+                    f"(distância atual: {int(distance)}m)."
+                )
+        elif est.queue_geofence_meters and (data.latitude is None or data.longitude is None):
+            raise ValueError("Ative a localização para entrar na fila virtual.")
+
         # Check if already in queue
         existing = await self.get_user_position(data.establishment_id, user_id)
         if existing:
@@ -113,7 +174,7 @@ class QueueService:
             preferred_staff_id=data.preferred_staff_id,
             position=last_position + 1,
             status=QueueStatus.waiting,
-            entered_at=datetime.now(),
+            entered_at=datetime.now(timezone.utc),
         )
 
         self.db.add(entry)
@@ -147,7 +208,7 @@ class QueueService:
         if assigned_staff_id:
             entry.assigned_staff_id = assigned_staff_id
 
-        now = datetime.now()
+        now = datetime.now(timezone.utc)
 
         if status == QueueStatus.called:
             entry.called_at = now
@@ -197,7 +258,7 @@ class QueueService:
             return False
 
         entry.status = QueueStatus.left
-        entry.completed_at = datetime.now()
+        entry.completed_at = datetime.now(timezone.utc)
 
         await self._reorder_queue(entry.establishment_id, entry.position)
         entry.position = 0

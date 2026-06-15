@@ -14,7 +14,7 @@ from app.models.support import (
     TicketStatus,
 )
 from app.models.appointment import Appointment, AppointmentStatus
-from app.models.payment import Payment
+from app.models.payment import Payment, PaymentStatus
 from app.models.service import Service
 from app.models.staff import StaffMember
 from app.schemas.support import (
@@ -25,6 +25,7 @@ from app.schemas.support import (
     SupportContextAppointment,
     SupportContextPayment,
 )
+from app.schemas.user import UserResponse
 from app.models.user import User, UserRole
 
 
@@ -237,10 +238,10 @@ class SupportService:
         # 2. Recent Appointments
         appointments_query = (
             select(Appointment, Service.name, StaffMember.name)
-            .join(Service, Appointment.service_id == Service.id)
-            .join(StaffMember, Appointment.staff_id == StaffMember.id)
+            .outerjoin(Service, Appointment.service_id == Service.id)
+            .outerjoin(StaffMember, Appointment.staff_id == StaffMember.id)
             .where(Appointment.user_id == user_id)
-            .order_by(Appointment.start_at.desc())
+            .order_by(Appointment.scheduled_at.desc())
             .limit(5)
         )
         appointments_res = await self.db.execute(appointments_query)
@@ -250,10 +251,10 @@ class SupportService:
             recent_appointments.append(
                 SupportContextAppointment(
                     id=app.id,
-                    service_name=service_name,
-                    staff_name=staff_name,
-                    status=app.status.value,
-                    start_at=app.start_at,
+                    service_name=service_name or "Serviço",
+                    staff_name=staff_name or "Profissional",
+                    status=app.status.value if hasattr(app.status, "value") else str(app.status),
+                    start_at=app.scheduled_at,
                 )
             )
 
@@ -266,26 +267,33 @@ class SupportService:
         )
         payments_res = await self.db.execute(payments_query)
         recent_payments = []
-        total_spent = 0
+        total_spent = 0.0
         for p in payments_res.scalars().all():
+            status_val = p.status.value if hasattr(p.status, "value") else str(p.status)
             recent_payments.append(
                 SupportContextPayment(
                     id=p.id,
                     amount=float(p.amount),
-                    status=p.status.value,
-                    provider=p.provider,
+                    status=status_val,
+                    provider=p.provider or "—",
                     created_at=p.created_at,
                 )
             )
-            if p.status == "succeeded":
+            if p.status == PaymentStatus.succeeded:
                 total_spent += float(p.amount)
 
+        tier_label = "Cliente"
+        if user.role == UserRole.owner:
+            tier_label = "Dono de loja"
+        elif user.role == UserRole.admin:
+            tier_label = "Admin"
+
         return UserSupportContext(
-            user=user,
+            user=UserResponse.model_validate(user),
             recent_appointments=recent_appointments,
             recent_payments=recent_payments,
             total_spent=total_spent,
-            subscription_tier="Premium" if user.role == UserRole.owner else "N/A",
+            subscription_tier=tier_label,
         )
 
     async def cancel_appointment(self, appointment_id: UUID, reason: str) -> Appointment:

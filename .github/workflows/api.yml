@@ -51,9 +51,9 @@ jobs:
       postgres:
         image: postgres:16-alpine
         env:
-          POSTGRES_USER: navaro
+          POSTGRES_USER: dunnaa
           POSTGRES_PASSWORD: test_password
-          POSTGRES_DB: navaro_test
+          POSTGRES_DB: dunnaa_test
         ports:
           - 5432:5432
         options: >-
@@ -73,7 +73,7 @@ jobs:
           --health-retries 5
     
     env:
-      DATABASE_URL: postgresql+asyncpg://navaro:test_password@localhost:5432/navaro_test
+      DATABASE_URL: postgresql+asyncpg://dunnaa:test_password@localhost:5432/dunnaa_test
       REDIS_URL: redis://localhost:6379/0
       SECRET_KEY: test-secret-key-for-ci
       ENVIRONMENT: development
@@ -153,14 +153,14 @@ jobs:
         with:
           context: packages/api
           push: false
-          tags: navaro-api:latest
+          tags: dunnaa-api:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          outputs: type=docker,dest=/tmp/navaro-api.tar
+          outputs: type=docker,dest=/tmp/dunnaa-api.tar
       
       - name: Upload Docker image
         uses: actions/upload-artifact@v4
         with:
           name: docker-image
-          path: /tmp/navaro-api.tar
+          path: /tmp/dunnaa-api.tar
           retention-days: 1

@@ -1,0 +1,33 @@
+---
+description: Padrões Next.js 15 para painel admin DUNNAA
+globs: packages/web-admin/**/*,packages/dunnaa-pro-web/**/*,packages/website/**/*
+alwaysApply: false
+---
+
+# Next.js Admin — DUNNAA
+
+## Stack Alvo
+
+- Next.js 15 App Router
+- TypeScript, Tailwind CSS
+- Server Components por padrão; Client Components só com interatividade
+- Auth: JWT ou session com API backend
+
+## Escopo Admin
+
+- Gestão de estabelecimentos, staff, serviços
+- Dashboard analytics (`/api/v1/analytics`)
+- Configurações sistema (`/api/v1/admin/settings`)
+- Relatórios de pagamentos e comissões
+
+## Convenções
+
+- `app/` para routes; `components/ui/` para primitivos
+- Fetch server-side quando possível; React Query no client para dados dinâmicos
+- Tipos de `packages/shared`
+- Referência API: `docs/API.md`
+
+## Monorepo
+
+- Scripts via root `package.json`: `pnpm dev:admin`
+- Dependências internas: `"@DUNNAA/shared": "workspace:*"`

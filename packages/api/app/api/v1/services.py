@@ -2,11 +2,12 @@
 
 from uuid import UUID
 
-from fastapi import APIRouter
+from fastapi import APIRouter, File, HTTPException, UploadFile, status
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
 
 from app.api.deps import CurrentUser, DBSession
+from app.services.storage_service import StorageService
 from app.core.exceptions import ForbiddenError, NotFoundError
 from app.models import Establishment, Service, UserRole
 
@@ -253,3 +254,68 @@ async def delete_service(
 
     service.active = False
     await db.commit()
+
+
+async def _get_storage_or_503(db: DBSession) -> StorageService:
+    """Helper to get StorageService or raise 503."""
+    return await StorageService.from_db(db)
+
+
+@router.post("/{service_id}/image", response_model=ServiceResponse, status_code=status.HTTP_200_OK)
+async def upload_service_image(
+    establishment_id: UUID,
+    service_id: UUID,
+    db: DBSession,
+    current_user: CurrentUser,
+    file: UploadFile = File(...),
+) -> ServiceResponse:
+    """Upload image for a service. Requires storage S3/R2 to be configured."""
+    establishment = await get_establishment_or_404(db, establishment_id)
+    check_ownership(establishment, current_user)
+
+    result = await db.execute(
+        select(Service).where(
+            Service.id == service_id,
+            Service.establishment_id == establishment_id,
+        )
+    )
+    service = result.scalar_one_or_none()
+    if not service:
+        raise NotFoundError("Serviço")
+
+    content = await file.read()
+    if not content:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Arquivo vazio.")
+
+    allowed = ("image/jpeg", "image/png", "image/webp", "image/jpg")
+    content_type = file.content_type or "image/jpeg"
+    if content_type not in allowed:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Apenas imagens JPEG, PNG ou WebP são aceitas.",
+        )
+
+    storage = await _get_storage_or_503(db)
+    url = await storage.upload_service_image(
+        establishment_id=establishment_id,
+        service_id=service_id,
+        content=content,
+        content_type=content_type,
+    )
+
+    service.image_url = url
+    await db.commit()
+    await db.refresh(service)
+
+    return ServiceResponse(
+        id=str(service.id),
+        name=service.name,
+        description=service.description,
+        price=float(service.price),
+        duration_minutes=service.duration_minutes,
+        active=service.active,
+        sort_order=service.sort_order,
+        deposit_required=service.deposit_required,
+        is_at_home=service.is_at_home,
+        image_url=service.image_url,
+    )

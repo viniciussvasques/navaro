@@ -3,8 +3,9 @@
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
-from fastapi.responses import ORJSONResponse
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse, ORJSONResponse
 
 from app.core import (
     close_db,
@@ -15,6 +16,7 @@ from app.core import (
     setup_logging,
     setup_middlewares,
 )
+from app.core.exceptions import AppException
 
 # ─── Application Lifespan ──────────────────────────────────────────────────────
 
@@ -46,6 +48,41 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info("Redis connections closed")
 
 
+# ─── Helpers ───────────────────────────────────────────────────────────────────
+
+
+def _json_safe(value: object) -> object:
+    """Converte valores não serializáveis (ex.: bytes no input de validação) para JSON."""
+    if isinstance(value, bytes):
+        return value.decode("utf-8", errors="replace")
+    if isinstance(value, dict):
+        return {str(k): _json_safe(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_json_safe(v) for v in value]
+    return value
+
+
+def _status_to_code(status_code: int) -> str:
+    """Map HTTP status code to error code string."""
+    if status_code == 400:
+        return "BAD_REQUEST"
+    if status_code == 401:
+        return "UNAUTHORIZED"
+    if status_code == 403:
+        return "FORBIDDEN"
+    if status_code == 404:
+        return "NOT_FOUND"
+    if status_code == 409:
+        return "CONFLICT"
+    if status_code == 422:
+        return "VALIDATION_ERROR"
+    if status_code == 429:
+        return "RATE_LIMIT_EXCEEDED"
+    if status_code >= 500:
+        return "INTERNAL_ERROR"
+    return "ERROR"
+
+
 # ─── Application Factory ───────────────────────────────────────────────────────
 
 
@@ -66,6 +103,58 @@ def create_app() -> FastAPI:
         default_response_class=ORJSONResponse,
         lifespan=lifespan,
     )
+
+    # ─── Exception handlers (resposta unificada: {"error": {"code", "message"}}) ───
+
+    @app.exception_handler(AppException)
+    def app_exception_handler(_request: Request, exc: AppException) -> JSONResponse:
+        return JSONResponse(status_code=exc.status_code, content=exc.to_dict())
+
+    @app.exception_handler(RequestValidationError)
+    def validation_exception_handler(_request: Request, exc: RequestValidationError) -> JSONResponse:
+        errors = [_json_safe(err) for err in exc.errors()]
+        # Mensagem amigável: primeiro erro ou "Dados inválidos"
+        first_msg = errors[0].get("msg", "Dados inválidos") if errors else "Dados inválidos"
+        loc = errors[0].get("loc", []) if errors else []
+        field = str(loc[-1]) if len(loc) > 1 else None
+        return JSONResponse(
+            status_code=422,
+            content={
+                "error": {
+                    "code": "VALIDATION_ERROR",
+                    "message": first_msg,
+                    "field": field,
+                    "details": errors,
+                }
+            },
+        )
+
+    @app.exception_handler(HTTPException)
+    def http_exception_handler(_request: Request, exc: HTTPException) -> JSONResponse:
+        detail = exc.detail
+        if isinstance(detail, str):
+            message = detail
+        elif isinstance(detail, dict):
+            message = detail.get("message", detail.get("msg", str(detail)))
+        else:
+            message = str(detail) if detail else "Erro na requisição"
+        code = _status_to_code(exc.status_code)
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={"error": {"code": code, "message": message}},
+        )
+
+    @app.exception_handler(ValueError)
+    def value_error_handler(_request: Request, exc: ValueError) -> JSONResponse:
+        return JSONResponse(
+            status_code=400,
+            content={
+                "error": {
+                    "code": "BAD_REQUEST",
+                    "message": str(exc) or "Requisição inválida",
+                }
+            },
+        )
 
     # Setup middlewares
     setup_middlewares(app)

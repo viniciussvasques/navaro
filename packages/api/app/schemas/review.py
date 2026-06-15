@@ -57,9 +57,14 @@ class ReviewResponse(BaseModel):
     # Owner response
     owner_response: str | None
     owner_responded_at: datetime | None
+    approved_for_google: bool = False
+    sent_to_google: bool = False
+    is_hidden: bool = False
 
     # Extra fields
     user_name: str | None = None
+    establishment_name: str | None = None
+    staff_name: str | None = None
 
     model_config = {"from_attributes": True}
 

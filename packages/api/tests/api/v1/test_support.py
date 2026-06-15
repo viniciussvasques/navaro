@@ -66,3 +66,37 @@ async def test_add_message(
     details_res = await client.get(f"/api/v1/support/tickets/{ticket_id}", headers=auth_headers)
     details = details_res.json()
     assert len(details["messages"]) == 1
+
+
+async def test_ticket_context(
+    client: AsyncClient,
+    auth_headers: dict,
+):
+    """Support context endpoint returns customer history without 500."""
+    from sqlalchemy import update
+
+    from app.core import database
+    from app.models.user import User, UserRole
+
+    me = await client.get("/api/v1/users/me", headers=auth_headers)
+    user_id = me.json()["id"]
+    async with database.async_session_maker() as session:
+        await session.execute(update(User).where(User.id == user_id).values(role=UserRole.admin))
+        await session.commit()
+
+    res = await client.post(
+        "/api/v1/support/tickets",
+        headers=auth_headers,
+        json={"title": "Context test", "priority": "low", "category": "technical"},
+    )
+    ticket_id = res.json()["id"]
+
+    ctx_res = await client.get(
+        f"/api/v1/support/tickets/{ticket_id}/context",
+        headers=auth_headers,
+    )
+    assert ctx_res.status_code == 200
+    body = ctx_res.json()
+    assert "recent_appointments" in body
+    assert "recent_payments" in body
+    assert body["user"]["phone"]

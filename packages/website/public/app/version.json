@@ -1,0 +1,8 @@
+{
+  "version": "1.0.3",
+  "versionCode": 5,
+  "apkUrl": "https://dunnaa.com.br/downloads/dunnaa-cliente.apk",
+  "releaseNotes": "PWA: barra Safari recolhe ao rolar + instalação em tela cheia no iPhone.",
+  "mandatory": false,
+  "publishedAt": "2026-06-12T18:00:00.000Z"
+}

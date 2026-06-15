@@ -63,6 +63,7 @@ class ServiceBundleCreate(BaseModel):
     description: str | None = Field(None, max_length=1000)
     bundle_price: float = Field(..., gt=0)
     service_ids: list[UUID] = Field(..., min_length=1)
+    image_url: str | None = Field(None, max_length=500)
 
 
 class ServiceBundleUpdate(BaseModel):
@@ -73,6 +74,7 @@ class ServiceBundleUpdate(BaseModel):
     bundle_price: float | None = Field(None, gt=0)
     active: bool | None = None
     service_ids: list[UUID] | None = None
+    image_url: str | None = Field(None, max_length=500)
 
 
 class ServiceBundleResponse(BaseModel):
@@ -86,6 +88,7 @@ class ServiceBundleResponse(BaseModel):
     bundle_price: float
     discount_percent: float | None
     active: bool
+    image_url: str | None
     services: list[ServiceResponse]
     created_at: datetime
 

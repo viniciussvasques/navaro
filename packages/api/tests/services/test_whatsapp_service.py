@@ -51,9 +51,9 @@ class TestWhatsAppService:
     async def test_send_text_returns_true_when_disabled(
         self, whatsapp_service, mock_settings_disabled
     ):
-        """Test send_text returns True (simulated success) when disabled."""
+        """Test send_text returns False when disabled."""
         result = await whatsapp_service.send_text(to_phone="+5511999999999", message="Test message")
-        assert result is True
+        assert result is False
 
     @pytest.mark.asyncio
     async def test_send_text_returns_false_without_token(self, whatsapp_service):
@@ -118,30 +118,30 @@ class TestWhatsAppService:
 
     @pytest.mark.asyncio
     async def test_send_appointment_confirmation(self, whatsapp_service, mock_settings_disabled):
-        """Test appointment confirmation message."""
+        """Test appointment confirmation message when disabled."""
         result = await whatsapp_service.send_appointment_confirmation(
             to_phone="5511999999999",
             establishment_name="Barbearia Top",
             date="15/02/2026",
             time="14:00",
         )
-        assert result is True
+        assert result is False
 
     @pytest.mark.asyncio
     async def test_send_appointment_reminder(self, whatsapp_service, mock_settings_disabled):
-        """Test appointment reminder message."""
+        """Test appointment reminder message when disabled."""
         result = await whatsapp_service.send_appointment_reminder(
             to_phone="5511999999999", establishment_name="Salão Beauty", time="10:00"
         )
-        assert result is True
+        assert result is False
 
     @pytest.mark.asyncio
     async def test_send_verification_code(self, whatsapp_service, mock_settings_disabled):
-        """Test verification code message."""
+        """Test verification code message when disabled."""
         result = await whatsapp_service.send_verification_code(
             to_phone="5511999999999", code="123456"
         )
-        assert result is True
+        assert result is False
 
     # ─── Singleton Tests ────────────────────────────────────────────────────────
 

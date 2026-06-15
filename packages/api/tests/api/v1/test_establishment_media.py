@@ -85,4 +85,4 @@ async def test_upload_logo_empty_file_returns_400(
     )
     assert resp.status_code == 400
     body = resp.json()
-    assert body["detail"] == "Arquivo vazio."
+    assert body["error"]["message"] == "Arquivo vazio."

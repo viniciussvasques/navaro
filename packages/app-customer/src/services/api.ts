@@ -30,8 +30,16 @@ class AuthEventBus {
 }
 
 function resolveApiBaseUrl(): string {
-    if (process.env.EXPO_PUBLIC_API_URL) {
-        return process.env.EXPO_PUBLIC_API_URL;
+    const envUrl = process.env.EXPO_PUBLIC_API_URL?.trim();
+    const isLocalDevUrl = !!envUrl && (
+        envUrl.includes('localhost') ||
+        envUrl.includes('127.0.0.1') ||
+        envUrl.includes('10.0.2.2')
+    );
+
+    // Release builds nunca devem usar URL local (celular físico não alcança localhost)
+    if (envUrl && !(!__DEV__ && isLocalDevUrl)) {
+        return envUrl.replace(/\/$/, '');
     }
     if (!__DEV__) {
         return 'https://api.dunnaa.com.br';

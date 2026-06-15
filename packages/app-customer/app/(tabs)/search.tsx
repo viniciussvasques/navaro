@@ -21,6 +21,7 @@ import {
 import { MapEstablishmentSheet } from '../../src/components/MapEstablishmentSheet';
 import { establishmentService, Establishment, SearchParams } from '../../src/services/establishments';
 import { colors, typography, spacing, radius } from '../../src/theme';
+import { useTabBarPadding } from '../../src/hooks/useTabBarPadding';
 
 type SortOption = 'distance' | 'rating' | 'price';
 type ViewMode = 'list' | 'map';
@@ -70,6 +71,7 @@ function buildParams(
 export default function Search() {
     const router = useRouter();
     const insets = useSafeAreaInsets();
+    const tabBarPadding = useTabBarPadding();
     const params = useLocalSearchParams<{ q?: string }>();
     const { coords, city, permissionGranted } = useLocation();
 
@@ -207,7 +209,7 @@ export default function Search() {
                                     latitude: est.latitude!,
                                     longitude: est.longitude!,
                                 }}
-                                title={est.is_sponsored ? `⚡ ${est.name}` : est.name}
+                                title={est.name}
                                 description={est.address}
                                 pinColor={est.is_sponsored ? colors.star : colors.primary}
                                 onPress={() => setSelectedMapEst(est)}
@@ -219,7 +221,7 @@ export default function Search() {
                         <Ionicons name="location" size={14} color={colors.primary} />
                         <Text style={styles.mapBadgeText}>
                             {mappableResults.length} {mappableResults.length === 1 ? 'local' : 'locais'}
-                            {results.some((r) => r.is_sponsored) ? ' · ⚡ destaques' : ''}
+                            {results.some((r) => r.is_sponsored) ? ' · patrocinados' : ''}
                         </Text>
                     </View>
 
@@ -239,7 +241,7 @@ export default function Search() {
                 <FlatList
                     data={results}
                     keyExtractor={(item) => item.id}
-                    contentContainerStyle={styles.list}
+                    contentContainerStyle={[styles.list, { paddingBottom: tabBarPadding }]}
                     showsVerticalScrollIndicator={false}
                     onEndReached={loadMore}
                     onEndReachedThreshold={0.3}
@@ -325,7 +327,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     viewToggleActive: { backgroundColor: colors.primary, borderColor: colors.primary },
-    list: { paddingHorizontal: spacing.xl, paddingBottom: spacing['3xl'] },
+    list: { paddingHorizontal: spacing.xl },
     loader: { paddingVertical: spacing.xl },
     mapContainer: { flex: 1, position: 'relative' },
     map: { flex: 1 },

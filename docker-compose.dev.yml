@@ -1,0 +1,39 @@
+# Desenvolvimento local com hot reload.
+# Uso: docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+services:
+  api:
+    volumes:
+      - ./packages/api:/app
+    environment:
+      - ENVIRONMENT=development
+      - APP_MODE=debug
+      - UVICORN_WORKERS=1
+    entrypoint: []
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    healthcheck:
+      disable: true
+
+  admin:
+    build:
+      context: ./packages/web-admin
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./packages/web-admin:/app
+      - /app/node_modules
+      - /app/.next
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      api:
+        condition: service_started
+
+  pro:
+    volumes:
+      - ./packages/dunnaa-pro-web:/app
+      - /app/node_modules
+      - /app/.next
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      api:
+        condition: service_started

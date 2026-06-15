@@ -19,7 +19,7 @@ async def test_cancellation_fee_and_debt_recovery(client: AsyncClient):
     # ─── 1. Setup User & Establishment ───────────────────────────────────────
     phone = "+5511999999999"
     resp = await client.post("/api/v1/auth/send-code", json={"phone": phone})
-    code = resp.json()["message"].split(": ")[1].strip()
+    code = "123456"
     resp = await client.post("/api/v1/auth/verify", json={"phone": phone, "code": code})
     user = resp.json()
     token = user["tokens"]["access_token"]
@@ -129,7 +129,9 @@ async def test_cancellation_fee_and_debt_recovery(client: AsyncClient):
         mock_stripe.return_value = MagicMock(id="pi_test_123", client_secret="secret_123")
 
         intent_resp = await client.post(
-            "/api/v1/payments/create-intent", json={"appointment_id": appt2_id}, headers=headers
+            "/api/v1/payments/create-intent",
+            json={"appointment_id": appt2_id, "provider": "stripe"},
+            headers=headers,
         )
 
         assert intent_resp.status_code == 200

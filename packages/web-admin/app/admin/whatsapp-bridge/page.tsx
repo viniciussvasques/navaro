@@ -1,9 +1,21 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { QrCode, RefreshCw, CheckCircle, AlertCircle, Loader2, Smartphone } from "lucide-react";
+import {
+    QrCode,
+    RefreshCw,
+    CheckCircle,
+    AlertCircle,
+    Loader2,
+    Smartphone,
+    Settings,
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default function WhatsAppBridgePage() {
     const [refetchTrigger, setRefetchTrigger] = useState(0);
@@ -18,9 +30,9 @@ export default function WhatsAppBridgePage() {
         refetchInterval: (query) => {
             const d = query.state.data as { connected?: boolean; qr?: string } | undefined;
             if (d?.connected) return false;
-            // Quando ainda não tem QR, poll a cada 2s para aparecer assim que o bridge gerar
-            return d?.qr ? 5000 : 2000;
+            return d?.qr ? 10000 : 5000;
         },
+        refetchIntervalInBackground: false,
     });
 
     const handleAtualizarQr = () => {
@@ -48,18 +60,29 @@ export default function WhatsAppBridgePage() {
     const error = statusError;
 
     return (
-        <div className="space-y-8 max-w-2xl mx-auto">
-            <div>
-                <h2 className="text-3xl font-bold flex items-center gap-2">
-                    <QrCode className="text-green-500" size={32} />
-                    WhatsApp Bridge
-                </h2>
-                <p className="text-gray-400 mt-1">
-                    Conecte um número via QR Code para enviar notificações (OTP, agendamentos, fila) sem usar API oficial. Serviço em <code className="text-gray-300 bg-white/5 px-1 rounded">packages/whatsapp-bridge</code>.
-                </p>
+        <div className="space-y-8 max-w-2xl mx-auto pb-12">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                <div>
+                    <h2 className="text-3xl font-bold flex items-center gap-2">
+                        <QrCode className="text-green-500" size={32} />
+                        WhatsApp Bridge
+                    </h2>
+                    <p className="text-gray-400 mt-1 max-w-lg">
+                        Vincule um número via QR Code para OTP, agendamentos e fila. Ative em{" "}
+                        <strong className="text-white">Configurações → WhatsApp</strong> com provider{" "}
+                        <code className="text-green-300 bg-white/5 px-1 rounded">bridge</code>.
+                    </p>
+                </div>
+                <Link href="/admin/settings">
+                    <Button variant="outline" size="sm" className="border-white/10 bg-white/5">
+                        <Settings className="mr-2" size={14} />
+                        Configurações
+                    </Button>
+                </Link>
             </div>
 
-            <div className="rounded-2xl border border-white/10 bg-black/20 backdrop-blur p-6">
+            <Card className="border-white/10 bg-white/[0.03]">
+                <CardContent className="pt-6">
                 {loading && !status && (
                     <div className="flex flex-col items-center justify-center py-12 gap-4">
                         <Loader2 className="animate-spin text-blue-500" size={40} />
@@ -91,7 +114,10 @@ export default function WhatsAppBridgePage() {
                         <div className="w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center">
                             <CheckCircle className="text-green-500" size={40} />
                         </div>
-                        <h3 className="text-xl font-semibold text-white">Conectado</h3>
+                        <Badge variant="outline" className="border-green-500/40 text-green-400">
+                            Conectado
+                        </Badge>
+                        <h3 className="text-xl font-semibold text-white">Pronto para enviar</h3>
                         <p className="text-gray-400 text-sm text-center max-w-sm">
                             O número já está vinculado. Notificações (OTP, agendamentos, fila) estão sendo enviadas via bridge.
                         </p>
@@ -172,7 +198,8 @@ export default function WhatsAppBridgePage() {
                         </button>
                     </div>
                 )}
-            </div>
+            </CardContent>
+            </Card>
         </div>
     );
 }

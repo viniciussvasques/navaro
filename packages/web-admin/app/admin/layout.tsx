@@ -21,32 +21,107 @@ import {
     Briefcase,
     Scissors,
     Calendar,
+    ListOrdered,
     Package,
+    Star,
     Terminal,
-    QrCode
+    ScanLine,
+    Smartphone,
+    CreditCard,
+    Crown,
+    Megaphone,
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import Image from 'next/image';
+import { BrandLogo } from '@/components/BrandLogo';
 
 function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
 }
 
-const MENU_ITEMS = [
-    { icon: LayoutDashboard, label: 'Dashboard', href: '/admin' },
-    { icon: QrCode, label: 'WhatsApp Bridge', href: '/admin/whatsapp-bridge' },
-    { icon: MessageSquare, label: 'Suporte', href: '/admin/support' },
-    { icon: Store, label: 'Estabelecimentos', href: '/admin/establishments' },
-    { icon: Briefcase, label: 'Profissionais', href: '/admin/staff' },
-    { icon: Scissors, label: 'Serviços', href: '/admin/services' },
-    { icon: Calendar, label: 'Agendamentos', href: '/admin/appointments' },
-    { icon: Package, label: 'Produtos', href: '/admin/products' },
-    { icon: Users, label: 'Usuários', href: '/admin/users' },
-    { icon: DollarSign, label: 'Financeiro', href: '/admin/finance' },
-    { icon: Terminal, label: 'Logs', href: '/admin/logs' },
-    { icon: Settings, label: 'Configurações', href: '/admin/settings' },
+const MENU_SECTIONS: {
+    title: string;
+    items: { icon: React.ComponentType<{ size?: number; className?: string }>; label: string; href: string }[];
+}[] = [
+    {
+        title: 'Visão geral',
+        items: [{ icon: LayoutDashboard, label: 'Dashboard', href: '/admin' }],
+    },
+    {
+        title: 'Operações',
+        items: [
+            { icon: Store, label: 'Estabelecimentos', href: '/admin/establishments' },
+            { icon: Briefcase, label: 'Profissionais', href: '/admin/staff' },
+            { icon: Scissors, label: 'Serviços', href: '/admin/services' },
+            { icon: Calendar, label: 'Agendamentos', href: '/admin/appointments' },
+            { icon: ListOrdered, label: 'Filas', href: '/admin/queue' },
+            { icon: Package, label: 'Produtos', href: '/admin/products' },
+        ],
+    },
+    {
+        title: 'Clientes & suporte',
+        items: [
+            { icon: MessageSquare, label: 'Suporte', href: '/admin/support' },
+            { icon: Users, label: 'Usuários', href: '/admin/users' },
+            { icon: Users, label: 'CRM', href: '/admin/crm' },
+            { icon: Star, label: 'Avaliações', href: '/admin/reviews' },
+        ],
+    },
+    {
+        title: 'Monetização',
+        items: [
+            { icon: Megaphone, label: 'Destaques & Ads', href: '/admin/marketing' },
+            { icon: Crown, label: 'Planos SaaS', href: '/admin/plans' },
+            { icon: CreditCard, label: 'Pagamentos', href: '/admin/payments' },
+            { icon: DollarSign, label: 'Financeiro', href: '/admin/finance' },
+        ],
+    },
+    {
+        title: 'Integrações',
+        items: [
+            { icon: ScanLine, label: 'QR Analytics', href: '/admin/qr-analytics' },
+            { icon: Smartphone, label: 'WhatsApp Bridge', href: '/admin/whatsapp-bridge' },
+        ],
+    },
+    {
+        title: 'Sistema',
+        items: [
+            { icon: Terminal, label: 'Logs', href: '/admin/logs' },
+            { icon: Settings, label: 'Configurações', href: '/admin/settings' },
+        ],
+    },
 ];
+
+const BREADCRUMB_LABELS: Record<string, string> = {
+    admin: 'Dashboard',
+    'qr-analytics': 'QR Analytics',
+    'whatsapp-bridge': 'WhatsApp Bridge',
+    support: 'Suporte',
+    establishments: 'Estabelecimentos',
+    staff: 'Profissionais',
+    services: 'Serviços',
+    appointments: 'Agendamentos',
+    queue: 'Filas',
+    reviews: 'Avaliações',
+    marketing: 'Marketing',
+    crm: 'CRM',
+    products: 'Produtos',
+    users: 'Usuários',
+    payments: 'Pagamentos',
+    finance: 'Financeiro',
+    plans: 'Planos',
+    logs: 'Logs',
+    settings: 'Configurações',
+    profile: 'Meu Perfil',
+};
+
+function breadcrumbLabel(pathname: string): string {
+    const segment = pathname.split('/').filter(Boolean).pop() || 'admin';
+    if (BREADCRUMB_LABELS[segment]) return BREADCRUMB_LABELS[segment];
+    if (/^[0-9a-f-]{36}$/i.test(segment)) return 'Detalhe';
+    return segment.replace(/-/g, ' ');
+}
 
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -61,15 +136,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         if (cookieRole) setRole(String(cookieRole));
     }, []);
 
-    const filteredItems = MENU_ITEMS.filter(item => {
-        // Prevent mismatch: only filter after mount when we know the role
-        if (!isMounted) return true;
+    const filteredSections = MENU_SECTIONS.map((section) => ({
+        ...section,
+        items: section.items.filter((item) => {
+            if (!isMounted) return true;
+            if (role === 'support') {
+                return !['/admin/finance', '/admin/settings', '/admin/whatsapp-bridge'].includes(item.href);
+            }
+            return true;
+        }),
+    })).filter((section) => section.items.length > 0);
 
-        if (role === 'support') {
-            return !['/admin/finance', '/admin/settings', '/admin/whatsapp-bridge'].includes(item.href);
-        }
-        return true;
-    });
+    const isActive = (href: string) =>
+        href === '/admin' ? pathname === '/admin' : pathname.startsWith(href);
 
     const [showNotifications, setShowNotifications] = React.useState(false);
     const [showUserMenu, setShowUserMenu] = React.useState(false);
@@ -85,7 +164,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     });
 
     // Fetch Notifications (Mock or Real)
-    const { data: notifications } = useQuery({
+    const { data: notifications, refetch: refetchNotifications } = useQuery({
         queryKey: ['notifications'],
         queryFn: async () => {
             try {
@@ -110,42 +189,58 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         router.push('/login');
     };
 
+    const handleMarkAllRead = async () => {
+        try {
+            await api.patch('/notifications/read-all');
+            refetchNotifications();
+        } catch {
+            /* ignore */
+        }
+    };
+
     const unreadCount = notifications?.filter((n: any) => !n.is_read)?.length || 0;
 
     return (
         <div className="flex h-screen bg-[#0f1115] text-white overflow-hidden">
             {/* Sidebar */}
-            <aside className="w-56 border-r border-white/10 bg-black/20 backdrop-blur-xl flex flex-col">
-                <div className="p-5">
-                    <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 bg-gradient-to-br from-amber-400 to-amber-600 rounded-xl flex items-center justify-center shadow-lg shadow-amber-500/20">
-                            <span className="text-white font-bold text-lg">D</span>
-                        </div>
-                        <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400 tracking-tight">
-                            DUNNAA
-                        </span>
-                    </div>
+            <aside className="w-60 border-r border-white/10 bg-black/20 backdrop-blur-xl flex flex-col">
+                <div className="p-5 border-b border-white/5">
+                    <BrandLogo href="/admin" size="sidebar" priority />
+                    <span className="mt-2 block text-[10px] uppercase tracking-[0.2em] text-[#e8c547]/70 font-semibold">
+                        Admin
+                    </span>
                 </div>
 
-                <nav className="flex-1 px-3 space-y-1 mt-2">
-                    {filteredItems.map((item) => (
-                        <Link
-                            key={item.href}
-                            href={item.href}
-                            className={cn(
-                                "flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-all duration-300 group",
-                                pathname === item.href
-                                    ? "bg-blue-600/20 text-blue-400 border border-blue-500/30"
-                                    : "hover:bg-white/5 text-gray-400"
-                            )}
-                        >
-                            <item.icon size={18} className={cn(
-                                "transition-colors",
-                                pathname === item.href ? "text-blue-400" : "group-hover:text-white"
-                            )} />
-                            <span className="font-medium text-[13px]">{item.label}</span>
-                            {pathname === item.href && <ChevronRight size={12} className="ml-auto" />}
-                        </Link>
+                <nav className="flex-1 px-3 py-4 space-y-5 overflow-y-auto scrollbar-thin scrollbar-thumb-white/10">
+                    {filteredSections.map((section) => (
+                        <div key={section.title}>
+                            <p className="px-3 mb-2 text-[10px] font-bold uppercase tracking-[0.15em] text-gray-600">
+                                {section.title}
+                            </p>
+                            <div className="space-y-0.5">
+                                {section.items.map((item) => (
+                                    <Link
+                                        key={item.href}
+                                        href={item.href}
+                                        className={cn(
+                                            'flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all duration-200 group',
+                                            isActive(item.href)
+                                                ? 'bg-amber-500/15 text-amber-300 border border-amber-500/25'
+                                                : 'hover:bg-white/5 text-gray-400 border border-transparent'
+                                        )}
+                                    >
+                                        <item.icon
+                                            size={17}
+                                            className={cn(
+                                                'shrink-0 transition-colors',
+                                                isActive(item.href) ? 'text-amber-400' : 'group-hover:text-white'
+                                            )}
+                                        />
+                                        <span className="font-medium text-[13px] truncate">{item.label}</span>
+                                    </Link>
+                                ))}
+                            </div>
+                        </div>
                     ))}
                 </nav>
 
@@ -168,7 +263,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         <span>Admin</span>
                         <ChevronRight size={14} />
                         <span className="text-white font-medium capitalize">
-                            {pathname.split('/').pop() || 'Dashboard'}
+                            {breadcrumbLabel(pathname)}
                         </span>
                     </div>
 
@@ -190,7 +285,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                 <div className="absolute right-0 mt-2 w-80 bg-[#1a1d24] border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                                     <div className="p-4 border-b border-white/10 flex justify-between items-center">
                                         <h3 className="text-sm font-semibold text-white">Notificações</h3>
-                                        <span className="text-xs text-blue-400 cursor-pointer hover:underline">Marcar todas</span>
+                                        <button
+                                            type="button"
+                                            onClick={handleMarkAllRead}
+                                            className="text-xs text-blue-400 cursor-pointer hover:underline"
+                                        >
+                                            Marcar todas
+                                        </button>
                                     </div>
                                     <div className="max-h-[300px] overflow-y-auto">
                                         {notifications?.length === 0 ? (

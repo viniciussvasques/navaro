@@ -109,8 +109,8 @@ async def init_db() -> None:
         importlib.import_module(module_name)
 
     async with engine.begin() as conn:
-        # Create tables (only for development)
-        if settings.ENVIRONMENT == "development":
+        # Dev-only bootstrap — production uses Alembic (docker-entrypoint)
+        if settings.ENVIRONMENT == "development" and settings.is_debug:
             await conn.run_sync(Base.metadata.create_all)
 
 

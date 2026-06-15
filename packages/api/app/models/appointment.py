@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 from uuid import UUID
 
 from sqlalchemy import DateTime, Enum, ForeignKey, Index, Integer, Numeric, String
-from sqlalchemy.dialects.postgresql import UUID as PGUUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID as PGUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import BaseModel
@@ -84,6 +84,11 @@ class Appointment(BaseModel):
         doc="Service ID (if single service)",
     )
 
+    service_ids: Mapped[list | None] = mapped_column(
+        JSONB,
+        doc="Multiple service IDs when combo booking",
+    )
+
     bundle_id: Mapped[UUID | None] = mapped_column(
         PGUUID(as_uuid=True),
         ForeignKey("service_bundles.id"),
@@ -157,6 +162,19 @@ class Appointment(BaseModel):
     total_price: Mapped[float | None] = mapped_column(
         Numeric(10, 2),
         doc="Total price including products",
+    )
+
+    promotion_id: Mapped[UUID | None] = mapped_column(
+        PGUUID(as_uuid=True),
+        ForeignKey("promotions.id"),
+        doc="Applied promotion",
+    )
+
+    discount_amount: Mapped[float] = mapped_column(
+        Numeric(10, 2),
+        default=0.0,
+        nullable=False,
+        doc="Discount from promotion",
     )
 
     # ─── Relationships ─────────────────────────────────────────────────────────

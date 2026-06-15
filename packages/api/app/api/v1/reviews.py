@@ -121,3 +121,50 @@ async def respond_to_review(
     # 3. Add response
     updated_review = await service.respond(review_id, data.response)
     return ReviewResponse.model_validate(updated_review)
+
+
+@router.patch("/{review_id}/approve-google", response_model=ReviewResponse)
+async def approve_review_for_google(
+    review_id: UUID,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> ReviewResponse:
+    """Approve review for Google sync (B92)."""
+    from sqlalchemy import select
+
+    from app.models.review import Review
+
+    service = ReviewService(db)
+    result = await db.execute(select(Review).where(Review.id == review_id))
+    review = result.scalar_one_or_none()
+    if not review:
+        raise HTTPException(status_code=404, detail="Review not found")
+    await verify_establishment_owner(db, review.establishment_id, current_user)
+    updated = await service.approve_for_google(review_id)
+    return ReviewResponse.model_validate(updated)
+
+
+@router.post("/{review_id}/send-google", response_model=ReviewResponse)
+async def send_review_to_google(
+    review_id: UUID,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> ReviewResponse:
+    """Send approved review to Google Places (B93)."""
+    from sqlalchemy import select
+
+    from app.models.review import Review
+
+    service = ReviewService(db)
+    result = await db.execute(select(Review).where(Review.id == review_id))
+    review = result.scalar_one_or_none()
+    if not review:
+        raise HTTPException(status_code=404, detail="Review not found")
+    await verify_establishment_owner(db, review.establishment_id, current_user)
+    updated = await service.send_to_google(review_id)
+    if not updated:
+        raise HTTPException(
+            status_code=400,
+            detail="Avaliação precisa ser aprovada para Google antes do envio",
+        )
+    return ReviewResponse.model_validate(updated)

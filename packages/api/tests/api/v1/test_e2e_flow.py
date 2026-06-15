@@ -2,6 +2,29 @@ import pytest
 from httpx import AsyncClient
 
 
+def _error_message(resp) -> str:
+    body = resp.json()
+    if "error" in body:
+        return str(body["error"].get("message", ""))
+    detail = body.get("detail")
+    if isinstance(detail, dict):
+        return str(detail.get("message", detail))
+    return str(detail or "")
+
+
+async def _fund_wallet(client: AsyncClient, auth_headers: dict, amount: float = 200.0) -> None:
+    from app.core.database import async_session_maker
+    from app.core.security import decode_access_token
+    from app.models.wallet import TransactionType
+    from app.services.wallet_service import WalletService
+
+    token = auth_headers["Authorization"].split(" ")[1]
+    user_id = decode_access_token(token)
+    async with async_session_maker() as db:
+        ws = WalletService(db)
+        await ws.add_balance(user_id, amount, "Fundos teste", tx_type=TransactionType.deposit)
+
+
 @pytest.mark.asyncio
 async def test_grand_tour_e2e(client: AsyncClient):
     """
@@ -13,7 +36,7 @@ async def test_grand_tour_e2e(client: AsyncClient):
     # User A (Referrer)
     phone_a = "+5511911111111"
     resp = await client.post("/api/v1/auth/send-code", json={"phone": phone_a})
-    code_a = resp.json()["message"].split(": ")[1].strip()
+    code_a = "123456"
     resp = await client.post("/api/v1/auth/verify", json={"phone": phone_a, "code": code_a})
     user_a = resp.json()
     token_a = user_a["tokens"]["access_token"]
@@ -25,7 +48,7 @@ async def test_grand_tour_e2e(client: AsyncClient):
     # User B (Referee) signs up using User A's code
     phone_b = "+5511922222222"
     resp = await client.post("/api/v1/auth/send-code", json={"phone": phone_b})
-    code_b = resp.json()["message"].split(": ")[1].strip()
+    code_b = "123456"
     resp = await client.post(
         "/api/v1/auth/verify", json={"phone": phone_b, "code": code_b, "referral_code": ref_code_a}
     )
@@ -111,7 +134,7 @@ async def test_grand_tour_e2e(client: AsyncClient):
         headers=booking_headers,
     )
     assert resp.status_code == 400
-    assert "fechado" in resp.json()["detail"]["message"].lower()
+    assert "fechado" in _error_message(resp).lower()
 
     # Failure: Monday at 09:00 (Staff only starts at 10:00)
     resp = await client.post(
@@ -126,10 +149,8 @@ async def test_grand_tour_e2e(client: AsyncClient):
         headers=booking_headers,
     )
     assert resp.status_code == 400
-    assert (
-        "jornada" in resp.json()["detail"]["message"].lower()
-        or "horário" in resp.json()["detail"]["message"].lower()
-    )
+    msg = _error_message(resp).lower()
+    assert "jornada" in msg or "horário" in msg
 
     # ─── 4. STAFF BLOCKS ───────────────────────────────────────────────────
     # Lightning takes a lunch break 12:00-13:00
@@ -157,7 +178,7 @@ async def test_grand_tour_e2e(client: AsyncClient):
         headers=booking_headers,
     )
     assert resp.status_code == 400
-    assert "bloqueio" in resp.json()["detail"]["message"].lower()
+    assert "bloqueio" in _error_message(resp).lower()
 
     # ─── 5. CHECKOUT & TIPS ────────────────────────────────────────────────
     # Complete appointment
@@ -165,10 +186,16 @@ async def test_grand_tour_e2e(client: AsyncClient):
         f"/api/v1/appointments/{appt_id}", json={"status": "completed"}, headers=headers_a
     )
 
-    # Give a Tip
+    # Give a Tip (wallet — default since tips refactor)
+    await _fund_wallet(client, headers_b, 50.0)
     tip_resp = await client.post(
         "/api/v1/tips/",
-        json={"amount": 15.0, "staff_id": staff_id, "appointment_id": appt_id},
+        json={
+            "amount": 15.0,
+            "staff_id": staff_id,
+            "appointment_id": appt_id,
+            "payment_method": "wallet",
+        },
         headers=headers_b,
     )
     assert tip_resp.status_code == 200

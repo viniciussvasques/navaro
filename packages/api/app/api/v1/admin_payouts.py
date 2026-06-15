@@ -1,17 +1,43 @@
 """Admin payout endpoints."""
 
+from datetime import datetime
 from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, Query
+from pydantic import BaseModel, ConfigDict
 from sqlalchemy import func, select
 
 from app.api.deps import AdminUser, DBSession
+from app.models.establishment import Establishment
 from app.models.payment import Payout, PayoutStatus
 
 router = APIRouter(prefix="/admin/payouts", tags=["Admin Payouts"])
 
 
-@router.get("", response_model=dict)
+class PayoutItemResponse(BaseModel):
+    """Single payout item for admin list."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    establishment_id: UUID
+    establishment_name: str | None = None
+    amount: float
+    status: str
+    created_at: datetime
+    paid_at: datetime | None = None
+
+
+class PayoutListResponse(BaseModel):
+    """Paginated list of payouts."""
+
+    items: list[PayoutItemResponse]
+    total: int
+    page: int
+    page_size: int
+
+
+@router.get("", response_model=PayoutListResponse)
 async def list_all_payout_requests(
     db: DBSession,
     admin: AdminUser,
@@ -36,12 +62,31 @@ async def list_all_payout_requests(
     result = await db.execute(query)
     payouts = result.scalars().all()
 
-    return {
-        "items": payouts,
-        "total": total,
-        "page": page,
-        "page_size": page_size,
-    }
+    est_ids = {p.establishment_id for p in payouts}
+    est_names: dict = {}
+    if est_ids:
+        est_res = await db.execute(
+            select(Establishment.id, Establishment.name).where(Establishment.id.in_(est_ids))
+        )
+        est_names = {row.id: row.name for row in est_res.all()}
+
+    return PayoutListResponse(
+        items=[
+            PayoutItemResponse(
+                id=p.id,
+                establishment_id=p.establishment_id,
+                establishment_name=est_names.get(p.establishment_id),
+                amount=float(p.amount),
+                status=p.status.value,
+                created_at=p.created_at,
+                paid_at=getattr(p, "paid_at", None),
+            )
+            for p in payouts
+        ],
+        total=total,
+        page=page,
+        page_size=page_size,
+    )
 
 
 @router.patch("/{payout_id}/approve", status_code=200)
@@ -61,6 +106,6 @@ async def approve_payout(
             status_code=400, detail="Apenas solicitações pendentes podem ser aprovadas"
         )
 
-    payout.status = PayoutStatus.completed
+    payout.status = PayoutStatus.succeeded
     await db.commit()
     return {"message": "Saque aprovado e marcado como concluído."}

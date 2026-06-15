@@ -1,0 +1,42 @@
+---
+description: Padrões de testes DUNNAA
+globs: packages/api/tests/**/*.py,**/*.test.ts,**/*.test.tsx
+alwaysApply: false
+---
+
+# Testes — DUNNAA
+
+## Backend (pytest)
+
+- Local: `packages/api/tests/`
+- Async: `pytest-asyncio`, `httpx.AsyncClient`, `asgi-lifespan`
+- Fixtures: `conftest.py` (app, db, auth tokens)
+- DB limpo por teste — não depender de ordem
+
+## Estrutura
+
+```
+tests/
+├── api/v1/          # testes por domínio
+├── critical/        # double-booking, RBAC, webhook idempotency
+└── services/        # email, push, scheduler, whatsapp
+```
+
+## Ao Adicionar Feature
+
+1. Teste happy path + erros principais (400, 403, 404)
+2. RBAC: testar cada role relevante
+3. Domínios críticos (appointments, payments, queue): adicionar em `critical/` se aplicável
+
+## Comandos
+
+```bash
+cd packages/api
+pytest tests/api/v1/test_auth.py -v          # arquivo específico
+pytest tests/critical/ -v                     # testes críticos
+pytest tests/ --cov=app --cov-report=term-missing
+```
+
+## CI
+
+Pipeline em `.github/workflows/api.yml`: ruff → pytest → bandit → docker build

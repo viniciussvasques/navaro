@@ -206,6 +206,32 @@ class AnalyticsService:
         user_count_res = await self.db.execute(user_count_query)
         total_active_users = user_count_res.scalar() or 0
 
+        period_days = (end_date - start_date).days + 1
+        prev_end = start_date - timedelta(days=1)
+        prev_start = prev_end - timedelta(days=period_days - 1)
+
+        prev_finance_res = await self.db.execute(
+            select(
+                func.sum(Payment.amount).label("gmv"),
+                func.sum(Payment.platform_fee).label("commissions"),
+            ).where(
+                and_(
+                    Payment.status == PaymentStatus.succeeded,
+                    Payment.purpose == "single",
+                    Payment.created_at >= prev_start,
+                    Payment.created_at < prev_end + timedelta(days=1),
+                )
+            )
+        )
+        prev_finance = prev_finance_res.first()
+        prev_gmv = float(prev_finance.gmv or 0) if prev_finance else 0.0
+        prev_commissions = float(prev_finance.commissions or 0) if prev_finance else 0.0
+
+        def pct_change(current: float, previous: float) -> float | None:
+            if previous <= 0:
+                return None
+            return round(((current - previous) / previous) * 100, 1)
+
         return {
             "gmv": gmv,
             "commissions": commissions,
@@ -221,4 +247,8 @@ class AnalyticsService:
             "average_ticket": (gmv / completed_appts) if completed_appts > 0 else 0,
             "leaderboard": leaderboard,
             "period": {"start": start_date.isoformat(), "end": end_date.isoformat()},
+            "trends": {
+                "gmv_pct": pct_change(gmv, prev_gmv),
+                "commissions_pct": pct_change(commissions, prev_commissions),
+            },
         }

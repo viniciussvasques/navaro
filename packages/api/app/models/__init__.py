@@ -7,6 +7,7 @@ from app.models.appointment import (
     AppointmentProduct,
     AppointmentStatus,
     Checkin,
+    PaymentMethod,
     PaymentType,
 )
 from app.models.base import BaseModel
@@ -34,11 +35,17 @@ from app.models.payment import (
 # Plugin
 from app.models.plugin import AdCampaign, EstablishmentPlugin
 
+# Promotion
+from app.models.promotion import Promotion
+
 # Portfolio
 from app.models.portfolio import PortfolioImage, SearchHistory
 
 # Product
 from app.models.product import Product
+
+# QR Scan
+from app.models.qr_scan import QRScan
 
 # Queue
 from app.models.queue import QueueEntry, QueueStatus
@@ -122,7 +129,10 @@ __all__ = [
     "Appointment",
     "Checkin",
     "AppointmentStatus",
+    "PaymentMethod",
     "PaymentType",
+    # QR Scan
+    "QRScan",
     # Queue
     "QueueEntry",
     "QueueStatus",
@@ -142,6 +152,8 @@ __all__ = [
     # Plugin
     "EstablishmentPlugin",
     "AdCampaign",
+    # Promotion
+    "Promotion",
     # Notification
     "Notification",
     "NotificationType",

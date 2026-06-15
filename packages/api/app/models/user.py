@@ -3,7 +3,7 @@
 import enum
 from uuid import UUID
 
-from sqlalchemy import Enum, Index, String
+from sqlalchemy import Enum, ForeignKey, Index, String
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -80,7 +80,13 @@ class User(BaseModel):
 
     referred_by_id: Mapped[UUID | None] = mapped_column(
         PGUUID(as_uuid=True),
+        ForeignKey("users.id"),
         doc="ID of user who referred this user",
+    )
+
+    device_token: Mapped[str | None] = mapped_column(
+        String(512),
+        doc="FCM/Expo push device token",
     )
 
     # ─── Relationships ─────────────────────────────────────────────────────────

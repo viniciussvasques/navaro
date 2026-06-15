@@ -123,7 +123,7 @@ async def get_establishment_profile(
     reviews_result = await db.execute(
         select(Review)
         .options(selectinload(Review.user))
-        .where(Review.establishment_id == establishment_id)
+        .where(Review.establishment_id == establishment_id, Review.is_hidden == False)
         .order_by(desc(Review.created_at))
         .limit(5)
     )

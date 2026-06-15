@@ -5,7 +5,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 from uuid import UUID
 
-from sqlalchemy import DateTime, Enum, ForeignKey, Index, Numeric, String
+from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Index, Numeric, String
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -42,6 +42,7 @@ class PaymentPurpose(str, enum.Enum):
     single = "single"
     subscription = "subscription"
     subscription_renewal = "subscription_renewal"
+    platform_saas = "platform_saas"
 
 
 class Payment(BaseModel):
@@ -327,6 +328,47 @@ class Payout(BaseModel):
     stripe_transfer_id: Mapped[str | None] = mapped_column(
         String(255),
         doc="Stripe Transfer ID",
+    )
+
+    # ─── Mercado Pago PIX transfer ─────────────────────────────────────────────
+
+    provider: Mapped[str] = mapped_column(
+        String(50),
+        default="manual",
+        nullable=False,
+        server_default="manual",
+        doc="Payout provider: manual, mercadopago, stripe",
+    )
+
+    provider_payout_id: Mapped[str | None] = mapped_column(
+        String(255),
+        doc="Provider payout/transfer ID",
+    )
+
+    pix_key_used: Mapped[str | None] = mapped_column(
+        String(255),
+        doc="PIX key used for this payout",
+    )
+
+    payment_id: Mapped[UUID | None] = mapped_column(
+        PGUUID(as_uuid=True),
+        ForeignKey("payments.id"),
+        nullable=True,
+        doc="Related payment that originated this payout",
+    )
+
+    platform_fee: Mapped[float | None] = mapped_column(
+        Numeric(10, 2),
+        default=0.0,
+        doc="Platform fee deducted",
+    )
+
+    is_auto: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        server_default="false",
+        nullable=False,
+        doc="Whether this was an automatic payout",
     )
 
     # ─── Relationships ─────────────────────────────────────────────────────────

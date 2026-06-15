@@ -1,0 +1,45 @@
+---
+description: Padrões React Native/Expo para apps mobile DUNNAA
+globs: packages/app-customer/**/*,packages/app-pro/**/*
+alwaysApply: false
+---
+
+# Expo Mobile — DUNNAA
+
+## Apps
+
+- `packages/app-customer` — app do cliente final (agendar, fila, assinatura)
+- `packages/app-pro` — DUNNAA Pro (agenda, fila, check-in, analytics)
+
+## Stack Alvo
+
+- Expo SDK 52+ / React Native
+- TypeScript strict
+- Navegação: Expo Router (file-based)
+- Estado servidor: TanStack Query
+- Auth: tokens JWT da API (`/api/v1/auth/*`)
+
+## API Client
+
+- Base URL via env: `EXPO_PUBLIC_API_URL`
+- Header: `Authorization: Bearer <token>`
+- Tipos compartilhados de `packages/shared` quando existir
+- Referência de contratos: `docs/API.md`
+
+## UX Domínio
+
+- Fluxos críticos: busca por geo, agendamento, fila virtual, check-in QR
+- Formatação BR: telefone `+55`, moeda `R$`, datas `pt-BR`
+- Offline-first onde fizer sentido (fila, notificações)
+
+## Estrutura Sugerida
+
+```
+apps/{app}/
+├── app/              # Expo Router screens
+├── components/
+├── hooks/
+├── services/api.ts   # fetch wrapper
+├── constants/
+└── app.json
+```

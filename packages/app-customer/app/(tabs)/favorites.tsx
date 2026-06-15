@@ -10,10 +10,12 @@ import { EmptyState } from '../../src/components/EmptyState';
 import { favoritesService } from '../../src/services/favorites';
 import type { Establishment } from '../../src/services/establishments';
 import { colors, typography, spacing } from '../../src/theme';
+import { useTabBarPadding } from '../../src/hooks/useTabBarPadding';
 
 export default function Favorites() {
     const router = useRouter();
     const insets = useSafeAreaInsets();
+    const tabBarPadding = useTabBarPadding();
     const [favorites, setFavorites] = useState<Establishment[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -36,7 +38,7 @@ export default function Favorites() {
             <FlatList
                 data={favorites}
                 keyExtractor={(item) => item.id}
-                contentContainerStyle={styles.list}
+                contentContainerStyle={[styles.list, { paddingBottom: tabBarPadding }]}
                 showsVerticalScrollIndicator={false}
                 refreshControl={<RefreshControl refreshing={isLoading} onRefresh={load} colors={[colors.primary]} />}
                 renderItem={({ item }) => (
@@ -62,5 +64,5 @@ export default function Favorites() {
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.background },
     pageTitle: { ...typography.h2, color: colors.textMain, paddingHorizontal: spacing.xl, marginBottom: spacing.lg },
-    list: { paddingHorizontal: spacing.xl, paddingBottom: spacing['3xl'] },
+    list: { paddingHorizontal: spacing.xl },
 });

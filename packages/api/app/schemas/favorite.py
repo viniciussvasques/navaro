@@ -26,6 +26,12 @@ class FavoriteEstablishmentResponse(BaseModel):
     establishment_name: str
     establishment_slug: str
     establishment_logo_url: str | None = None
+    establishment_cover_url: str | None = None
+    establishment_category: str | None = None
+    establishment_city: str | None = None
+    establishment_state: str | None = None
+    establishment_avg_rating: float | None = None
+    establishment_distance: float | None = None
 
     model_config = ConfigDict(from_attributes=True)
 

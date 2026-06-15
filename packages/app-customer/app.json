@@ -2,7 +2,7 @@
   "expo": {
     "name": "DUNNAA",
     "slug": "dunnaa",
-    "version": "1.0.0",
+    "version": "1.0.2",
     "runtimeVersion": {
       "policy": "appVersion"
     },
@@ -15,7 +15,7 @@
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/splash-logo.png",
       "resizeMode": "contain",
       "backgroundColor": "#0a0a0a"
     },
@@ -28,17 +28,18 @@
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Precisamos da sua localização para mostrar estabelecimentos perto de você.",
         "NSLocationAlwaysUsageDescription": "Precisamos da sua localização para validar sua posição na fila.",
-        "NSCameraUsageDescription": "Precisamos da câmera para escanear QR Codes de estabelecimentos."
+        "NSCameraUsageDescription": "Precisamos da câmera para escanear QR Codes de estabelecimentos.",
+        "NSPhotoLibraryUsageDescription": "Precisamos da galeria para você escolher sua foto de perfil."
       }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#005F73"
+        "backgroundColor": "#0A0D12"
       },
       "edgeToEdgeEnabled": true,
       "package": "com.dunnaa.customer",
-      "versionCode": 1,
+      "versionCode": 4,
       "permissions": [
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",
@@ -69,7 +70,19 @@
     },
     "web": {
       "favicon": "./assets/favicon.png",
-      "bundler": "metro"
+      "bundler": "metro",
+      "output": "single",
+      "name": "DUNNAA",
+      "shortName": "DUNNAA",
+      "description": "Agende barbearias, salões e estética pelo celular.",
+      "lang": "pt-BR",
+      "themeColor": "#005f73",
+      "backgroundColor": "#0a0a0a",
+      "display": "standalone",
+      "orientation": "portrait"
+    },
+    "experiments": {
+      "baseUrl": "/app"
     },
     "plugins": [
       "expo-router",
@@ -78,6 +91,13 @@
         "expo-camera",
         {
           "cameraPermission": "Permite que o DUNNAA acesse a câmera para escanear QR Codes de estabelecimentos."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Permite que o DUNNAA acesse suas fotos para definir a foto de perfil.",
+          "cameraPermission": "Permite que o DUNNAA use a câmera para tirar sua foto de perfil."
         }
       ],
       [

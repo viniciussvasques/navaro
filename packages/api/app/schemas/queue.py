@@ -14,6 +14,8 @@ class QueueEntryCreate(BaseModel):
     establishment_id: UUID
     service_id: UUID | None = None
     preferred_staff_id: UUID | None = None
+    latitude: float | None = None
+    longitude: float | None = None
 
 
 class QueueStatusUpdate(BaseModel):

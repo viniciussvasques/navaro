@@ -23,7 +23,7 @@ dependencies = [
     
     # Security
     "python-jose[cryptography]>=3.3.0",
-    "passlib[bcrypt]>=1.7.4",
+    "bcrypt>=4.2.0",
     
     # HTTP Client
     "httpx>=0.28.0",
@@ -71,7 +71,6 @@ dev = [
     "mypy>=1.13.0",
     
     # Type stubs
-    "types-passlib>=1.7.0",
     "types-python-jose>=3.3.0",
 ]
 
@@ -150,6 +149,7 @@ addopts = [
 ]
 asyncio_default_fixture_loop_scope = "function"
 markers = [
+    "asyncio: asyncio tests",
     "unit: Unit tests",
     "integration: Integration tests",
     "e2e: End-to-end tests",

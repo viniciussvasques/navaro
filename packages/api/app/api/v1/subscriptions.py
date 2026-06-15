@@ -13,6 +13,7 @@ from app.schemas.service import (
     SubscriptionPlanResponse,
     SubscriptionPlanUpdate,
 )
+from app.schemas.subscription import SubscriberSummaryResponse
 
 router = APIRouter(
     prefix="/establishments/{establishment_id}/subscription-plans", tags=["Subscription Plans"]
@@ -123,3 +124,37 @@ async def update_plan(
     await db.refresh(plan)
 
     return SubscriptionPlanResponse.model_validate(plan)
+
+
+establishment_subscriptions_router = APIRouter(
+    prefix="/establishments/{establishment_id}/subscriptions",
+    tags=["Subscriptions"],
+)
+
+
+@establishment_subscriptions_router.get("", response_model=list[SubscriberSummaryResponse])
+async def list_establishment_subscribers(
+    establishment_id: UUID,
+    db: DBSession,
+    current_user: CurrentUser,
+) -> list[SubscriberSummaryResponse]:
+    """List active subscribers (B54–B55)."""
+    from app.dependencies import verify_establishment_access
+    from app.services.subscription_service import SubscriptionService
+
+    await verify_establishment_access(db, establishment_id, current_user)
+    service = SubscriptionService(db)
+    rows = await service.list_establishment_subscribers(establishment_id)
+    return [
+        SubscriberSummaryResponse(
+            subscription_id=sub.id,
+            user_id=sub.user_id,
+            user_name=user.name if user else None,
+            plan_name=sub.plan.name if sub.plan else "",
+            status=sub.status,
+            current_period_end=sub.current_period_end,
+            uses_this_month=uses,
+            max_uses_per_month=max_uses,
+        )
+        for sub, user, uses, max_uses in rows
+    ]

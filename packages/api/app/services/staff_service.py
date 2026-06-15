@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from uuid import UUID
 from sqlalchemy import select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -40,7 +40,7 @@ class StaffService:
                 )
 
         # 2. Update Goals
-        today = datetime.now()
+        today = datetime.now(timezone.utc)
         goals_result = await self.db.execute(
             select(StaffGoal).where(
                 and_(

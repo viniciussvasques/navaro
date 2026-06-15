@@ -53,7 +53,7 @@ class WhatsAppService:
         settings = await self.get_settings()
         if not settings["enabled"]:
             logger.info("WhatsApp disabled", to=to_phone)
-            return True
+            return False
         provider = (settings.get("provider") or "meta").lower()
         if provider == "twilio":
             return await self._send_twilio(to_phone, message, settings)
@@ -144,7 +144,13 @@ class WhatsAppService:
             logger.warning("WhatsApp Bridge URL not configured")
             return False
 
-        payload = {"phone": to_phone, "message": message}
+        # Normaliza telefone para formato do bridge: só números com DDI (ex: 5511999999999)
+        clean_phone = "".join(filter(str.isdigit, to_phone))
+        if not clean_phone.startswith("55") and len(clean_phone) <= 11:
+            # Assume Brasil se não tiver DDI
+            clean_phone = "55" + clean_phone
+
+        payload = {"phone": clean_phone, "message": message}
         url = f"{bridge_url}/send-text"
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
@@ -269,6 +275,23 @@ class WhatsAppService:
             f"✅ *Atendimento iniciado*\n\n"
             f"Você está sendo atendido(a) em *{establishment_name}*.\n\n"
             f"Bom atendimento! 😊"
+        )
+        return await self.send_text(to_phone, message)
+
+    async def send_welcome_establishment(
+        self, to_phone: str, owner_name: str | None, establishment_name: str
+    ) -> bool:
+        """Send welcome message when a new establishment is created."""
+        nome = owner_name or "Parceiro"
+        message = (
+            f"🎉 *Bem-vindo ao Dunnaa Pro!*\n\n"
+            f"Olá, {nome}! Seu estabelecimento *{establishment_name}* foi cadastrado com sucesso.\n\n"
+            f"📌 *Próximos passos:*\n"
+            f"• Cadastre seus serviços e profissionais\n"
+            f"• Configure sua agenda de horários\n"
+            f"• Compartilhe o link para clientes agendarem\n\n"
+            f"Acesse o painel: pro.dunnaa.com.br\n\n"
+            f"Precisa de ajuda? Entre em contato pelo suporte. 👋"
         )
         return await self.send_text(to_phone, message)
 

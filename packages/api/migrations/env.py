@@ -25,6 +25,8 @@ model_modules = [
     "app.models.payment",
     "app.models.portfolio",
     "app.models.plugin",
+    "app.models.promotion",
+    "app.models.qr_scan",
 ]
 for module in model_modules:
     importlib.import_module(module)

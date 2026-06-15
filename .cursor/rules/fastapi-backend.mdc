@@ -1,0 +1,62 @@
+---
+description: Padrões FastAPI para packages/api
+globs: packages/api/**/*.py
+alwaysApply: false
+---
+
+# FastAPI Backend — DUNNAA
+
+## Camadas
+
+```
+app/api/v1/{domain}.py  →  app/services/{domain}_service.py  →  app/models/
+                              app/schemas/{domain}.py
+```
+
+## Routes
+
+- Prefixo global: `/api/v1` (registrado em `router.py`)
+- Usar `APIRouter` com `tags` descritivas
+- Injetar deps via `app/api/deps.py`: `CurrentUser`, `DBSession`, `AdminUser`
+- Respostas: Pydantic v2 `model_validate()`; `ORJSONResponse` no app
+
+```python
+# ✅ Padrão novo
+from app.api.deps import CurrentUser, DBSession
+from app.core.exceptions import NotFoundError, ForbiddenError
+
+# ❌ Evitar em código novo
+from app.dependencies import get_current_user
+from app.database import get_db
+from fastapi import HTTPException
+```
+
+## Services
+
+- Classe com `__init__(self, db: AsyncSession)`
+- Queries async: `select()`, `await db.execute()`, `selectinload()` para relações
+- Regras de negócio no service, não na route
+- Double-booking, webhooks idempotentes: ver `tests/critical/`
+
+## Models
+
+- Herdar `BaseModel` (UUID PK, `created_at`, `updated_at`)
+- SQLAlchemy 2.0 style: `Mapped`, `mapped_column`
+- Alterações de schema → Alembic migration obrigatória
+
+## Auth & RBAC
+
+- JWT access + refresh; roles: `customer`, `owner`, `staff`, `admin`
+- Endpoints de estabelecimento: validar owner/admin/staff ativo
+- Usar `verify_establishment_access` de `app/api/deps.py`
+
+## Pagamentos
+
+- Factory: `app/services/payment_providers/factory.py`
+- Providers: Stripe, Mercado Pago
+- Webhooks: idempotência obrigatória (ver testes em `tests/critical/`)
+
+## Logging
+
+- `structlog` via `app/core/logging.py`
+- Incluir contexto: `user_id`, `establishment_id` em operações sensíveis

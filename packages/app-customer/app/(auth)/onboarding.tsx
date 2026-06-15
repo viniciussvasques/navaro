@@ -1,17 +1,15 @@
 /**
  * Onboarding screen — 3 slides
  */
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import {
-    View, Text, TouchableOpacity, FlatList, Dimensions, StyleSheet,
+    View, Text, TouchableOpacity, StyleSheet, Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { colors, typography, spacing, radius } from '../../src/theme';
-
-const { width } = Dimensions.get('window');
 
 const slides = [
     {
@@ -38,54 +36,48 @@ export default function Onboarding() {
     const router = useRouter();
     const insets = useSafeAreaInsets();
     const { completeOnboarding } = useAuth();
-    const flatListRef = useRef<FlatList>(null);
     const [currentIndex, setCurrentIndex] = useState(0);
+    const [isFinishing, setIsFinishing] = useState(false);
+
+    const slide = slides[currentIndex];
 
     const finish = async (asGuest = false) => {
-        await completeOnboarding();
-        router.replace(asGuest ? '/(tabs)' : '/(auth)/login');
-    };
-
-    const handleNext = async () => {
-        if (currentIndex < slides.length - 1) {
-            flatListRef.current?.scrollToIndex({ index: currentIndex + 1 });
-        } else {
-            await finish(false);
+        if (isFinishing) return;
+        setIsFinishing(true);
+        try {
+            await completeOnboarding();
+            router.replace(asGuest ? '/(tabs)' : '/(auth)/login');
+        } finally {
+            setIsFinishing(false);
         }
     };
 
-    const handleSkip = async () => {
-        await finish(true);
+    const handleNext = () => {
+        if (currentIndex < slides.length - 1) {
+            setCurrentIndex((index) => index + 1);
+            return;
+        }
+        void finish(false);
+    };
+
+    const handleSkip = () => {
+        void finish(true);
     };
 
     return (
         <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
-            <TouchableOpacity style={styles.skipBtn} onPress={handleSkip}>
+            <TouchableOpacity style={styles.skipBtn} onPress={handleSkip} disabled={isFinishing}>
                 <Text style={styles.skipText}>Pular</Text>
             </TouchableOpacity>
 
-            <FlatList
-                ref={flatListRef}
-                data={slides}
-                horizontal
-                pagingEnabled
-                showsHorizontalScrollIndicator={false}
-                onMomentumScrollEnd={(e) => {
-                    setCurrentIndex(Math.round(e.nativeEvent.contentOffset.x / width));
-                }}
-                renderItem={({ item }) => (
-                    <View style={[styles.slide, { width }]}>
-                        <View style={[styles.iconCircle, { backgroundColor: item.color + '15' }]}>
-                            <Ionicons name={item.icon} size={64} color={item.color} />
-                        </View>
-                        <Text style={styles.title}>{item.title}</Text>
-                        <Text style={styles.subtitle}>{item.subtitle}</Text>
-                    </View>
-                )}
-                keyExtractor={(_, i) => String(i)}
-            />
+            <View style={styles.slide}>
+                <View style={[styles.iconCircle, { backgroundColor: slide.color + '15' }]}>
+                    <Ionicons name={slide.icon} size={64} color={slide.color} />
+                </View>
+                <Text style={styles.title}>{slide.title}</Text>
+                <Text style={styles.subtitle}>{slide.subtitle}</Text>
+            </View>
 
-            {/* Dots */}
             <View style={styles.dots}>
                 {slides.map((_, i) => (
                     <View
@@ -95,8 +87,14 @@ export default function Onboarding() {
                 ))}
             </View>
 
-            {/* Button */}
-            <TouchableOpacity style={styles.button} onPress={handleNext} activeOpacity={0.8}>
+            <TouchableOpacity
+                style={[styles.button, isFinishing && styles.buttonDisabled]}
+                onPress={handleNext}
+                disabled={isFinishing}
+                activeOpacity={0.8}
+                // Web: garante clique mesmo com overflow:hidden do expo-reset
+                {...(Platform.OS === 'web' ? { role: 'button' as const } : {})}
+            >
                 <Text style={styles.buttonText}>
                     {currentIndex === slides.length - 1 ? 'Entrar' : 'Próximo'}
                 </Text>
@@ -104,7 +102,11 @@ export default function Onboarding() {
             </TouchableOpacity>
 
             {currentIndex === slides.length - 1 && (
-                <TouchableOpacity style={styles.guestBtn} onPress={() => finish(true)}>
+                <TouchableOpacity
+                    style={styles.guestBtn}
+                    onPress={() => void finish(true)}
+                    disabled={isFinishing}
+                >
                     <Text style={styles.guestText}>Explorar sem login</Text>
                 </TouchableOpacity>
             )}
@@ -120,6 +122,7 @@ const styles = StyleSheet.create({
     skipBtn: {
         alignSelf: 'flex-end',
         padding: spacing.lg,
+        zIndex: 2,
     },
     skipText: {
         ...typography.bodySmMedium,
@@ -130,6 +133,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: spacing['3xl'],
+        minHeight: 280,
     },
     iconCircle: {
         width: 140,
@@ -177,6 +181,13 @@ const styles = StyleSheet.create({
         paddingVertical: spacing.lg,
         borderRadius: radius.xl,
         marginBottom: spacing.xl,
+        zIndex: 2,
+        ...(Platform.OS === 'web'
+            ? { cursor: 'pointer' as const }
+            : {}),
+    },
+    buttonDisabled: {
+        opacity: 0.7,
     },
     buttonText: {
         ...typography.button,
@@ -186,6 +197,10 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingVertical: spacing.md,
         marginBottom: spacing.xl,
+        zIndex: 2,
+        ...(Platform.OS === 'web'
+            ? { cursor: 'pointer' as const }
+            : {}),
     },
     guestText: {
         ...typography.bodySmMedium,

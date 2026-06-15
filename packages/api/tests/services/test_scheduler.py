@@ -156,23 +156,23 @@ class TestSchedulerJobs:
 
     def test_start_scheduler_creates_task(self):
         """Test start_scheduler creates background task."""
-        # Patch scheduler_loop to return a mock awaitable so no real coroutine is orphaned
-        # when create_task is mocked and never actually runs the coroutine.
-        mock_loop = AsyncMock(return_value=None)
+        import app.services.scheduler as scheduler
 
         with patch("asyncio.create_task") as mock_create:
-            mock_create.return_value = MagicMock()
-            with patch("app.services.scheduler.scheduler_loop", return_value=mock_loop):
-                import app.services.scheduler as scheduler
+            def fake_create(coro):
+                coro.close()
+                return MagicMock()
 
-                scheduler._scheduler_task = None
-                scheduler._running = False
+            mock_create.side_effect = fake_create
 
-                start_scheduler()
+            scheduler._scheduler_task = None
+            scheduler._running = False
 
-                assert scheduler._running is True
-                mock_create.assert_called_once()
-                stop_scheduler()
+            start_scheduler()
+
+            assert scheduler._running is True
+            mock_create.assert_called_once()
+            stop_scheduler()
 
     def test_stop_scheduler_cancels_task(self):
         """Test stop_scheduler cancels background task."""

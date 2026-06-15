@@ -109,12 +109,17 @@ class StorageService:
         self,
         *,
         kind: str,
-        establishment_id: UUID,
+        establishment_id: UUID | None = None,
+        user_id: UUID | None = None,
         entity_id: UUID | None = None,
         extension: str = "jpg",
     ) -> str:
         """Build a deterministic object key."""
 
+        if kind == "user_avatar" and user_id:
+            return f"media/users/{user_id}/avatar.{extension}"
+
+        # Establishment related
         base = f"media/establishments/{establishment_id}"
         if kind == "logo":
             return f"{base}/logo.{extension}"
@@ -122,6 +127,8 @@ class StorageService:
             return f"{base}/cover.{extension}"
         if kind == "service" and entity_id:
             return f"{base}/services/{entity_id}.{extension}"
+        if kind == "bundle" and entity_id:
+            return f"{base}/bundles/{entity_id}.{extension}"
         if kind == "product" and entity_id:
             return f"{base}/products/{entity_id}.{extension}"
         if kind == "portfolio" and entity_id:
@@ -169,6 +176,16 @@ class StorageService:
 
     # ─── Atalhos específicos ──────────────────────────────────────────────────
 
+    async def upload_user_avatar(
+        self,
+        *,
+        user_id: UUID,
+        content: bytes,
+        content_type: str,
+    ) -> str:
+        key = self._build_key(kind="user_avatar", user_id=user_id, extension="jpg")
+        return await self.upload_public(content=content, content_type=content_type, key=key)
+
     async def upload_establishment_logo(
         self,
         *,
@@ -187,4 +204,46 @@ class StorageService:
         content_type: str,
     ) -> str:
         key = self._build_key(kind="cover", establishment_id=establishment_id, extension="jpg")
+        return await self.upload_public(content=content, content_type=content_type, key=key)
+
+    async def upload_service_image(
+        self,
+        *,
+        establishment_id: UUID,
+        service_id: UUID,
+        content: bytes,
+        content_type: str,
+    ) -> str:
+        ext = "jpg"
+        if content_type and "png" in content_type:
+            ext = "png"
+        elif content_type and "webp" in content_type:
+            ext = "webp"
+        key = self._build_key(
+            kind="service",
+            establishment_id=establishment_id,
+            entity_id=service_id,
+            extension=ext,
+        )
+        return await self.upload_public(content=content, content_type=content_type, key=key)
+
+    async def upload_bundle_image(
+        self,
+        *,
+        establishment_id: UUID,
+        bundle_id: UUID,
+        content: bytes,
+        content_type: str,
+    ) -> str:
+        ext = "jpg"
+        if content_type and "png" in content_type:
+            ext = "png"
+        elif content_type and "webp" in content_type:
+            ext = "webp"
+        key = self._build_key(
+            kind="bundle",
+            establishment_id=establishment_id,
+            entity_id=bundle_id,
+            extension=ext,
+        )
         return await self.upload_public(content=content, content_type=content_type, key=key)

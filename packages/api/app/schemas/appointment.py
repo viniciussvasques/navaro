@@ -25,12 +25,18 @@ class AppointmentCreate(BaseModel):
     payment_type: PaymentType = PaymentType.single  # Default: pagamento único
     payment_method: PaymentMethod = PaymentMethod.card
     products: list[AppointmentProductCreate] | None = None
+    promotion_id: UUID | None = None
+    service_ids: list[UUID] | None = Field(
+        None,
+        description="Optional extra services (service_id is always included as primary)",
+    )
 
 
 class AppointmentUpdate(BaseModel):
     """Update appointment schema."""
 
     status: AppointmentStatus | None = None
+    scheduled_at: datetime | None = None
     products: list[AppointmentProductCreate] | None = None
     cancel_reason: str | None = Field(None, max_length=500)
 
@@ -61,7 +67,15 @@ class AppointmentResponse(BaseModel):
     payment_type: PaymentType
     payment_method: PaymentMethod
     total_price: float | None
+    discount_amount: float = 0.0
+    promotion_id: UUID | None = None
     products: list[AppointmentProductResponse] = []
     created_at: datetime
+    establishment_name: str | None = None
+    service_name: str | None = None
+    staff_name: str | None = None
+    user_name: str | None = None
+    user_phone: str | None = None
+    service_ids: list[UUID] | None = None
 
     model_config = {"from_attributes": True}

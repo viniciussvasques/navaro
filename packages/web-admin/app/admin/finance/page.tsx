@@ -38,12 +38,19 @@ export default function FinancePage() {
         }
     });
 
+    const [error, setError] = React.useState<string | null>(null);
+
     const approveMutation = useMutation({
         mutationFn: async (id: string) => {
             await api.patch(`/admin/payouts/${id}/approve`);
         },
         onSuccess: () => {
+            setError(null);
             queryClient.invalidateQueries({ queryKey: ['admin-payouts'] });
+        },
+        onError: (err: any) => {
+            const msg = err.response?.data?.detail ?? err.message ?? 'Erro ao aprovar saque.';
+            setError(typeof msg === 'string' ? msg : JSON.stringify(msg));
         }
     });
 
@@ -62,6 +69,12 @@ export default function FinancePage() {
 
     return (
         <div className="space-y-8">
+            {error && (
+                <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-sm py-3 px-4 rounded-xl flex items-center justify-between gap-4">
+                    <span>{error}</span>
+                    <button type="button" onClick={() => setError(null)} className="text-red-400 hover:text-red-300">×</button>
+                </div>
+            )}
             <div className="flex items-center justify-between">
                 <div>
                     <h2 className="text-3xl font-bold">Gestão Financeira</h2>
@@ -91,7 +104,7 @@ export default function FinancePage() {
                 <table className="w-full text-left">
                     <thead className="bg-white/5 text-gray-400 text-[10px] uppercase font-bold tracking-widest">
                         <tr>
-                            <th className="px-6 py-4">Estabelecimento ID</th>
+                            <th className="px-6 py-4">Estabelecimento</th>
                             <th className="px-6 py-4">Valor</th>
                             <th className="px-6 py-4">Status</th>
                             <th className="px-6 py-4">Data</th>
@@ -101,8 +114,8 @@ export default function FinancePage() {
                     <tbody className="divide-y divide-white/10 text-sm">
                         {payouts.map((p: any) => (
                             <tr key={p.id} className="hover:bg-white/[0.02] transition-colors group">
-                                <td className="px-6 py-4 font-mono text-xs text-gray-400">
-                                    {p.establishment_id.substring(0, 13)}...
+                                <td className="px-6 py-4 text-white text-sm">
+                                    {p.establishment_name || `${String(p.establishment_id).substring(0, 13)}…`}
                                 </td>
                                 <td className="px-6 py-4 font-bold text-white">
                                     {formatCurrency(p.amount)}
@@ -111,7 +124,9 @@ export default function FinancePage() {
                                     <StatusBadge status={p.status} />
                                 </td>
                                 <td className="px-6 py-4 text-gray-500 text-xs">
-                                    {new Date().toLocaleDateString('pt-BR')}
+                                    {p.created_at
+                                        ? new Date(p.created_at).toLocaleDateString('pt-BR')
+                                        : '—'}
                                 </td>
                                 <td className="px-6 py-4 text-right">
                                     {p.status === 'pending' && (
@@ -122,7 +137,7 @@ export default function FinancePage() {
                                             Aprovar Saque
                                         </button>
                                     )}
-                                    {p.status === 'completed' && (
+                                    {(p.status === 'completed' || p.status === 'succeeded') && (
                                         <span className="text-gray-600 text-xs flex items-center justify-end gap-1">
                                             <CheckCircle size={14} /> Concluído
                                         </span>
@@ -159,15 +174,17 @@ function StatCard({ label, value, icon: Icon, color, bg }: any) {
 }
 
 function StatusBadge({ status }: { status: string }) {
-    const styles = {
+    const styles: Record<string, string> = {
         pending: "bg-orange-500/10 text-orange-400 border-orange-500/20",
         completed: "bg-green-500/10 text-green-400 border-green-500/20",
+        succeeded: "bg-green-500/10 text-green-400 border-green-500/20",
         failed: "bg-red-500/10 text-red-400 border-red-500/20",
-    }[status] || "bg-gray-500/10 text-gray-400 border-gray-500/20";
+    };
+    const style = styles[status] ?? "bg-gray-500/10 text-gray-400 border-gray-500/20";
 
     return (
-        <span className={`text-[9px] font-black uppercase py-1 px-2 border rounded-md tracking-tighter ${styles}`}>
-            {status}
+        <span className={`text-[9px] font-black uppercase py-1 px-2 border rounded-md tracking-tighter ${style}`}>
+            {status === 'succeeded' ? 'concluído' : status}
         </span>
     );
 }

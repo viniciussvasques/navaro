@@ -13,13 +13,15 @@ Backend profissional em FastAPI para sistema de agendamento de barbearias e sal�
 
 ### 2. Setup do Ambiente
 
+O backend **precisa** de um ambiente virtual com as dependências instaladas (ex.: `structlog`, `fastapi`, etc.). Sem isso, `ModuleNotFoundError` ao subir a API.
+
 ```bash
 # Clonar e entrar no diretório
 cd packages/api
 
 # Criar ambiente virtual
-python -m venv .venv
-.venv\Scripts\activate  # Windows
+python3 -m venv .venv
+# .venv\Scripts\activate  # Windows
 source .venv/bin/activate  # Linux/Mac
 
 # Instalar dependências
@@ -28,6 +30,8 @@ pip install -e ".[dev]"
 # Copiar arquivo de ambiente
 cp .env.example .env
 ```
+
+**Na raiz do monorepo:** `pnpm run dev:api` usa o `.venv` de `packages/api` se existir; caso contrário usa `python3`. Para evitar erro de módulos, crie e instale o venv em `packages/api` primeiro.
 
 ### 3. Iniciar Banco de Dados
 

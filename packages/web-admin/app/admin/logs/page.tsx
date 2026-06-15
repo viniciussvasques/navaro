@@ -25,6 +25,7 @@ export default function LogsPage() {
     useEffect(() => {
         if (!isPaused) {
             setStatus('connecting');
+            // Use Next.js API route for SSE proxy (rewrites don't work well with SSE)
             const streamURL = '/api/admin/logs/stream';
 
             const eventSource = new EventSource(streamURL, { withCredentials: true });
@@ -70,7 +71,10 @@ export default function LogsPage() {
     const clearLogs = () => setLogs([]);
 
     const downloadLogs = () => {
-        const text = logs.map(l => `[${l.timestamp}] ${l.level.toUpperCase()}: ${l.event}`).join('\n');
+        const text = logs.map(l => {
+            const ev = typeof l.event === 'string' ? l.event : JSON.stringify(l.event);
+            return `[${l.timestamp}] ${String(l.level ?? '').toUpperCase()}: ${ev}`;
+        }).join('\n');
         const blob = new Blob([text], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -80,9 +84,15 @@ export default function LogsPage() {
     };
 
     const filteredLogs = logs.filter(log => {
-        const matchesSearch = log.event.toLowerCase().includes(filter.toLowerCase()) ||
-            (log.logger && log.logger.toLowerCase().includes(filter.toLowerCase()));
-        const matchesLevel = levelFilter === "all" || log.level.toLowerCase() === levelFilter.toLowerCase();
+        const eventStr = typeof log.event === 'string' ? log.event : JSON.stringify(log.event ?? '');
+        const loggerStr = typeof log.logger === 'string' ? log.logger : '';
+        const matchesSearch =
+            !filter.trim() ||
+            eventStr.toLowerCase().includes(filter.toLowerCase()) ||
+            (loggerStr && loggerStr.toLowerCase().includes(filter.toLowerCase()));
+        const levelStr = typeof log.level === 'string' ? log.level : '';
+        const matchesLevel =
+            levelFilter === 'all' || levelStr.toLowerCase() === levelFilter.toLowerCase();
         return matchesSearch && matchesLevel;
     });
 
@@ -204,16 +214,16 @@ export default function LogsPage() {
                     {filteredLogs.map((log, idx) => (
                         <div key={idx} className="group hover:bg-white/5 -mx-2 px-2 py-0.5 rounded transition-colors flex gap-4">
                             <span className="text-gray-600 shrink-0 whitespace-nowrap">
-                                {new Date(log.timestamp).toLocaleTimeString()}
+                                {log.timestamp ? new Date(log.timestamp).toLocaleTimeString() : '--'}
                             </span>
-                            <span className={`font-bold shrink-0 w-16 ${getLevelColor(log.level)}`}>
-                                {log.level.toUpperCase()}
+                            <span className={`font-bold shrink-0 w-16 ${getLevelColor(String(log.level ?? ''))}`}>
+                                {String(log.level ?? '').toUpperCase()}
                             </span>
-                            <span className="text-gray-500 shrink-0 w-32 truncate" title={log.logger}>
+                            <span className="text-gray-500 shrink-0 w-32 truncate" title={String(log.logger ?? '')}>
                                 [{log.logger || 'root'}]
                             </span>
                             <span className="text-gray-200">
-                                {log.event}
+                                {typeof log.event === 'string' ? log.event : JSON.stringify(log.event)}
                                 {Object.keys(log).filter(k => !['event', 'level', 'timestamp', 'logger', 'app', 'version', 'environment', 'mode'].includes(k)).map(k => (
                                     <span key={k} className="ml-2 text-xs text-blue-400/60">
                                         <span className="text-blue-400/40">{k}=</span>{JSON.stringify(log[k])}

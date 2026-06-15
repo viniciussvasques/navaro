@@ -6,10 +6,13 @@ services:
       POSTGRES_USER: dunnaa
       POSTGRES_PASSWORD: dunnaa_dev
       POSTGRES_DB: dunnaa
+      TZ: America/Sao_Paulo
     ports:
-      - "5432:5432"
+      # Bind localhost only — evita scans externos na porta 5432 em produção
+      - "127.0.0.1:5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init-test-db.sql:/docker-entrypoint-initdb.d/02-init-test-db.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U dunnaa"]
       interval: 5s
@@ -22,7 +25,7 @@ services:
     image: redis:7-alpine
     container_name: dunnaa-redis
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     volumes:
       - redis_data:/data
     healthcheck:
@@ -45,6 +48,8 @@ services:
       - whatsapp_bridge_auth:/app/auth_info
     environment:
       - PORT=3100
+      - TZ=America/Sao_Paulo
+    restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:3100/health || exit 1"]
       interval: 10s
@@ -62,21 +67,28 @@ services:
     container_name: dunnaa-api
     ports:
       - "8000:8000"
-    volumes:
-      - ./packages/api:/app
     environment:
       - DATABASE_URL=postgresql+asyncpg://dunnaa:dunnaa_dev@dunnaa-db:5432/dunnaa
-      - REDIS_URL=redis://redis:6379/0
-      - APP_MODE=debug
+      - REDIS_URL=redis://dunnaa-redis:6379/0
+      - ENVIRONMENT=production
+      - APP_MODE=production
+      - UVICORN_WORKERS=2
       - WHATSAPP_BRIDGE_URL=http://whatsapp-bridge:3100
+      - TZ=America/Sao_Paulo
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
       whatsapp-bridge:
-        condition: service_healthy
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+        condition: service_started
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 45s
     networks:
       - dunnaa-network
       - fixelo_fixelo-network
@@ -93,7 +105,7 @@ services:
       - "traefik.http.routers.dunnaa-api-http.entrypoints=web"
       - "traefik.http.routers.dunnaa-api-http.service=dunnaa-api"
       # CORS headers
-      - "traefik.http.middlewares.dunnaa-api-cors.headers.accessControlAllowOriginList=https://admin.dunnaa.com.br,http://admin.dunnaa.com.br,https://dunnaa.com.br,https://www.dunnaa.com.br"
+      - "traefik.http.middlewares.dunnaa-api-cors.headers.accessControlAllowOriginList=https://admin.dunnaa.com.br,http://admin.dunnaa.com.br,https://pro.dunnaa.com.br,http://pro.dunnaa.com.br,https://dunnaa.com.br,https://www.dunnaa.com.br"
       - "traefik.http.middlewares.dunnaa-api-cors.headers.accessControlAllowMethods=GET,POST,PUT,PATCH,DELETE,OPTIONS"
       - "traefik.http.middlewares.dunnaa-api-cors.headers.accessControlAllowHeaders=Content-Type,Authorization"
       - "traefik.http.middlewares.dunnaa-api-cors.headers.accessControlAllowCredentials=true"
@@ -108,15 +120,15 @@ services:
     container_name: dunnaa-admin
     ports:
       - "3005:3000"
-    volumes:
-      - ./packages/web-admin:/app
-      - /app/node_modules
-      - /app/.next
     environment:
+      - NODE_ENV=production
       - NEXT_PUBLIC_API_URL=/api
+      - BACKEND_URL=http://dunnaa-api:8000
+      - TZ=America/Sao_Paulo
     depends_on:
       api:
-        condition: service_started
+        condition: service_healthy
+    restart: unless-stopped
     networks:
       - dunnaa-network
       - fixelo_fixelo-network
@@ -138,6 +150,68 @@ services:
       - "traefik.http.middlewares.dunnaa-security-headers.headers.stsIncludeSubdomains=true"
       - "traefik.http.middlewares.dunnaa-security-headers.headers.contentTypeNosniff=true"
       - "traefik.http.middlewares.dunnaa-security-headers.headers.browserXssFilter=true"
+
+  pro:
+    build:
+      context: ./packages/dunnaa-pro-web
+      dockerfile: Dockerfile
+    image: dunnaa-pro
+    container_name: dunnaa-pro
+    ports:
+      - "3006:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=/api
+      - BACKEND_URL=http://dunnaa-api:8000
+      - TZ=America/Sao_Paulo
+      - HOSTNAME=0.0.0.0
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - dunnaa-network
+      - fixelo_fixelo-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=fixelo_fixelo-network"
+      - "traefik.http.routers.dunnaa-pro.rule=Host(`pro.dunnaa.com.br`)"
+      - "traefik.http.routers.dunnaa-pro.entrypoints=websecure"
+      - "traefik.http.routers.dunnaa-pro.tls=true"
+      - "traefik.http.services.dunnaa-pro.loadbalancer.server.port=3000"
+      - "traefik.http.routers.dunnaa-pro-http.rule=Host(`pro.dunnaa.com.br`)"
+      - "traefik.http.routers.dunnaa-pro-http.entrypoints=web"
+      - "traefik.http.routers.dunnaa-pro-http.service=dunnaa-pro"
+      - "traefik.http.routers.dunnaa-pro.middlewares=dunnaa-security-headers"
+
+  website:
+    build:
+      context: ./packages/website
+      dockerfile: Dockerfile
+    image: dunnaa-website
+    container_name: dunnaa-website
+    ports:
+      - "3007:3000"
+    volumes:
+      - ./packages/website:/app
+      - /app/node_modules
+      - /app/.next
+    environment:
+      - TZ=America/Sao_Paulo
+    networks:
+      - dunnaa-network
+      - fixelo_fixelo-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=fixelo_fixelo-network"
+      - "traefik.http.routers.dunnaa-website.rule=Host(`dunnaa.com.br`) || Host(`www.dunnaa.com.br`)"
+      - "traefik.http.routers.dunnaa-website.entrypoints=websecure"
+      - "traefik.http.routers.dunnaa-website.tls=true"
+      - "traefik.http.services.dunnaa-website.loadbalancer.server.port=3000"
+      - "traefik.http.routers.dunnaa-website-http.rule=Host(`dunnaa.com.br`) || Host(`www.dunnaa.com.br`)"
+      - "traefik.http.routers.dunnaa-website-http.entrypoints=web"
+      - "traefik.http.routers.dunnaa-website-http.service=dunnaa-website"
+      - "traefik.http.routers.dunnaa-website.middlewares=dunnaa-security-headers"
 
 networks:
   dunnaa-network:

@@ -37,7 +37,7 @@ export default function BookingReceipt() {
 
     const handleShare = async () => {
         await Share.share({
-            message: `Agendei no ${params.establishmentName} pelo DUNNAA!\n📅 ${formattedDate} às ${params.time}\nBaixe: https://dunnaa.app`,
+            message: `Agendei no ${params.establishmentName} pelo DUNNAA!\n${formattedDate} às ${params.time}\nhttps://dunnaa.com.br`,
         });
     };
 

@@ -2,7 +2,7 @@
 
 from uuid import UUID
 
-from fastapi import APIRouter
+from fastapi import APIRouter, File, UploadFile, status
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
@@ -15,6 +15,7 @@ from app.schemas.service import (
     ServiceBundleUpdate,
     ServiceResponse,
 )
+from app.services.storage_service import StorageService
 
 router = APIRouter(prefix="/establishments/{establishment_id}/bundles", tags=["Service Bundles"])
 
@@ -69,6 +70,7 @@ async def list_bundles(
             bundle_price=float(b.bundle_price),
             discount_percent=float(b.discount_percent) if b.discount_percent else None,
             active=b.active,
+            image_url=b.image_url,
             services=[ServiceResponse.model_validate(item.service) for item in b.items],
             created_at=b.created_at,
         )
@@ -111,6 +113,7 @@ async def create_bundle(
         original_price=original_price,
         bundle_price=bundle_price,
         discount_percent=discount_percent,
+        image_url=request.image_url,
     )
 
     db.add(bundle)
@@ -140,6 +143,82 @@ async def create_bundle(
         bundle_price=float(bundle.bundle_price),
         discount_percent=float(bundle.discount_percent) if bundle.discount_percent else None,
         active=bundle.active,
+        image_url=bundle.image_url,
+        services=[ServiceResponse.model_validate(item.service) for item in bundle.items],
+        created_at=bundle.created_at,
+    )
+
+
+async def _get_storage_or_503(db):
+    """Helper to get StorageService or raise 503."""
+    return await StorageService.from_db(db)
+
+
+@router.post("/{bundle_id}/image", response_model=ServiceBundleResponse, status_code=status.HTTP_200_OK)
+async def upload_bundle_image(
+    establishment_id: UUID,
+    bundle_id: UUID,
+    db: DBSession,
+    current_user: CurrentUser,
+    file: UploadFile = File(...),
+) -> ServiceBundleResponse:
+    """Upload image for a bundle. Requires storage S3/R2 to be configured."""
+    from fastapi import HTTPException
+
+    establishment = await get_establishment_or_404(db, establishment_id)
+    check_ownership(establishment, current_user)
+
+    result = await db.execute(
+        select(ServiceBundle).where(
+            ServiceBundle.id == bundle_id,
+            ServiceBundle.establishment_id == establishment_id,
+        )
+    )
+    bundle = result.scalar_one_or_none()
+    if not bundle:
+        raise NotFoundError("Pacote")
+
+    content = await file.read()
+    if not content:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Arquivo vazio.")
+
+    allowed = ("image/jpeg", "image/png", "image/webp", "image/jpg")
+    content_type = file.content_type or "image/jpeg"
+    if content_type not in allowed:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Apenas imagens JPEG, PNG ou WebP são aceitas.",
+        )
+
+    storage = await _get_storage_or_503(db)
+    url = await storage.upload_bundle_image(
+        establishment_id=establishment_id,
+        bundle_id=bundle_id,
+        content=content,
+        content_type=content_type,
+    )
+
+    bundle.image_url = url
+    await db.commit()
+    await db.refresh(bundle)
+
+    result = await db.execute(
+        select(ServiceBundle)
+        .where(ServiceBundle.id == bundle_id)
+        .options(selectinload(ServiceBundle.items).selectinload(ServiceBundleItem.service))
+    )
+    bundle = result.scalar_one()
+
+    return ServiceBundleResponse(
+        id=bundle.id,
+        establishment_id=bundle.establishment_id,
+        name=bundle.name,
+        description=bundle.description,
+        original_price=float(bundle.original_price),
+        bundle_price=float(bundle.bundle_price),
+        discount_percent=float(bundle.discount_percent) if bundle.discount_percent else None,
+        active=bundle.active,
+        image_url=bundle.image_url,
         services=[ServiceResponse.model_validate(item.service) for item in bundle.items],
         created_at=bundle.created_at,
     )
@@ -217,6 +296,7 @@ async def update_bundle(
         bundle_price=float(bundle.bundle_price),
         discount_percent=float(bundle.discount_percent) if bundle.discount_percent else None,
         active=bundle.active,
+        image_url=bundle.image_url,
         services=[ServiceResponse.model_validate(item.service) for item in bundle.items],
         created_at=bundle.created_at,
     )

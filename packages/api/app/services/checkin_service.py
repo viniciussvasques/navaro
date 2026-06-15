@@ -87,14 +87,21 @@ class CheckinService:
         if not establishment:
             raise ValueError("Estabelecimento não encontrado.")
 
-        # 3. Try to find a pending appointment
+        # 3. Try to find a pending or confirmed appointment (today)
+        from datetime import date as date_type
+        today_utc = datetime.now(timezone.utc).date()
         appt_result = await self.db.execute(
             select(Appointment)
             .where(
                 Appointment.user_id == user_id,
                 Appointment.establishment_id == establishment_id,
-                Appointment.status == AppointmentStatus.pending,
+                Appointment.status.in_([
+                    AppointmentStatus.pending,
+                    AppointmentStatus.confirmed,
+                ]),
+                func.date(Appointment.scheduled_at) == today_utc,
             )
+            .order_by(Appointment.scheduled_at.asc())
             .limit(1)
         )
         appointment = appt_result.scalar_one_or_none()
@@ -160,4 +167,59 @@ class CheckinService:
             "establishment_id": establishment_id,
             "appointment_id": appointment.id,
             "message": f"Check-in realizado com sucesso em {establishment.name}.",
+        }
+
+    async def perform_checkin_by_appointment(self, user_id: UUID, appointment_id: UUID) -> dict:
+        """
+        Check-in by appointment ID (e.g. after client scanned /go/slug and has appointment today).
+        """
+        appt_result = await self.db.execute(
+            select(Appointment)
+            .where(Appointment.id == appointment_id, Appointment.user_id == user_id)
+            .limit(1)
+        )
+        appointment = appt_result.scalar_one_or_none()
+        if not appointment:
+            raise ValueError("Agendamento não encontrado ou não é seu.")
+
+        if appointment.status not in (
+            AppointmentStatus.pending,
+            AppointmentStatus.confirmed,
+        ):
+            raise ValueError("Este agendamento não está mais disponível para check-in.")
+
+        today_utc = datetime.now(timezone.utc).date()
+        appt_date = appointment.scheduled_at.date() if appointment.scheduled_at.tzinfo else appointment.scheduled_at.replace(tzinfo=timezone.utc).date()
+        if appt_date != today_utc:
+            raise ValueError("Check-in só pode ser feito no dia do agendamento.")
+
+        # Evitar check-in duplicado
+        existing = await self.db.execute(
+            select(Checkin).where(Checkin.appointment_id == appointment_id)
+        )
+        if existing.scalar_one_or_none():
+            return {
+                "success": True,
+                "establishment_id": appointment.establishment_id,
+                "appointment_id": appointment.id,
+                "message": "Você já fez check-in para este agendamento.",
+            }
+
+        establishment = await self.db.get(Establishment, appointment.establishment_id)
+        name = establishment.name if establishment else "o estabelecimento"
+
+        checkin = Checkin(
+            user_id=user_id,
+            establishment_id=appointment.establishment_id,
+            appointment_id=appointment.id,
+            checked_in_at=datetime.now(timezone.utc),
+        )
+        self.db.add(checkin)
+        await self.db.commit()
+
+        return {
+            "success": True,
+            "establishment_id": appointment.establishment_id,
+            "appointment_id": appointment.id,
+            "message": f"Check-in realizado com sucesso em {name}.",
         }

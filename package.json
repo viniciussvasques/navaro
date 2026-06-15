@@ -4,10 +4,20 @@
   "scripts": {
     "build": "turbo build",
     "dev": "turbo dev",
-    "dev:api": "cd packages/api && python -m uvicorn app.main:app --reload",
-    "dev:cliente": "cd apps/cliente && npx expo start",
-    "dev:barbeiro": "cd apps/barbeiro && npx expo start",
-    "dev:admin": "cd apps/admin && npm run dev",
+    "dev:api": "cd packages/api && (test -f .venv/bin/python && .venv/bin/python -m uvicorn app.main:app --reload || python3 -m uvicorn app.main:app --reload)",
+    "dev:cliente": "cd packages/app-customer && pnpm start",
+    "dev:customer": "cd packages/app-customer && pnpm start",
+    "dev:barbeiro": "cd packages/dunnaa-pro-web && pnpm run dev",
+    "dev:admin": "cd packages/web-admin && pnpm run dev",
+    "dev:pro": "cd packages/dunnaa-pro-web && pnpm run dev",
+    "dev:website": "cd packages/website && pnpm run dev",
+    "dev:app-pro": "cd packages/app-pro && pnpm start",
+    "build:customer-web": "bash scripts/build-customer-web.sh",
+    "build:customer-apk": "bash scripts/publish-customer-apk.sh",
+    "build:customer-apk:local": "bash scripts/build-customer-apk-local.sh",
+    "build:pro-apk:local": "bash scripts/build-pro-apk-local.sh",
+    "publish:apk": "bash scripts/publish-apk-to-site.sh",
+    "release:customer-apk": "bash scripts/bump-and-publish-customer-apk.sh",
     "docker:up": "docker compose up -d --build",
     "docker:down": "docker compose down",
     "docker:build": "docker compose up -d --build",
@@ -24,6 +34,12 @@
   "packageManager": "pnpm@9.15.0",
   "engines": {
     "node": ">=20"
+  },
+  "pnpm": {
+    "overrides": {
+      "react": "19.1.0",
+      "react-dom": "19.1.0"
+    }
   },
   "workspaces": [
     "apps/*",

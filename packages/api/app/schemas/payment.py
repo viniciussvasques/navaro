@@ -3,16 +3,39 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.models.payment import PaymentPurpose, PaymentStatus
+
+
+class PaymentConfigResponse(BaseModel):
+    """Public payment configuration for client apps."""
+
+    mercadopago_enabled: bool
+    mercadopago_public_key: str | None = None
+    stripe_enabled: bool = False
+
+
+class PlanPayIntentRequest(BaseModel):
+    """Create payment intent for a subscription plan."""
+
+    plan_id: UUID
+    provider: str = "mercadopago"
+
+
+class TipPayIntentRequest(BaseModel):
+    """Create Mercado Pago intent for a tip."""
+
+    amount: float = Field(..., gt=0)
+    staff_id: UUID
+    appointment_id: UUID | None = None
 
 
 class CreatePaymentIntentRequest(BaseModel):
     """Request to create payment intent."""
 
     appointment_id: UUID
-    provider: str = "stripe"
+    provider: str = "mercadopago"
 
 
 class CreatePaymentIntentResponse(BaseModel):
@@ -24,6 +47,9 @@ class CreatePaymentIntentResponse(BaseModel):
     client_secret: str | None = None
     qr_code: str | None = None
     qr_code_base64: str | None = None
+    ticket_url: str | None = None
+    plan_id: str | None = None
+    plan_name: str | None = None
 
 
 class PaymentResponse(BaseModel):
@@ -48,9 +74,10 @@ class PaymentResponse(BaseModel):
 class TipCreate(BaseModel):
     """Request to give a tip."""
 
-    amount: float
+    amount: float = Field(..., gt=0)
     staff_id: UUID
     appointment_id: UUID | None = None
+    payment_method: str = Field(default="wallet", description="wallet, mercadopago or stripe")
 
 
 class TipResponse(BaseModel):

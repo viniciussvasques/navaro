@@ -14,6 +14,8 @@ export default function ProfileLayout() {
             }}
         >
             <Stack.Screen name="edit" />
+            <Stack.Screen name="cards" />
+            <Stack.Screen name="promote" />
             <Stack.Screen name="subscriptions" />
             <Stack.Screen name="wallet" />
             <Stack.Screen name="payments" />

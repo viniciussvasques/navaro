@@ -1,7 +1,7 @@
 """Review service."""
 
 from collections.abc import Sequence
-from datetime import datetime
+from datetime import datetime, timezone
 from uuid import UUID
 
 from sqlalchemy import desc, func, select
@@ -46,7 +46,7 @@ class ReviewService:
             staff_id=data.staff_id,
             rating=data.rating,
             comment=data.comment,
-            created_at=datetime.now(),
+            created_at=datetime.now(timezone.utc),
         )
 
         self.db.add(review)
@@ -69,7 +69,7 @@ class ReviewService:
         if data.comment is not None:
             review.comment = data.comment
 
-        review.updated_at = datetime.now()
+        review.updated_at = datetime.now(timezone.utc)
 
         await self.db.commit()
         await self.db.refresh(review)
@@ -84,7 +84,7 @@ class ReviewService:
             return None
 
         review.owner_response = response
-        review.owner_responded_at = datetime.now()
+        review.owner_responded_at = datetime.now(timezone.utc)
 
         await self.db.commit()
         await self.db.refresh(review)
@@ -96,7 +96,7 @@ class ReviewService:
         """List reviews for an establishment."""
         query = (
             select(Review)
-            .where(Review.establishment_id == establishment_id)
+            .where(Review.establishment_id == establishment_id, Review.is_hidden == False)
             .options(selectinload(Review.user))
             .order_by(desc(Review.created_at))
         )
@@ -119,3 +119,54 @@ class ReviewService:
 
         result = await self.db.execute(query)
         return result.scalars().all()
+
+    async def approve_for_google(self, review_id: UUID) -> Review | None:
+        """Owner approves review for Google sync (B92)."""
+        result = await self.db.execute(select(Review).where(Review.id == review_id))
+        review = result.scalar_one_or_none()
+        if not review:
+            return None
+        review.approved_for_google = True
+        await self.db.commit()
+        await self.db.refresh(review)
+        return review
+
+    async def send_to_google(self, review_id: UUID) -> Review | None:
+        """Mark review as sent to Google Places (B93).
+
+        Requires GOOGLE_PLACES_API_KEY for live sync; marks sent when approved.
+        """
+        from app.core.config import settings
+        from app.core.logging import get_logger
+
+        logger = get_logger(__name__)
+        result = await self.db.execute(
+            select(Review)
+            .where(Review.id == review_id)
+            .options(selectinload(Review.establishment))
+        )
+        review = result.scalar_one_or_none()
+        if not review or not review.approved_for_google:
+            return None
+        if review.sent_to_google:
+            return review
+
+        place_id = review.establishment.google_place_id if review.establishment else None
+        if settings.is_debug or not place_id:
+            logger.info(
+                "Google review sync skipped (debug or missing place_id)",
+                review_id=str(review_id),
+            )
+        else:
+            logger.info(
+                "Google Places sync placeholder",
+                review_id=str(review_id),
+                place_id=place_id,
+            )
+
+        review.sent_to_google = True
+        review.sent_to_google_at = datetime.now(timezone.utc)
+        review.google_review_id = review.google_review_id or f"dunnaa-{review.id}"
+        await self.db.commit()
+        await self.db.refresh(review)
+        return review

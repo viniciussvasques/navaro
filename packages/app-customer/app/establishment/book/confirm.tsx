@@ -16,7 +16,7 @@ import { useRequireAuth } from '../../../src/hooks/useRequireAuth';
 import api from '../../../src/services/api';
 import { colors, typography, spacing, radius, shadow } from '../../../src/theme';
 
-type PaymentOption = 'cash' | 'pix' | 'card' | 'wallet';
+type PaymentOption = 'cash' | 'pix' | 'credit' | 'debit' | 'wallet';
 
 export default function BookingConfirmation() {
     const router = useRouter();
@@ -113,7 +113,11 @@ export default function BookingConfirmation() {
                 service_ids: serviceIds.length > 1 ? serviceIds.slice(1) : undefined,
                 scheduled_at: scheduledAt,
                 payment_type: 'single',
-                payment_method: (paymentMethod === 'pix' || paymentMethod === 'card') ? 'card' : paymentMethod === 'wallet' ? 'wallet' : 'cash',
+                payment_method: (paymentMethod === 'pix' || paymentMethod === 'credit' || paymentMethod === 'debit')
+                    ? 'card'
+                    : paymentMethod === 'wallet'
+                        ? 'wallet'
+                        : 'cash',
                 notes: notes || undefined,
             });
 
@@ -155,20 +159,23 @@ export default function BookingConfirmation() {
                     Alert.alert('Pagamento PIX', msg);
                     // Fall through to receipt
                 }
-            } else if (paymentMethod === 'card') {
-                // Create Checkout Pro (opens in browser for card payment)
+            } else if (paymentMethod === 'credit' || paymentMethod === 'debit') {
+                // Checkout Mercado Pago (crédito ou débito)
                 try {
                     const { data: checkoutData } = await api.post(
                         '/payments/create-checkout',
-                        { appointment_id: appointment.id }
+                        {
+                            appointment_id: appointment.id,
+                            payment_type: paymentMethod,
+                        }
                     );
 
                     const url = checkoutData.checkout_url || checkoutData.sandbox_url;
                     if (url) {
                         await Linking.openURL(url);
                         Alert.alert(
-                            'Pagamento via cartão',
-                            'Você será redirecionado para o Mercado Pago. Após pagar, seu agendamento será confirmado automaticamente.',
+                            'Pagamento com cartão',
+                            `Você será redirecionado ao Mercado Pago para pagar com cartão de ${paymentMethod === 'debit' ? 'débito' : 'crédito'}.`,
                             [{ text: 'OK', onPress: () => router.replace('/(tabs)/appointments') }]
                         );
                         return;
@@ -223,21 +230,28 @@ export default function BookingConfirmation() {
             key: 'pix',
             icon: 'qr-code-outline',
             label: 'PIX',
-            subtitle: 'Pague agora via Mercado Pago PIX',
+            subtitle: 'Pagamento instantâneo via Mercado Pago',
             available: acceptOnline && mpEnabled,
         },
         {
-            key: 'card',
+            key: 'credit',
             icon: 'card-outline',
-            label: 'Cartao de credito/debito',
-            subtitle: 'Pague via Mercado Pago (ate 3x)',
+            label: 'Cartão de crédito',
+            subtitle: 'Visa, Mastercard, Elo — parcelamento disponível',
+            available: acceptOnline && mpEnabled,
+        },
+        {
+            key: 'debit',
+            icon: 'card-outline',
+            label: 'Cartão de débito',
+            subtitle: 'Débito online via Mercado Pago',
             available: acceptOnline && mpEnabled,
         },
         {
             key: 'cash',
             icon: 'cash-outline',
-            label: 'Na hora',
-            subtitle: 'Pague no estabelecimento (dinheiro ou cartao)',
+            label: 'Pagar na hora',
+            subtitle: 'Dinheiro, PIX ou cartão direto no estabelecimento',
             available: acceptCash,
         },
         {
@@ -360,6 +374,17 @@ export default function BookingConfirmation() {
                     })}
                 </View>
 
+                {(paymentMethod === 'credit' || paymentMethod === 'debit') && (
+                    <TouchableOpacity
+                        style={styles.cardsLink}
+                        onPress={() => router.push('/profile/cards')}
+                    >
+                        <Ionicons name="card-outline" size={18} color={colors.primary} />
+                        <Text style={styles.cardsLinkText}>Gerenciar cartões salvos</Text>
+                        <Ionicons name="chevron-forward" size={16} color={colors.textLight} />
+                    </TouchableOpacity>
+                )}
+
                 {/* Notes */}
                 <View style={styles.notesSection}>
                     <Text style={styles.notesLabel}>Observacoes (opcional)</Text>
@@ -399,11 +424,13 @@ export default function BookingConfirmation() {
                         <Text style={styles.confirmBtnText}>
                             {paymentMethod === 'pix'
                                 ? `Pagar R$ ${totalPrice.toFixed(2)} via PIX`
-                                : paymentMethod === 'card'
-                                    ? `Pagar R$ ${totalPrice.toFixed(2)} com Cartao`
-                                    : paymentMethod === 'wallet'
-                                        ? `Pagar R$ ${totalPrice.toFixed(2)} com Carteira`
-                                        : 'Confirmar Agendamento'}
+                                : paymentMethod === 'credit'
+                                    ? `Pagar R$ ${totalPrice.toFixed(2)} no crédito`
+                                    : paymentMethod === 'debit'
+                                        ? `Pagar R$ ${totalPrice.toFixed(2)} no débito`
+                                        : paymentMethod === 'wallet'
+                                            ? `Pagar R$ ${totalPrice.toFixed(2)} com Carteira`
+                                            : 'Confirmar — pagar na hora'}
                         </Text>
                     </>
                 )}
@@ -445,7 +472,15 @@ const styles = StyleSheet.create({
     priceValue: { ...typography.h2, color: colors.primary },
     // Payment
     sectionTitle: { ...typography.h4, color: colors.textMain, marginBottom: spacing.md },
-    paymentOptions: { gap: spacing.sm, marginBottom: spacing.xl },
+    paymentOptions: { gap: spacing.sm, marginBottom: spacing.md },
+    cardsLink: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.sm,
+        paddingVertical: spacing.md,
+        marginBottom: spacing.lg,
+    },
+    cardsLinkText: { ...typography.bodySmMedium, color: colors.primary, flex: 1 },
     paymentOption: {
         flexDirection: 'row', alignItems: 'center', gap: spacing.md,
         backgroundColor: colors.background, borderRadius: radius.xl,

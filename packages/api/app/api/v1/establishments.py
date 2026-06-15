@@ -6,9 +6,9 @@ from uuid import UUID
 from fastapi import APIRouter, File, HTTPException, Query, UploadFile, status
 from pydantic import BaseModel, ConfigDict, Field
 from slugify import slugify
-from sqlalchemy import case, func, select
+from sqlalchemy import case, func, or_, select
 
-from app.api.deps import CurrentUser, DBSession
+from app.api.deps import CurrentUser, DBSession, OptionalUser
 from app.core.exceptions import ForbiddenError, NotFoundError
 from app.models import (
     Establishment,
@@ -17,6 +17,11 @@ from app.models import (
     SubscriptionTier,
     UserRole,
 )
+from app.models.portfolio import SearchHistory
+from app.models.review import Review
+from app.models.service import Service
+from app.schemas.establishment import TimeSlot
+from app.services.appointment_service import AppointmentService
 from app.services.storage_service import StorageService
 
 router = APIRouter(prefix="/establishments", tags=["Establishments"])
@@ -41,6 +46,8 @@ class EstablishmentCreate(BaseModel):
     cancellation_fee_fixed: float | None = Field(0.0, ge=0)
     no_show_fee_percent: float | None = Field(0.0, ge=0, le=100)
     deposit_percent: float | None = Field(0.0, ge=0, le=100)
+    latitude: float | None = None
+    longitude: float | None = None
 
 
 class EstablishmentUpdate(BaseModel):
@@ -61,6 +68,18 @@ class EstablishmentUpdate(BaseModel):
     cover_url: str | None = Field(None, max_length=500)
     business_hours: dict | None = None
     queue_mode_enabled: bool | None = None
+    accept_online_payment: bool | None = None
+    accept_cash_payment: bool | None = None
+    # Bank/PIX
+    pix_key: str | None = None
+    pix_key_type: str | None = None
+    bank_name: str | None = None
+    bank_agency: str | None = None
+    bank_account: str | None = None
+    bank_account_type: str | None = None
+    bank_holder_name: str | None = None
+    bank_holder_document: str | None = None
+    auto_payout_enabled: bool | None = None
     cancellation_fee_fixed: float | None = None
     no_show_fee_percent: float | None = None
     deposit_percent: float | None = None
@@ -93,6 +112,17 @@ class EstablishmentResponse(BaseModel):
     business_hours: dict
     distance: float | None = None
     queue_mode_enabled: bool
+    accept_online_payment: bool
+    accept_cash_payment: bool
+    pix_key: str | None = None
+    pix_key_type: str | None = None
+    bank_name: str | None = None
+    bank_agency: str | None = None
+    bank_account: str | None = None
+    bank_account_type: str | None = None
+    bank_holder_name: str | None = None
+    bank_holder_document: str | None = None
+    auto_payout_enabled: bool = False
     status: str
     subscription_tier: str
     cancellation_fee_fixed: float
@@ -129,8 +159,13 @@ async def generate_unique_slug(db: DBSession, name: str) -> str:
         counter += 1
 
 
-def establishment_to_response(est: Establishment) -> EstablishmentResponse:
+def establishment_to_response(
+    est: Establishment,
+    *,
+    is_sponsored: bool | None = None,
+) -> EstablishmentResponse:
     """Convert establishment to response."""
+    sponsored = is_sponsored if is_sponsored is not None else est.is_sponsored
     return EstablishmentResponse(
         id=str(est.id),
         owner_id=str(est.owner_id),
@@ -151,12 +186,23 @@ def establishment_to_response(est: Establishment) -> EstablishmentResponse:
         business_hours=est.business_hours,
         distance=getattr(est, "distance", None),
         queue_mode_enabled=est.queue_mode_enabled,
+        accept_online_payment=est.accept_online_payment,
+        accept_cash_payment=est.accept_cash_payment,
+        pix_key=est.pix_key,
+        pix_key_type=est.pix_key_type,
+        bank_name=est.bank_name,
+        bank_agency=est.bank_agency,
+        bank_account=est.bank_account,
+        bank_account_type=est.bank_account_type,
+        bank_holder_name=est.bank_holder_name,
+        bank_holder_document=est.bank_holder_document,
+        auto_payout_enabled=est.auto_payout_enabled,
         status=est.status.value,
         subscription_tier=est.subscription_tier.value,
         cancellation_fee_fixed=float(est.cancellation_fee_fixed),
         no_show_fee_percent=float(est.no_show_fee_percent),
         deposit_percent=float(est.deposit_percent),
-        is_sponsored=est.is_sponsored,
+        is_sponsored=sponsored,
         created_at=est.created_at,
         updated_at=est.updated_at,
     )
@@ -172,8 +218,14 @@ async def create_establishment(
     current_user: CurrentUser,
 ) -> EstablishmentResponse:
     """Create new establishment."""
-    # Generate unique slug
+    from datetime import UTC, datetime, timedelta
+
+    from app.services.monetization_service import MonetizationService
+
     slug = await generate_unique_slug(db, request.name)
+    mon_svc = MonetizationService(db)
+    trial_days = await mon_svc.get_trial_days()
+    trial_expires = datetime.now(UTC) + timedelta(days=trial_days)
 
     establishment = Establishment(
         owner_id=current_user.id,
@@ -191,8 +243,11 @@ async def create_establishment(
         cancellation_fee_fixed=request.cancellation_fee_fixed or 0.0,
         no_show_fee_percent=request.no_show_fee_percent or 0.0,
         deposit_percent=request.deposit_percent or 0.0,
+        latitude=request.latitude,
+        longitude=request.longitude,
         status=EstablishmentStatus.pending,
         subscription_tier=SubscriptionTier.trial,
+        platform_subscription_expires_at=trial_expires,
     )
 
     # Upgrade user to owner if needed
@@ -203,14 +258,35 @@ async def create_establishment(
     await db.commit()
     await db.refresh(establishment)
 
+    # Enviar mensagem de boas-vindas via WhatsApp
+    try:
+        from app.services.whatsapp_service import get_whatsapp_service
+
+        wa = get_whatsapp_service()
+        phone_to = (request.whatsapp or request.phone or current_user.phone).strip()
+        if phone_to:
+            await wa.send_welcome_establishment(
+                phone_to,
+                current_user.name,
+                establishment.name,
+            )
+    except Exception as e:
+        from app.core.logging import get_logger
+
+        get_logger(__name__).warning("Failed to send welcome WhatsApp", error=str(e))
+
     return establishment_to_response(establishment)
 
 
 @router.get("", response_model=EstablishmentListResponse)
 async def list_establishments(
     db: DBSession,
+    current_user: OptionalUser = None,
+    q: str | None = Query(None, min_length=1, description="Busca por nome ou cidade"),
     city: str | None = Query(None),
     category: EstablishmentCategory | None = Query(None),
+    min_rating: float | None = Query(None, ge=1, le=5),
+    max_price: float | None = Query(None, gt=0, description="Preço máximo do serviço mais barato"),
     lat: float | None = Query(None, ge=-90, le=90),
     lng: float | None = Query(None, ge=-180, le=180),
     radius: float | None = Query(None, gt=0, doc="Radius in km"),
@@ -218,6 +294,15 @@ async def list_establishments(
     page_size: int = Query(20, ge=1, le=100),
 ) -> EstablishmentListResponse:
     """List establishments with filtering and optional geo-search."""
+    if q and current_user:
+        db.add(
+            SearchHistory(
+                user_id=current_user.id,
+                query=q.strip(),
+            )
+        )
+        await db.flush()
+
     query = select(Establishment).where(Establishment.status == EstablishmentStatus.active)
 
     # ─── Geo Search (Haversine) ────────────────────────────────────────────────
@@ -305,10 +390,44 @@ async def list_establishments(
         )
 
     # ─── Other Filters ─────────────────────────────────────────────────────────
+    if q:
+        term = f"%{q.strip()}%"
+        query = query.where(
+            or_(
+                Establishment.name.ilike(term),
+                Establishment.city.ilike(term),
+                Establishment.address.ilike(term),
+            )
+        )
     if city:
         query = query.where(Establishment.city.ilike(f"%{city}%"))
     if category:
         query = query.where(Establishment.category == category)
+    if min_rating is not None:
+        rating_subq = (
+            select(
+                Review.establishment_id.label("est_id"),
+                func.avg(Review.rating).label("avg_rating"),
+            )
+            .group_by(Review.establishment_id)
+            .subquery()
+        )
+        query = query.join(rating_subq, Establishment.id == rating_subq.c.est_id).where(
+            rating_subq.c.avg_rating >= min_rating
+        )
+    if max_price is not None:
+        price_subq = (
+            select(
+                Service.establishment_id.label("est_id"),
+                func.min(Service.price).label("min_price"),
+            )
+            .where(Service.active == True)
+            .group_by(Service.establishment_id)
+            .subquery()
+        )
+        query = query.join(price_subq, Establishment.id == price_subq.c.est_id).where(
+            price_subq.c.min_price <= max_price
+        )
 
     # Count total
     count_query = select(func.count()).select_from(query.subquery())
@@ -329,8 +448,44 @@ async def list_establishments(
     else:
         establishments = result.scalars().all()
 
+    if q and current_user:
+        await db.commit()
+
+    from app.services.promotion_service import AdCampaignService
+
+    ad_svc = AdCampaignService(db)
+    user_city = city or (current_user and getattr(current_user, "city", None))
+    sponsored_flags: dict = {}
+    for est in establishments:
+        if est.is_sponsored:
+            camp = await ad_svc.get_active_campaign(
+                est.id,
+                user_lat=lat,
+                user_lng=lng,
+                user_city=user_city or est.city,
+            )
+            sponsored_flags[est.id] = camp is not None
+            if camp:
+                await ad_svc.record_impression(
+                    est.id,
+                    user_lat=lat,
+                    user_lng=lng,
+                    user_city=user_city or est.city,
+                    commit=False,
+                )
+        else:
+            sponsored_flags[est.id] = False
+    if any(sponsored_flags.values()):
+        await db.commit()
+
     return EstablishmentListResponse(
-        items=[establishment_to_response(e) for e in establishments],
+        items=[
+            establishment_to_response(
+                e,
+                is_sponsored=sponsored_flags.get(e.id, e.is_sponsored),
+            )
+            for e in establishments
+        ],
         total=total,
         page=page,
         page_size=page_size,
@@ -354,6 +509,10 @@ async def list_my_establishments(
 async def get_establishment(
     establishment_id: UUID,
     db: DBSession,
+    lat: float | None = Query(None),
+    lng: float | None = Query(None),
+    city: str | None = Query(None),
+    track_click: bool = Query(False, description="Register ad click if sponsored"),
 ) -> EstablishmentResponse:
     """Get establishment by ID."""
     result = await db.execute(select(Establishment).where(Establishment.id == establishment_id))
@@ -361,6 +520,16 @@ async def get_establishment(
 
     if not establishment:
         raise NotFoundError("Estabelecimento")
+
+    if track_click and establishment.is_sponsored:
+        from app.services.promotion_service import AdCampaignService
+
+        await AdCampaignService(db).record_click(
+            establishment_id,
+            user_lat=lat,
+            user_lng=lng,
+            user_city=city or establishment.city,
+        )
 
     return establishment_to_response(establishment)
 
@@ -513,3 +682,18 @@ async def upload_establishment_cover(
     await db.commit()
     await db.refresh(establishment)
     return establishment_to_response(establishment)
+@router.get("/{establishment_id}/slots", response_model=list[TimeSlot])
+async def get_establishment_slots(
+    establishment_id: UUID,
+    db: DBSession,
+    date: str = Query(..., description="Date in YYYY-MM-DD format"),
+    staff_id: UUID | None = None,
+):
+    """Get available slots for establishment."""
+    # check if establishment exists
+    result = await db.execute(select(Establishment).where(Establishment.id == establishment_id))
+    if not result.scalar_one_or_none():
+        raise NotFoundError("Estabelecimento")
+
+    service = AppointmentService(db)
+    return await service.get_available_slots(establishment_id, date, staff_id)

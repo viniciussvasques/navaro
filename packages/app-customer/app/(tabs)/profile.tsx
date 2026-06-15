@@ -7,39 +7,100 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import Constants from 'expo-constants';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { colors, typography, spacing, radius, shadow } from '../../src/theme';
+import { useTabBarPadding } from '../../src/hooks/useTabBarPadding';
 
-const menuItems = [
+type MenuItem = {
+    icon: string;
+    label: string;
+    route: string;
+    public?: boolean;
+};
+
+const accountItems: MenuItem[] = [
     { icon: 'person-outline', label: 'Editar perfil', route: '/profile/edit' },
-    { icon: 'card-outline', label: 'Minhas assinaturas', route: '/profile/subscriptions' },
+    { icon: 'card-outline', label: 'Meus cartões', route: '/profile/cards' },
     { icon: 'wallet-outline', label: 'Carteira', route: '/profile/wallet' },
-    { icon: 'card-outline', label: 'Meus pagamentos', route: '/profile/payments' },
-    { icon: 'notifications-outline', label: 'Notificacoes', route: '/notifications' },
+    { icon: 'receipt-outline', label: 'Meus pagamentos', route: '/profile/payments' },
+    { icon: 'card-outline', label: 'Minhas assinaturas', route: '/profile/subscriptions' },
+    { icon: 'notifications-outline', label: 'Notificações', route: '/notifications' },
     { icon: 'heart-outline', label: 'Favoritos', route: '/(tabs)/favorites' },
-    { icon: 'help-circle-outline', label: 'Ajuda e suporte', route: '/profile/help' },
-    { icon: 'document-text-outline', label: 'Termos de uso', route: '/profile/terms' },
-    { icon: 'shield-outline', label: 'Privacidade', route: '/profile/privacy' },
 ];
+
+const businessItems: MenuItem[] = [
+    { icon: 'diamond-outline', label: 'Destaques & parcerias', route: '/profile/promote', public: true },
+];
+
+const supportItems: MenuItem[] = [
+    { icon: 'help-circle-outline', label: 'Ajuda e suporte', route: '/profile/help' },
+];
+
+const legalItems: MenuItem[] = [
+    { icon: 'document-text-outline', label: 'Termos de uso', route: '/profile/terms', public: true },
+    { icon: 'shield-outline', label: 'Privacidade', route: '/profile/privacy', public: true },
+];
+
+const appVersion = Constants.expoConfig?.version ?? '1.0.1';
+
+function MenuSection({
+    title,
+    items,
+    onPressItem,
+}: {
+    title: string;
+    items: MenuItem[];
+    onPressItem: (item: MenuItem) => void;
+}) {
+    return (
+        <View style={styles.section}>
+            <Text style={styles.sectionLabel}>{title}</Text>
+            <View style={styles.menuCard}>
+                {items.map((item, i) => (
+                    <TouchableOpacity
+                        key={item.label}
+                        style={[styles.menuItem, i < items.length - 1 && styles.menuItemBorder]}
+                        onPress={() => onPressItem(item)}
+                        activeOpacity={0.75}
+                    >
+                        <View style={styles.menuLeft}>
+                            <View style={styles.menuIconWrap}>
+                                <Ionicons name={item.icon as any} size={20} color={colors.primary} />
+                            </View>
+                            <Text style={styles.menuLabel}>{item.label}</Text>
+                        </View>
+                        <Ionicons name="chevron-forward" size={18} color={colors.textLight} />
+                    </TouchableOpacity>
+                ))}
+            </View>
+        </View>
+    );
+}
 
 export default function Profile() {
     const router = useRouter();
     const insets = useSafeAreaInsets();
+    const tabBarPadding = useTabBarPadding();
     const { user, logout, isAuthenticated } = useAuth();
 
-    const requireLogin = (route: string) => {
+    const navigate = (item: MenuItem) => {
+        if (item.public) {
+            router.push(item.route as any);
+            return;
+        }
         if (!isAuthenticated) {
             router.push('/(auth)/login');
             return;
         }
-        router.push(route as any);
+        router.push(item.route as any);
     };
 
     const handleShare = async () => {
         if (user?.referral_code) {
             await Share.share({
-                message: `Use meu código ${user.referral_code} no DUNNAA e ganhe desconto! https://dunnaa.app/r/${user.referral_code}`,
+                message: `Use meu código ${user.referral_code} no DUNNAA e ganhe desconto! https://dunnaa.com.br/r/${user.referral_code}`,
             });
         }
     };
@@ -61,10 +122,9 @@ export default function Profile() {
     return (
         <ScrollView
             style={[styles.container, { paddingTop: insets.top + spacing.lg }]}
-            contentContainerStyle={{ paddingBottom: spacing['4xl'] }}
+            contentContainerStyle={{ paddingBottom: tabBarPadding }}
             showsVerticalScrollIndicator={false}
         >
-            {/* User Info */}
             <View style={styles.userSection}>
                 {isAuthenticated ? (
                     <>
@@ -91,6 +151,7 @@ export default function Profile() {
                         <TouchableOpacity
                             style={styles.loginBtn}
                             onPress={() => router.push('/(auth)/login')}
+                            activeOpacity={0.85}
                         >
                             <Text style={styles.loginBtnText}>Entrar ou criar conta</Text>
                         </TouchableOpacity>
@@ -98,13 +159,14 @@ export default function Profile() {
                 )}
             </View>
 
-            {/* Referral Card */}
             {user?.referral_code && (
-                <TouchableOpacity style={styles.referralCard} onPress={handleShare} activeOpacity={0.8}>
+                <TouchableOpacity style={styles.referralCard} onPress={handleShare} activeOpacity={0.85}>
                     <View style={styles.referralLeft}>
-                        <Ionicons name="gift-outline" size={24} color={colors.primary} />
+                        <View style={styles.referralIcon}>
+                            <Ionicons name="gift-outline" size={22} color={colors.accentDark} />
+                        </View>
                         <View>
-                            <Text style={styles.referralTitle}>Indique e ganhe!</Text>
+                            <Text style={styles.referralTitle}>Indique e ganhe</Text>
                             <Text style={styles.referralCode}>Código: {user.referral_code}</Text>
                         </View>
                     </View>
@@ -112,26 +174,11 @@ export default function Profile() {
                 </TouchableOpacity>
             )}
 
-            {/* Menu */}
-            <View style={styles.menuCard}>
-                {menuItems.map((item, i) => (
-                    <TouchableOpacity
-                        key={item.label}
-                        style={[styles.menuItem, i < menuItems.length - 1 && styles.menuItemBorder]}
-                        onPress={() => {
-                            if (item.route) requireLogin(item.route);
-                        }}
-                    >
-                        <View style={styles.menuLeft}>
-                            <Ionicons name={item.icon as any} size={22} color={colors.textSecondary} />
-                            <Text style={styles.menuLabel}>{item.label}</Text>
-                        </View>
-                        <Ionicons name="chevron-forward" size={18} color={colors.textLight} />
-                    </TouchableOpacity>
-                ))}
-            </View>
+            <MenuSection title="Conta" items={accountItems} onPressItem={navigate} />
+            <MenuSection title="Negócios" items={businessItems} onPressItem={navigate} />
+            <MenuSection title="Suporte" items={supportItems} onPressItem={navigate} />
+            <MenuSection title="Legal e privacidade" items={legalItems} onPressItem={navigate} />
 
-            {/* Logout */}
             {isAuthenticated && (
                 <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
                     <Ionicons name="log-out-outline" size={20} color={colors.error} />
@@ -139,7 +186,7 @@ export default function Profile() {
                 </TouchableOpacity>
             )}
 
-            <Text style={styles.version}>DUNNAA v1.0.0</Text>
+            <Text style={styles.version}>DUNNAA v{appVersion}</Text>
         </ScrollView>
     );
 }
@@ -147,7 +194,14 @@ export default function Profile() {
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.background, paddingHorizontal: spacing.xl },
     userSection: { alignItems: 'center', marginBottom: spacing['2xl'] },
-    avatar: { width: 80, height: 80, borderRadius: 40, marginBottom: spacing.md },
+    avatar: {
+        width: 88,
+        height: 88,
+        borderRadius: 44,
+        marginBottom: spacing.md,
+        borderWidth: 3,
+        borderColor: colors.accent + '44',
+    },
     avatarPlaceholder: {
         backgroundColor: colors.primary,
         alignItems: 'center',
@@ -158,29 +212,51 @@ const styles = StyleSheet.create({
     userPhone: { ...typography.bodySm, color: colors.textMuted, marginTop: spacing.xs },
     userEmail: { ...typography.bodySm, color: colors.textMuted, marginTop: spacing.xs },
     loginBtn: {
-        marginTop: spacing.lg, backgroundColor: colors.primary,
-        paddingHorizontal: spacing.xl, paddingVertical: spacing.md, borderRadius: radius.xl,
+        marginTop: spacing.lg,
+        backgroundColor: colors.primary,
+        paddingHorizontal: spacing.xl,
+        paddingVertical: spacing.md,
+        borderRadius: radius.xl,
+        ...shadow.md,
     },
     loginBtnText: { ...typography.button, color: colors.white },
     referralCard: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        backgroundColor: colors.primary + '08',
+        backgroundColor: colors.surface,
         borderRadius: radius.xl,
         padding: spacing.lg,
-        marginBottom: spacing.xl,
+        marginBottom: spacing.lg,
         borderWidth: 1,
-        borderColor: colors.primary + '20',
+        borderColor: colors.accent + '33',
+        ...shadow.sm,
     },
     referralLeft: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-    referralTitle: { ...typography.bodySmMedium, color: colors.primary },
+    referralIcon: {
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        backgroundColor: colors.accentLight + '55',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    referralTitle: { ...typography.bodySmMedium, color: colors.textMain },
     referralCode: { ...typography.caption, color: colors.textMuted },
+    section: { marginBottom: spacing.lg },
+    sectionLabel: {
+        ...typography.captionMedium,
+        color: colors.textMuted,
+        marginBottom: spacing.sm,
+        marginLeft: spacing.xs,
+        textTransform: 'uppercase',
+        letterSpacing: 0.6,
+    },
     menuCard: {
         backgroundColor: colors.surface,
         borderRadius: radius.xl,
         ...shadow.sm,
-        marginBottom: spacing.xl,
+        overflow: 'hidden',
     },
     menuItem: {
         flexDirection: 'row',
@@ -190,6 +266,14 @@ const styles = StyleSheet.create({
     },
     menuItemBorder: { borderBottomWidth: 1, borderBottomColor: colors.borderLight },
     menuLeft: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+    menuIconWrap: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        backgroundColor: colors.primary + '10',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
     menuLabel: { ...typography.body, color: colors.textMain },
     logoutBtn: {
         flexDirection: 'row',

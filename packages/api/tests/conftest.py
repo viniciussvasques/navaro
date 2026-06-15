@@ -1,10 +1,29 @@
 import os
 
+
+def _resolve_test_database_url() -> str:
+    """Use isolated DB so pytest never drops dev/seed data in `dunnaa`."""
+    explicit = os.getenv("TEST_DATABASE_URL")
+    if explicit:
+        return explicit
+    base = os.getenv(
+        "DATABASE_URL",
+        "postgresql+asyncpg://dunnaa:dunnaa_dev@localhost:5432/dunnaa",
+    )
+    db_name = base.rsplit("/", 1)[-1]
+    if db_name == "dunnaa_test":
+        return base
+    return f"{base.rsplit('/', 1)[0]}/dunnaa_test"
+
+
 # Set environment variables BEFORE importing app to ensure settings are loaded correctly
 os.environ["ENVIRONMENT"] = "development"
 os.environ["APP_MODE"] = "debug"
 os.environ["RATE_LIMIT_ENABLED"] = "False"
 os.environ["TESTING"] = "True"
+os.environ["DATABASE_URL"] = _resolve_test_database_url()
+
+DEBUG_OTP_CODE = "123456"
 
 from collections.abc import AsyncGenerator
 
@@ -118,7 +137,7 @@ async def auth_headers(client: AsyncClient) -> dict:
     resp = await client.post("/api/v1/auth/send-code", json={"phone": phone})
     assert resp.status_code == 200, f"Send Code Failed: {resp.text}"
     # Use debug bypass code
-    code = "123456"
+    code = DEBUG_OTP_CODE
     resp = await client.post("/api/v1/auth/verify", json={"phone": phone, "code": code})
     assert resp.status_code == 200, f"Auth verify failed: {resp.text}"
     token = resp.json()["tokens"]["access_token"]
@@ -131,10 +150,10 @@ async def auth_headers_second_user(client: AsyncClient) -> dict:
     phone = "+5511977777777"
     resp = await client.post("/api/v1/auth/send-code", json={"phone": phone})
     assert resp.status_code == 200, f"Send Code Failed (2nd user): {resp.text}"
-    message = resp.json()["message"]
-    # In dev mode, message format is "Código de verificação: XXXXXX"
-    code = message.split(": ")[1].strip()
-    resp = await client.post("/api/v1/auth/verify", json={"phone": phone, "code": code})
+    resp = await client.post(
+        "/api/v1/auth/verify",
+        json={"phone": phone, "code": DEBUG_OTP_CODE},
+    )
     assert resp.status_code == 200, f"Auth verify failed (2nd user): {resp.text}"
     token = resp.json()["tokens"]["access_token"]
     return {"Authorization": f"Bearer {token}"}
@@ -157,6 +176,8 @@ async def establishment_id(client: AsyncClient, auth_headers: dict) -> str:
         "state": "SP",
         "phone": "+551133333333",
         "business_hours": business_hours,
+        "latitude": -23.5505,
+        "longitude": -46.6333,
     }
     resp = await client.post("/api/v1/establishments", json=est_data, headers=auth_headers)
     assert resp.status_code == 201
@@ -174,6 +195,31 @@ async def service_id(client: AsyncClient, auth_headers: dict, establishment_id: 
     )
     assert resp.status_code == 201
     return resp.json()["id"]
+
+
+@pytest.fixture
+async def admin_auth_headers(client: AsyncClient) -> dict:
+    """Create an admin user and return auth headers."""
+    from sqlalchemy import update
+
+    from app.core import database
+    from app.models.user import User, UserRole
+
+    phone = "+5511999999999"
+    resp = await client.post("/api/v1/auth/send-code", json={"phone": phone})
+    assert resp.status_code == 200, resp.text
+    resp = await client.post(
+        "/api/v1/auth/verify", json={"phone": phone, "code": DEBUG_OTP_CODE}
+    )
+    assert resp.status_code == 200, resp.text
+    token = resp.json()["tokens"]["access_token"]
+    user_id = resp.json()["user"]["id"]
+
+    async with database.async_session_maker() as session:
+        await session.execute(update(User).where(User.id == user_id).values(role=UserRole.admin))
+        await session.commit()
+
+    return {"Authorization": f"Bearer {token}"}
 
 
 @pytest.fixture
