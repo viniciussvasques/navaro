@@ -195,14 +195,12 @@ export default function ServicesPage() {
 
   if (!establishmentId) {
     return (
-      <div className="p-8">
-        <div className="h-8 w-48 rounded-lg bg-[var(--color-surface)] animate-pulse" />
-      </div>
+      <div className="h-8 w-48 rounded-lg bg-[var(--color-surface)] animate-pulse" />
     );
   }
 
   return (
-    <div className="p-8">
+    <div>
       <ServicesGuide forceOpen={showGuide} hasServices={hasServices} />
 
       {mutationError && (

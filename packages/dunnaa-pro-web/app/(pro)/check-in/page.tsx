@@ -16,6 +16,8 @@ import {
   RefreshCw,
 } from "lucide-react";
 import Link from "next/link";
+import { ProPageHeader } from "@/components/ProPageHeader";
+import { ProPageShell } from "@/components/ProPageShell";
 
 export default function CheckInPage() {
   const establishmentId = useEstablishmentId();
@@ -66,16 +68,12 @@ export default function CheckInPage() {
   );
 
   return (
-    <div className="p-6 lg:p-8 space-y-6 max-w-4xl mx-auto">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">
-          Check-in
-        </h1>
-        <p className="text-sm text-[var(--color-text-muted)] mt-1">
-          Acompanhe os check-ins dos clientes que escanearam o QR Code no balcao.
-        </p>
-      </div>
+    <ProPageShell maxWidth="lg">
+      <ProPageHeader
+        title="Check-in"
+        description="Acompanhe os check-ins dos clientes que escanearam o QR Code no balcão."
+        icon={QrCode}
+      />
 
       {/* QR Code para Check-in e Fila — exibir no balcão */}
       <Card className="border-[var(--color-border)] bg-[var(--color-surface)]">
@@ -271,6 +269,6 @@ export default function CheckInPage() {
           )}
         </CardContent>
       </Card>
-    </div>
+    </ProPageShell>
   );
 }

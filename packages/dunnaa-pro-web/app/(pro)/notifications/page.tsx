@@ -6,6 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { Bell, Loader2, CheckCheck, ChevronLeft, ChevronRight } from "lucide-react";
+import { ProPageHeader } from "@/components/ProPageHeader";
+import { ProPageShell } from "@/components/ProPageShell";
 
 type Notification = {
   id: string;
@@ -68,15 +70,18 @@ export default function NotificationsPage() {
 
   if (isLoading) {
     return (
-      <div className="p-8 flex items-center justify-center min-h-[40vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-[var(--color-primary)]" />
-      </div>
+      <ProPageShell>
+        <div className="flex items-center justify-center min-h-[40vh]">
+          <Loader2 className="h-8 w-8 animate-spin text-[var(--color-primary)]" />
+        </div>
+      </ProPageShell>
     );
   }
 
   if (isError) {
     return (
-      <div className="p-8">
+      <ProPageShell>
+        <ProPageHeader title="Notificações" icon={Bell} />
         <Card className="border-amber-500/30 bg-amber-500/5">
           <CardContent className="p-6">
             <p className="text-[var(--color-text-primary)]">
@@ -87,31 +92,30 @@ export default function NotificationsPage() {
             </p>
           </CardContent>
         </Card>
-      </div>
+      </ProPageShell>
     );
   }
 
   return (
-    <div className="p-8 space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Notificações</h1>
-          <p className="text-sm text-[var(--color-text-muted)] mt-1">
-            {unreadCount > 0 ? `${unreadCount} não lida(s)` : "Todas lidas"}
-          </p>
-        </div>
-        {unreadCount > 0 && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => markAllReadMutation.mutate()}
-            disabled={markAllReadMutation.isPending}
-          >
-            <CheckCheck className="h-4 w-4 mr-2" />
-            Marcar todas como lidas
-          </Button>
-        )}
-      </div>
+    <ProPageShell>
+      <ProPageHeader
+        title="Notificações"
+        description={unreadCount > 0 ? `${unreadCount} não lida(s)` : "Todas lidas"}
+        icon={Bell}
+        actions={
+          unreadCount > 0 ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => markAllReadMutation.mutate()}
+              disabled={markAllReadMutation.isPending}
+            >
+              <CheckCheck className="h-4 w-4 mr-2" />
+              Marcar todas como lidas
+            </Button>
+          ) : undefined
+        }
+      />
 
       {list.length === 0 ? (
         <Card className="border-[var(--color-border)] bg-[var(--color-surface)]">
@@ -190,6 +194,6 @@ export default function NotificationsPage() {
           )}
         </>
       )}
-    </div>
+    </ProPageShell>
   );
 }

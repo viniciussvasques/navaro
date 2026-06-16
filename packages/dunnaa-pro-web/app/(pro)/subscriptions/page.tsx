@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { ProPageShell } from "@/components/ProPageShell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -90,11 +91,15 @@ export default function SubscriptionPlansPage() {
   });
 
   if (!establishmentId) {
-    return <div className="p-8 text-center text-[var(--color-text-muted)]">Cadastre um estabelecimento primeiro.</div>;
+    return (
+      <ProPageShell>
+        <p className="text-center text-[var(--color-text-muted)]">Cadastre um estabelecimento primeiro.</p>
+      </ProPageShell>
+    );
   }
 
   return (
-    <div className="space-y-6 p-6">
+    <ProPageShell>
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Planos de assinatura</h1>
@@ -176,6 +181,6 @@ export default function SubscriptionPlansPage() {
           </Card>
         </div>
       )}
-    </div>
+    </ProPageShell>
   );
 }

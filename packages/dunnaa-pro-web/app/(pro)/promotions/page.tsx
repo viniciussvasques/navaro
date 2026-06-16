@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { ProPageShell } from "@/components/ProPageShell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -124,14 +125,16 @@ export default function PromotionsPage() {
 
   if (!establishmentId) {
     return (
-      <div className="p-8 text-center text-[var(--color-text-muted)]">
-        Cadastre um estabelecimento para gerenciar promoções.
-      </div>
+      <ProPageShell>
+        <p className="text-center text-[var(--color-text-muted)]">
+          Cadastre um estabelecimento para gerenciar promoções.
+        </p>
+      </ProPageShell>
     );
   }
 
   return (
-    <div className="space-y-6 p-6">
+    <ProPageShell>
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Promoções</h1>
@@ -217,6 +220,6 @@ export default function PromotionsPage() {
           </Card>
         </div>
       )}
-    </div>
+    </ProPageShell>
   );
 }

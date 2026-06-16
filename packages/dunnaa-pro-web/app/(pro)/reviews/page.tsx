@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { Star, MessageSquare, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import { ProPageHeader } from "@/components/ProPageHeader";
+import { ProPageShell } from "@/components/ProPageShell";
 
 type Review = {
   id: string;
@@ -66,23 +68,26 @@ export default function ReviewsPage() {
 
   if (!establishmentId) {
     return (
-      <div className="p-8">
+      <ProPageShell>
         <p className="text-[var(--color-text-muted)]">Selecione um estabelecimento.</p>
-      </div>
+      </ProPageShell>
     );
   }
 
   if (isLoading) {
     return (
-      <div className="p-8 flex items-center justify-center min-h-[40vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-[var(--color-primary)]" />
-      </div>
+      <ProPageShell>
+        <div className="flex items-center justify-center min-h-[40vh]">
+          <Loader2 className="h-8 w-8 animate-spin text-[var(--color-primary)]" />
+        </div>
+      </ProPageShell>
     );
   }
 
   if (isError) {
     return (
-      <div className="p-8">
+      <ProPageShell>
+        <ProPageHeader title="Avaliações" icon={Star} />
         <Card className="border-amber-500/30 bg-amber-500/5">
           <CardContent className="p-6">
             <p className="text-[var(--color-text-primary)]">
@@ -93,7 +98,7 @@ export default function ReviewsPage() {
             </p>
           </CardContent>
         </Card>
-      </div>
+      </ProPageShell>
     );
   }
 
@@ -102,13 +107,12 @@ export default function ReviewsPage() {
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   return (
-    <div className="p-8 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Avaliações</h1>
-        <p className="text-sm text-[var(--color-text-muted)] mt-1">
-          Avaliações dos clientes sobre seu estabelecimento. Responda para engajar.
-        </p>
-      </div>
+    <ProPageShell>
+      <ProPageHeader
+        title="Avaliações"
+        description="Avaliações dos clientes sobre seu estabelecimento. Responda para engajar."
+        icon={Star}
+      />
 
       {list.length === 0 ? (
         <Card className="border-[var(--color-border)] bg-[var(--color-surface)]">
@@ -236,6 +240,6 @@ export default function ReviewsPage() {
           </Card>
         </div>
       )}
-    </div>
+    </ProPageShell>
   );
 }

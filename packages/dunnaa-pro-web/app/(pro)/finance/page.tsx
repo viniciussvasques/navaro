@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api";
 import { DollarSign, TrendingUp, Receipt, Loader2, Wallet, ArrowDownToLine, AlertCircle } from "lucide-react";
+import { ProPageHeader } from "@/components/ProPageHeader";
+import { ProPageShell } from "@/components/ProPageShell";
 
 type PaymentStatus = "pending" | "processing" | "succeeded" | "failed" | "refunded"; // from model
 
@@ -113,10 +115,8 @@ export default function FinancePage() {
 
   if (isError) {
     return (
-      <div className="p-8 space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Financeiro</h1>
-        </div>
+      <ProPageShell>
+        <ProPageHeader title="Financeiro" icon={DollarSign} />
         <Card className="border-amber-500/30 bg-amber-500/5">
           <CardContent className="p-6 flex items-start gap-3">
             <AlertCircle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
@@ -130,20 +130,17 @@ export default function FinancePage() {
             </div>
           </CardContent>
         </Card>
-      </div>
+      </ProPageShell>
     );
   }
 
   return (
-    <div className="p-8 space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Financeiro</h1>
-          <p className="text-sm text-[var(--color-text-muted)]">
-            Acompanhe a receita do seu estabelecimento por período.
-          </p>
-        </div>
-      </div>
+    <ProPageShell>
+      <ProPageHeader
+        title="Financeiro"
+        description="Acompanhe a receita do seu estabelecimento por período."
+        icon={DollarSign}
+      />
 
       {isLoading ? (
         <div className="space-y-4">
@@ -354,7 +351,7 @@ export default function FinancePage() {
           </Card>
         </>
       )}
-    </div>
+    </ProPageShell>
   );
 }
 

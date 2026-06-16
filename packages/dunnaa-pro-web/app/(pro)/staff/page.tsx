@@ -6,6 +6,8 @@ import { useEstablishmentId, useEstablishmentLoading } from "@/contexts/Establis
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ProPageHeader } from "@/components/ProPageHeader";
+import { ProPageShell } from "@/components/ProPageShell";
 import { api } from "@/lib/api";
 import {
   Users,
@@ -140,25 +142,23 @@ export default function StaffPage() {
   const isSaving = createMutation.isPending || updateMutation.isPending;
 
   return (
-    <div className="p-6 lg:p-8 space-y-6 max-w-4xl mx-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Equipe</h1>
-          <p className="text-sm text-[var(--color-text-muted)]">
-            Gerencie os profissionais do seu estabelecimento.
-          </p>
-        </div>
-        {!showForm && (
-          <Button
-            onClick={() => { resetForm(); setShowForm(true); }}
-            className="bg-[var(--color-primary)] text-white hover:opacity-90"
-          >
-            <UserPlus className="h-4 w-4 mr-2" />
-            Adicionar
-          </Button>
-        )}
-      </div>
+    <ProPageShell maxWidth="lg">
+      <ProPageHeader
+        title="Equipe"
+        description="Gerencie os profissionais do seu estabelecimento."
+        icon={Users}
+        actions={
+          !showForm ? (
+            <Button
+              onClick={() => { resetForm(); setShowForm(true); }}
+              className="bg-[var(--color-primary)] text-white hover:opacity-90"
+            >
+              <UserPlus className="h-4 w-4 mr-2" />
+              Adicionar
+            </Button>
+          ) : undefined
+        }
+      />
 
       {/* Error */}
       {(createMutation.isError || updateMutation.isError) && (
@@ -340,7 +340,7 @@ export default function StaffPage() {
           )}
         </div>
       )}
-    </div>
+    </ProPageShell>
   );
 }
 

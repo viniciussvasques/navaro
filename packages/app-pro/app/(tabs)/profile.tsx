@@ -11,6 +11,7 @@ const MENU = [
     { label: 'Equipe', icon: 'people-outline' as const, href: '/staff' },
     { label: 'Promoções', icon: 'pricetag-outline' as const, href: '/promotions' },
     { label: 'Destaque', icon: 'flash-outline' as const, href: '/(tabs)/destaque' },
+    { label: 'Notificações', icon: 'notifications-outline' as const, href: '/(tabs)/notifications' },
     { label: 'Configurações', icon: 'settings-outline' as const, href: '/settings' },
 ];
 

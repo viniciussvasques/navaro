@@ -17,6 +17,8 @@ import {
   Info,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ProPageHeader } from "@/components/ProPageHeader";
+import { ProPageShell } from "@/components/ProPageShell";
 
 export default function QRCodePage() {
   const establishmentId = useEstablishmentId();
@@ -42,13 +44,9 @@ export default function QRCodePage() {
 
   if (isError) {
     return (
-      <div className="p-6 lg:p-8 max-w-5xl mx-auto">
-        <div>
-          <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">
-            QR Code &amp; Check-in
-          </h1>
-        </div>
-        <Card className="border-amber-500/30 bg-amber-500/5 mt-6">
+      <ProPageShell>
+        <ProPageHeader title="QR Code & Check-in" icon={QrCode} />
+        <Card className="border-amber-500/30 bg-amber-500/5">
           <CardContent className="p-6">
             <p className="text-[var(--color-text-primary)] font-medium">
               Não foi possível carregar as estatísticas do QR Code. Tente novamente.
@@ -58,24 +56,17 @@ export default function QRCodePage() {
             </p>
           </CardContent>
         </Card>
-      </div>
+      </ProPageShell>
     );
   }
 
   return (
-    <div className="p-6 lg:p-8 space-y-8 max-w-5xl mx-auto">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">
-          QR Code &amp; Check-in
-        </h1>
-        <p className="text-sm text-[var(--color-text-muted)] mt-1">
-          Acompanhe quantos clientes escanearam o QR Code do seu estabelecimento,
-          baixaram o app e fizeram check-in.
-        </p>
-      </div>
-
-      {/* Info Card */}
+    <ProPageShell>
+      <ProPageHeader
+        title="QR Code & Check-in"
+        description="Estatísticas de escaneamentos e check-ins pelo QR Code do seu estabelecimento."
+        icon={QrCode}
+      />
       <Card className="border-blue-200 bg-blue-50/50 dark:border-blue-900/50 dark:bg-blue-950/20">
         <CardContent className="p-5">
           <div className="flex gap-3">
@@ -295,6 +286,6 @@ export default function QRCodePage() {
             </CardContent>
           </Card>
         )}
-    </div>
+    </ProPageShell>
   );
 }

@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api";
+import { ProPageHeader } from "@/components/ProPageHeader";
+import { ProPageShell } from "@/components/ProPageShell";
 import {
   Package,
   Plus,
@@ -170,23 +172,26 @@ export default function ProductsPage() {
 
   if (!establishmentId) {
     return (
-      <div className="p-8">
+      <ProPageShell>
         <p className="text-[var(--color-text-muted)]">Selecione um estabelecimento.</p>
-      </div>
+      </ProPageShell>
     );
   }
 
   if (isLoading) {
     return (
-      <div className="p-8 flex items-center justify-center min-h-[40vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-[var(--color-primary)]" />
-      </div>
+      <ProPageShell>
+        <div className="flex items-center justify-center min-h-[40vh]">
+          <Loader2 className="h-8 w-8 animate-spin text-[var(--color-primary)]" />
+        </div>
+      </ProPageShell>
     );
   }
 
   if (isError) {
     return (
-      <div className="p-8">
+      <ProPageShell>
+        <ProPageHeader title="Produtos" icon={Package} />
         <Card className="border-amber-500/30 bg-amber-500/5">
           <CardContent className="p-6">
             <p className="text-[var(--color-text-primary)]">
@@ -197,24 +202,23 @@ export default function ProductsPage() {
             </p>
           </CardContent>
         </Card>
-      </div>
+      </ProPageShell>
     );
   }
 
   return (
-    <div className="p-8 space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Produtos</h1>
-          <p className="text-sm text-[var(--color-text-muted)] mt-1">
-            Produtos à venda no seu estabelecimento (ex.: shampoo, creme).
-          </p>
-        </div>
-        <Button onClick={() => { resetForm(); setShowForm(true); }}>
-          <Plus className="h-4 w-4 mr-2" />
-          Novo produto
-        </Button>
-      </div>
+    <ProPageShell>
+      <ProPageHeader
+        title="Produtos"
+        description="Produtos à venda no seu estabelecimento (ex.: shampoo, creme)."
+        icon={Package}
+        actions={
+          <Button onClick={() => { resetForm(); setShowForm(true); }}>
+            <Plus className="h-4 w-4 mr-2" />
+            Novo produto
+          </Button>
+        }
+      />
 
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--color-text-muted)]" />
@@ -419,6 +423,6 @@ export default function ProductsPage() {
           </Card>
         </div>
       )}
-    </div>
+    </ProPageShell>
   );
 }
