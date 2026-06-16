@@ -3,9 +3,9 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Query, status
-from sqlalchemy import select
+from sqlalchemy import inspect, select
 
-from app.api.deps import CurrentUser, DBSession
+from app.api.deps import AdminUser, CurrentSupplier, CurrentUser, DBSession
 from app.core.exceptions import ForbiddenError, NotFoundError
 from app.models import UserRole
 from app.models.establishment import Establishment
@@ -19,6 +19,7 @@ from app.schemas.supplier import (
     SupplierPromotionCreate,
     SupplierPromotionResponse,
     SupplierPromotionUpdate,
+    SupplierPublicResponse,
     SupplierResponse,
     SupplierReviewCreate,
     SupplierReviewRespond,
@@ -73,7 +74,7 @@ async def list_suppliers(
         segment=segment, city=city, active_only=True, page=page, page_size=page_size
     )
     return SupplierListResponse(
-        items=[SupplierResponse.model_validate(s) for s in items],
+        items=[SupplierPublicResponse.model_validate(s) for s in items],
         total=total,
         page=page,
         page_size=page_size,
@@ -87,6 +88,28 @@ async def get_my_supplier(db: DBSession, current_user: CurrentUser) -> SupplierR
     supplier = await service.get_by_owner(current_user.id)
     if not supplier:
         raise NotFoundError("Perfil de fornecedor")
+    return SupplierResponse.model_validate(supplier)
+
+
+@router.get("/my/summary")
+async def get_my_supplier_summary(db: DBSession, supplier: CurrentSupplier) -> dict:
+    """Dashboard metrics for the current supplier (revenue, orders, top products)."""
+    service = SupplierService(db)
+    return await service.get_summary(supplier.id)
+
+
+@router.post("/{supplier_id}/verify", response_model=SupplierResponse)
+async def verify_supplier(
+    supplier_id: UUID,
+    db: DBSession,
+    _admin: AdminUser,
+    verified: bool = Query(True),
+) -> SupplierResponse:
+    """Admin: mark a supplier as verified/unverified."""
+    service = SupplierService(db)
+    supplier = await service.set_verified(supplier_id, verified)
+    if not supplier:
+        raise NotFoundError("Fornecedor")
     return SupplierResponse.model_validate(supplier)
 
 
@@ -106,11 +129,11 @@ async def create_supplier(
     return SupplierResponse.model_validate(supplier)
 
 
-@router.get("/{supplier_id}", response_model=SupplierResponse)
-async def get_supplier(supplier_id: UUID, db: DBSession) -> SupplierResponse:
-    """Get supplier by ID (public)."""
+@router.get("/{supplier_id}", response_model=SupplierPublicResponse)
+async def get_supplier(supplier_id: UUID, db: DBSession) -> SupplierPublicResponse:
+    """Get supplier by ID (public — sem PII interna)."""
     supplier = await _get_supplier_or_404(db, supplier_id)
-    return SupplierResponse.model_validate(supplier)
+    return SupplierPublicResponse.model_validate(supplier)
 
 
 @router.patch("/{supplier_id}", response_model=SupplierResponse)
@@ -352,15 +375,20 @@ async def respond_to_review(
 # ─── Enrichment helpers ───────────────────────────────────────────────────────
 
 
+def _is_loaded(instance, attr: str) -> bool:
+    """True se o relacionamento já foi carregado (evita lazy IO em contexto sync)."""
+    return attr not in inspect(instance).unloaded
+
+
 def _enrich_product(product) -> SupplierProductResponse:
     resp = SupplierProductResponse.model_validate(product)
-    if product.stock:
+    if _is_loaded(product, "stock") and product.stock:
         resp.stock_qty = product.stock.quantity
     return resp
 
 
 def _enrich_review(review) -> SupplierReviewResponse:
     resp = SupplierReviewResponse.model_validate(review)
-    if review.establishment:
+    if _is_loaded(review, "establishment") and review.establishment:
         resp.establishment_name = review.establishment.name
     return resp

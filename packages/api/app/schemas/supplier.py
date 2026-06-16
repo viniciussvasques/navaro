@@ -71,8 +71,32 @@ class SupplierResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class SupplierPublicResponse(BaseModel):
+    """Public-facing supplier data (no internal PII like owner_user_id)."""
+
+    id: UUID
+    name: str
+    logo_url: str | None
+    description: str | None
+    segment: str
+    phone: str | None
+    whatsapp: str | None
+    email: str | None
+    website: str | None
+    city: str | None
+    state: str | None
+    ships_nationwide: bool
+    verified: bool
+    rating: Decimal | None
+    total_reviews: int
+    total_orders: int
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class SupplierListResponse(BaseModel):
-    items: list[SupplierResponse]
+    items: list[SupplierPublicResponse]
     total: int
     page: int
     page_size: int

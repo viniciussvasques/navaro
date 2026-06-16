@@ -1,6 +1,7 @@
 """Supplier order service — B2B order management."""
 
 from collections.abc import Sequence
+from datetime import UTC, datetime
 from decimal import Decimal
 from uuid import UUID
 
@@ -8,7 +9,10 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.core.exceptions import BusinessError, NotFoundError
+from app.core.exceptions import BusinessError, ForbiddenError, NotFoundError
+from app.core.logging import get_logger
+from app.models.establishment import Establishment
+from app.models.notification import NotificationType
 from app.models.supplier import (
     Supplier,
     SupplierOrder,
@@ -18,6 +22,18 @@ from app.models.supplier import (
     SupplierStock,
 )
 from app.schemas.supplier import OrderItemCreate, SupplierOrderCreate, SupplierOrderStatusUpdate
+from app.services.notification_service import NotificationService
+
+logger = get_logger(__name__)
+
+# Mensagens de status amigáveis para notificação do comprador
+_STATUS_MESSAGES: dict[str, str] = {
+    SupplierOrderStatus.confirmed.value: "Seu pedido foi confirmado pelo fornecedor.",
+    SupplierOrderStatus.preparing.value: "Seu pedido está em separação.",
+    SupplierOrderStatus.shipped.value: "Seu pedido foi enviado.",
+    SupplierOrderStatus.delivered.value: "Seu pedido foi entregue.",
+    SupplierOrderStatus.cancelled.value: "Seu pedido foi cancelado.",
+}
 
 
 class SupplierOrderService:
@@ -97,6 +113,15 @@ class SupplierOrderService:
 
         await self.db.commit()
         await self.db.refresh(order)
+
+        # Notifica o dono do fornecedor sobre o novo pedido (best-effort).
+        await self._notify_supplier_owner(
+            supplier,
+            title="Novo pedido recebido",
+            message=f"Você recebeu um novo pedido de R$ {total:.2f}.",
+            order_id=order.id,
+        )
+
         return await self.get(order.id)  # type: ignore[return-value]
 
     async def update_status(
@@ -116,10 +141,99 @@ class SupplierOrderService:
         order.status = data.status.value
         if data.tracking_code:
             order.tracking_code = data.tracking_code
+        if data.status == SupplierOrderStatus.delivered:
+            order.delivered_at = datetime.now(UTC)
+        if data.status == SupplierOrderStatus.confirmed:
+            await self._decrement_stock(order_id)
 
         await self.db.commit()
         await self.db.refresh(order)
+
+        # Notifica o dono do estabelecimento sobre a mudança de status.
+        await self._notify_establishment_owner(
+            order.establishment_id,
+            title="Atualização do seu pedido",
+            message=_STATUS_MESSAGES.get(order.status, "Status do pedido atualizado."),
+            order_id=order.id,
+        )
         return order
+
+    async def cancel_by_buyer(
+        self, order_id: UUID, establishment_id: UUID
+    ) -> SupplierOrder | None:
+        """Allow the buyer (establishment) to cancel an order still pending."""
+        result = await self.db.execute(
+            select(SupplierOrder).where(
+                SupplierOrder.id == order_id,
+                SupplierOrder.establishment_id == establishment_id,
+            )
+            .options(selectinload(SupplierOrder.supplier))
+        )
+        order = result.scalar_one_or_none()
+        if not order:
+            return None
+        if order.status != SupplierOrderStatus.pending.value:
+            raise BusinessError(
+                "CANNOT_CANCEL",
+                "Só é possível cancelar pedidos que ainda estão aguardando confirmação.",
+            )
+        order.status = SupplierOrderStatus.cancelled.value
+        await self.db.commit()
+        await self.db.refresh(order)
+
+        if order.supplier:
+            await self._notify_supplier_owner(
+                order.supplier,
+                title="Pedido cancelado",
+                message="Um pedido foi cancelado pelo estabelecimento.",
+                order_id=order.id,
+            )
+        return order
+
+    async def _decrement_stock(self, order_id: UUID) -> None:
+        """Reduce stock for each order item when the order is confirmed."""
+        result = await self.db.execute(
+            select(SupplierOrderItem)
+            .where(SupplierOrderItem.order_id == order_id)
+            .options(selectinload(SupplierOrderItem.product).selectinload(SupplierProduct.stock))
+        )
+        for item in result.scalars().all():
+            stock = item.product.stock if item.product else None
+            if stock:
+                stock.quantity = max(0, stock.quantity - item.quantity)
+
+    async def _notify_supplier_owner(
+        self, supplier: Supplier, *, title: str, message: str, order_id: UUID
+    ) -> None:
+        try:
+            notif = NotificationService(self.db)
+            await notif.create_in_app(
+                user_id=str(supplier.owner_user_id),
+                title=title,
+                message=message,
+                type=NotificationType.system,
+                data={"supplier_order_id": str(order_id), "kind": "supplier_order"},
+            )
+        except Exception as exc:  # noqa: BLE001 - notificação é best-effort
+            logger.warning("Falha ao notificar fornecedor", error=str(exc))
+
+    async def _notify_establishment_owner(
+        self, establishment_id: UUID, *, title: str, message: str, order_id: UUID
+    ) -> None:
+        try:
+            est = await self.db.get(Establishment, establishment_id)
+            if not est:
+                return
+            notif = NotificationService(self.db)
+            await notif.create_in_app(
+                user_id=str(est.owner_id),
+                title=title,
+                message=message,
+                type=NotificationType.system,
+                data={"supplier_order_id": str(order_id), "kind": "supplier_order"},
+            )
+        except Exception as exc:  # noqa: BLE001 - notificação é best-effort
+            logger.warning("Falha ao notificar estabelecimento", error=str(exc))
 
     async def _resolve_items(
         self, items: list[OrderItemCreate]

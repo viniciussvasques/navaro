@@ -37,6 +37,11 @@ yarn-error.log*
 
 # Testing
 coverage/
+# Saídas de debug de testes (não versionar)
+packages/api/test_*.txt
+packages/api/*_out.txt
+packages/api/*_output*.txt
+packages/api/*_err.txt
 .coverage
 htmlcov/
 .pytest_cache/

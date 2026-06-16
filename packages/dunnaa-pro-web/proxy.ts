@@ -8,6 +8,8 @@ export function proxy(req: NextRequest) {
     "/dashboard", "/agenda", "/queue", "/check-in", "/qr-code", "/finance",
     "/services", "/products", "/reviews", "/notifications", "/staff", "/settings",
     "/destaque", "/promotions", "/subscriptions", "/onboarding", "/escolha",
+    // Módulo B2B (fornecedor / comprador)
+    "/fornecedor", "/fornecedores", "/pedidos-fornecedor",
   ];
   const isProtected = protectedPaths.some((p) => path === p || path.startsWith(p + "/"));
   if (isProtected && !token) {
@@ -32,5 +34,14 @@ export function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/", "/dashboard", "/agenda", "/queue", "/check-in", "/qr-code", "/finance", "/services", "/products", "/reviews", "/notifications", "/staff", "/settings", "/destaque", "/promotions", "/subscriptions", "/onboarding", "/escolha", "/login", "/register"],
+  matcher: [
+    "/", "/dashboard", "/agenda", "/queue", "/check-in", "/qr-code", "/finance",
+    "/services", "/products", "/reviews", "/notifications", "/staff", "/settings",
+    "/destaque", "/promotions", "/subscriptions", "/onboarding", "/escolha",
+    "/login", "/register",
+    // Módulo B2B + subrotas
+    "/fornecedor", "/fornecedor/:path*",
+    "/fornecedores", "/fornecedores/:path*",
+    "/pedidos-fornecedor", "/pedidos-fornecedor/:path*",
+  ],
 };

@@ -15,6 +15,7 @@ import { getCookie, deleteCookie } from "cookies-next";
 import { api } from "@/lib/api";
 import { useTheme } from "@/components/ThemeProvider";
 import { EstablishmentProvider } from "@/contexts/EstablishmentContext";
+import { UserProvider, useUser } from "@/contexts/UserContext";
 import { ProBrandLockup } from "@/components/ProBrandLockup";
 
 const navItems = [
@@ -119,7 +120,8 @@ function NavContent({
   onNavigate?: () => void;
   onLogout: () => void;
 }) {
-  const isSupplierSection = pathname.startsWith("/fornecedor");
+  const { hasSupplierProfile } = useUser();
+  const isSupplierSection = pathname.startsWith("/fornecedor") && !pathname.startsWith("/fornecedores");
   const isBuyerSection = pathname.startsWith("/fornecedores") || pathname.startsWith("/pedidos-fornecedor");
 
   return (
@@ -130,15 +132,25 @@ function NavContent({
           <NavSection items={navItems} pathname={pathname} onNavigate={onNavigate} />
         </div>
 
-        {/* Supplier buyer section */}
-        <CollapsibleSection label="Fornecedores" defaultOpen={isBuyerSection}>
+        {/* Supplier buyer section (qualquer dono pode comprar) */}
+        <CollapsibleSection label="Comprar de Fornecedores" defaultOpen={isBuyerSection}>
           <NavSection items={supplierBuyerItems} pathname={pathname} onNavigate={onNavigate} />
         </CollapsibleSection>
 
-        {/* Supplier panel section */}
-        <CollapsibleSection label="Painel Fornecedor" defaultOpen={isSupplierSection}>
-          <NavSection items={supplierPanelItems} pathname={pathname} onNavigate={onNavigate} />
-        </CollapsibleSection>
+        {/* Supplier panel: completo se já é fornecedor; senão CTA único */}
+        {hasSupplierProfile ? (
+          <CollapsibleSection label="Painel Fornecedor" defaultOpen={isSupplierSection}>
+            <NavSection items={supplierPanelItems} pathname={pathname} onNavigate={onNavigate} />
+          </CollapsibleSection>
+        ) : (
+          <div className="space-y-0.5">
+            <NavSection
+              items={[{ href: "/fornecedor", label: "Seja um Fornecedor", icon: Store }]}
+              pathname={pathname}
+              onNavigate={onNavigate}
+            />
+          </div>
+        )}
       </nav>
       <div className="p-3 border-t border-[var(--color-border)]">
         <p className="px-3 py-2 text-xs text-[var(--color-text-muted)] truncate">{userName}</p>
@@ -184,6 +196,7 @@ export default function ProLayout({ children }: { children: React.ReactNode }) {
   };
 
   return (
+    <UserProvider>
     <EstablishmentProvider setCategory={setCategory}>
       <div className="flex min-h-screen bg-[var(--color-background)]">
 
@@ -252,5 +265,6 @@ export default function ProLayout({ children }: { children: React.ReactNode }) {
 
       </div>
     </EstablishmentProvider>
+    </UserProvider>
   );
 }

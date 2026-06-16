@@ -156,6 +156,26 @@ def create_app() -> FastAPI:
             },
         )
 
+    @app.exception_handler(Exception)
+    def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+        """Catch-all: garante resposta unificada e nunca vaza stacktrace ao cliente."""
+        logger = get_logger("app.main")
+        logger.error(
+            "Unhandled exception",
+            path=str(request.url.path),
+            method=request.method,
+            error=str(exc),
+            error_type=type(exc).__name__,
+            exc_info=True,
+        )
+        message = (
+            str(exc) if settings.is_debug else "Erro interno. Tente novamente em instantes."
+        )
+        return JSONResponse(
+            status_code=500,
+            content={"error": {"code": "INTERNAL_ERROR", "message": message}},
+        )
+
     # Setup middlewares
     setup_middlewares(app)
 

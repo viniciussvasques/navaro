@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.core.exceptions import ForbiddenError, UnauthorizedError
 from app.core.security import decode_access_token
-from app.models import User, UserRole
+from app.models import Establishment, Supplier, User, UserRole
 
 security = HTTPBearer(auto_error=False)
 
@@ -87,11 +87,17 @@ def require_staff():
     return require_role(UserRole.staff, UserRole.owner, UserRole.admin)
 
 
+def require_supplier():
+    """Require supplier or admin role."""
+    return require_role(UserRole.supplier, UserRole.admin)
+
+
 # ─── Type Aliases ──────────────────────────────────────────────────────────────
 
 AdminUser = Annotated[User, Depends(require_admin())]
 OwnerUser = Annotated[User, Depends(require_owner())]
 StaffUser = Annotated[User, Depends(require_staff())]
+SupplierUser = Annotated[User, Depends(require_supplier())]
 
 
 # ─── Optional Auth ─────────────────────────────────────────────────────────────
@@ -114,3 +120,37 @@ async def get_optional_user(
 
 
 OptionalUser = Annotated[User | None, Depends(get_optional_user)]
+
+
+# ─── Supplier / Establishment Resource Access ──────────────────────────────────
+#
+# Acesso ao módulo B2B é baseado em PROPRIEDADE do recurso (Supplier.owner_user_id
+# / Establishment.owner_id), e não apenas no campo User.role. Isso permite que um
+# mesmo usuário seja, ao mesmo tempo, dono de estabelecimento (comprador) e
+# fornecedor (vendedor). Admin sempre tem bypass.
+
+
+async def get_current_supplier(current_user: CurrentUser, db: DBSession) -> Supplier:
+    """Return the Supplier profile owned by the current user (403 se não existir)."""
+    result = await db.execute(
+        select(Supplier).where(Supplier.owner_user_id == current_user.id)
+    )
+    supplier = result.scalar_one_or_none()
+    if not supplier:
+        raise ForbiddenError("Perfil de fornecedor não encontrado")
+    return supplier
+
+
+async def get_current_establishment(current_user: CurrentUser, db: DBSession) -> Establishment:
+    """Return the first establishment owned by the current user (403 se não existir)."""
+    result = await db.execute(
+        select(Establishment).where(Establishment.owner_id == current_user.id).limit(1)
+    )
+    establishment = result.scalar_one_or_none()
+    if not establishment:
+        raise ForbiddenError("Apenas donos de estabelecimento podem realizar esta ação")
+    return establishment
+
+
+CurrentSupplier = Annotated[Supplier, Depends(get_current_supplier)]
+CurrentEstablishment = Annotated[Establishment, Depends(get_current_establishment)]

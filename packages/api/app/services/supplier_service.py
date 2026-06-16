@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.exceptions import AlreadyExistsError, NotFoundError
+from app.core.permissions import promote_to_role
 from app.models.supplier import (
     Supplier,
     SupplierProduct,
@@ -17,6 +18,7 @@ from app.models.supplier import (
     SupplierReview,
     SupplierStock,
 )
+from app.models.user import User, UserRole
 from app.schemas.supplier import (
     SupplierCreate,
     SupplierProductCreate,
@@ -88,6 +90,13 @@ class SupplierService:
             **data.model_dump(),
         )
         self.db.add(supplier)
+
+        # Promove o role para 'supplier' sem rebaixar owner/admin, espelhando o
+        # fluxo de establishment (customer -> owner).
+        user = await self.db.get(User, owner_user_id)
+        if user:
+            promote_to_role(user, UserRole.supplier)
+
         await self.db.commit()
         await self.db.refresh(supplier)
         return supplier
@@ -104,6 +113,72 @@ class SupplierService:
         await self.db.commit()
         await self.db.refresh(supplier)
         return supplier
+
+    async def set_verified(self, supplier_id: UUID, verified: bool) -> Supplier | None:
+        """Admin-only: mark a supplier as verified/unverified."""
+        supplier = await self.db.get(Supplier, supplier_id)
+        if not supplier:
+            return None
+        supplier.verified = verified
+        await self.db.commit()
+        await self.db.refresh(supplier)
+        return supplier
+
+    async def get_summary(self, supplier_id: UUID) -> dict:
+        """Dashboard metrics for a supplier (revenue, orders by status, top products)."""
+        from app.models.supplier import SupplierOrder, SupplierOrderItem, SupplierOrderStatus
+
+        # Pedidos por status
+        status_rows = await self.db.execute(
+            select(SupplierOrder.status, func.count())
+            .where(SupplierOrder.supplier_id == supplier_id)
+            .group_by(SupplierOrder.status)
+        )
+        orders_by_status = {row[0]: row[1] for row in status_rows.all()}
+
+        # Receita (pedidos entregues)
+        revenue_row = await self.db.execute(
+            select(func.coalesce(func.sum(SupplierOrder.total), 0)).where(
+                SupplierOrder.supplier_id == supplier_id,
+                SupplierOrder.status == SupplierOrderStatus.delivered.value,
+            )
+        )
+        revenue = float(revenue_row.scalar_one() or 0)
+
+        # Pedidos pendentes (aguardando ação do fornecedor)
+        pending = orders_by_status.get(SupplierOrderStatus.pending.value, 0)
+
+        # Top produtos por quantidade vendida
+        top_rows = await self.db.execute(
+            select(
+                SupplierProduct.name,
+                func.sum(SupplierOrderItem.quantity).label("qty"),
+            )
+            .join(SupplierOrderItem, SupplierOrderItem.product_id == SupplierProduct.id)
+            .join(SupplierOrder, SupplierOrder.id == SupplierOrderItem.order_id)
+            .where(SupplierOrder.supplier_id == supplier_id)
+            .group_by(SupplierProduct.name)
+            .order_by(func.sum(SupplierOrderItem.quantity).desc())
+            .limit(5)
+        )
+        top_products = [{"name": r[0], "quantity": int(r[1])} for r in top_rows.all()]
+
+        # Total de produtos ativos
+        active_products_row = await self.db.execute(
+            select(func.count()).where(
+                SupplierProduct.supplier_id == supplier_id,
+                SupplierProduct.active == True,  # noqa: E712
+            )
+        )
+        active_products = active_products_row.scalar_one()
+
+        return {
+            "revenue_delivered": revenue,
+            "pending_orders": pending,
+            "orders_by_status": orders_by_status,
+            "active_products": active_products,
+            "top_products": top_products,
+        }
 
     # ─── Products ─────────────────────────────────────────────────────────────
 
@@ -258,6 +333,22 @@ class SupplierService:
     async def create_review(
         self, establishment_id: UUID, data: SupplierReviewCreate
     ) -> SupplierReview:
+        from app.core.exceptions import BusinessError
+        from app.models.supplier import SupplierOrder
+
+        # Só pode avaliar quem já fez pelo menos um pedido a este fornecedor.
+        order_exists = await self.db.execute(
+            select(SupplierOrder.id).where(
+                SupplierOrder.supplier_id == data.supplier_id,
+                SupplierOrder.establishment_id == establishment_id,
+            ).limit(1)
+        )
+        if not order_exists.scalar_one_or_none():
+            raise BusinessError(
+                "NO_ORDER_HISTORY",
+                "Você só pode avaliar fornecedores dos quais já fez pedidos.",
+            )
+
         review = SupplierReview(
             supplier_id=data.supplier_id,
             establishment_id=establishment_id,

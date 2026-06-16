@@ -1,0 +1,60 @@
+---
+description: Módulo B2B de fornecedores — RBAC, acesso e regras DUNNAA
+globs: packages/api/app/services/supplier*,packages/api/app/api/v1/supplier*,packages/dunnaa-pro-web/app/(pro)/fornecedor*/**,packages/dunnaa-pro-web/contexts/UserContext.tsx
+alwaysApply: false
+---
+
+# Módulo B2B — Fornecedores (Suppliers)
+
+Marketplace B2B dentro do **DUNNAA Pro**: fornecedores vendem para donos de
+estabelecimento (compradores). Um mesmo usuário pode ser comprador e fornecedor.
+
+## Entidades
+
+- `Supplier` (perfil do fornecedor, `owner_user_id`)
+- `SupplierProduct` + `SupplierStock` (catálogo e estoque)
+- `SupplierOrder` + `SupplierOrderItem` (pedidos B2B)
+- `SupplierPromotion`, `SupplierReview`
+
+## Acesso por papel (RBAC)
+
+O acesso é baseado em **propriedade do recurso**, não só em `User.role`. Admin
+sempre tem bypass.
+
+| Ação | Quem pode |
+|------|-----------|
+| Descobrir/listar fornecedores | Público (sem PII — usar `SupplierPublicResponse`) |
+| Criar perfil de fornecedor | Qualquer usuário autenticado (vira `role=supplier` via `promote_to_role`) |
+| Editar perfil/catálogo/estoque/promoções | Dono do `Supplier` ou admin |
+| Responder avaliações | Dono do `Supplier` ou admin |
+| Verificar fornecedor (`/verify`) | Apenas admin |
+| Fazer pedido (`POST /supplier-orders`) | Dono de estabelecimento (`CurrentEstablishment`) |
+| Cancelar pedido pendente | Comprador (dono do estabelecimento) |
+| Atualizar status do pedido | Dono do `Supplier` (vendedor) ou admin |
+| Avaliar fornecedor | Dono de estabelecimento |
+
+## Convenções obrigatórias
+
+- Autorização centralizada em `app/core/permissions.py` (não duplicar checagens
+  inline). Helpers: `require_supplier_owner`, `get_my_supplier`,
+  `require_establishment_owner`, `promote_to_role`, `check_supplier_owner`.
+- Deps em `app/api/deps.py`: `CurrentSupplier`, `CurrentEstablishment`,
+  `AdminUser`, `CurrentUser`.
+- Endpoints públicos NUNCA retornam PII interna (`owner_user_id`, contatos
+  privados): usar `SupplierPublicResponse`.
+- Enriquecimento de respostas (`_enrich_product/_order/_review`) deve checar se o
+  relacionamento foi carregado (`inspect(obj).unloaded`) antes de acessá-lo,
+  evitando `MissingGreenlet` (lazy IO em contexto sync).
+- Validar MOQ e estoque ao criar pedido; erros de negócio via `BusinessError`.
+
+## Frontend (dunnaa-pro-web)
+
+- `UserContext` expõe `role`, `hasSupplierProfile`, `isAdmin`.
+- Rotas `/fornecedor*` (painel vendedor) NÃO exigem establishment; o
+  `EstablishmentProvider` não deve redirecionar para `/escolha` nessas rotas.
+- Rotas `/fornecedores*` e `/pedidos-fornecedor*` (comprador) exigem
+  establishment.
+- Nav: painel completo só quando `hasSupplierProfile`; senão CTA "Seja um
+  Fornecedor". Proteção de rota em `proxy.ts` (Next 16 middleware).
+- Tratamento de erros sempre via `lib/errors.ts` (`getApiErrorMessage`,
+  `getFieldErrors`, `isUnauthorized`, ...).

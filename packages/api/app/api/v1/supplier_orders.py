@@ -3,9 +3,14 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Query, status
-from sqlalchemy import select
+from sqlalchemy import inspect, select
 
-from app.api.deps import CurrentUser, DBSession
+from app.api.deps import (
+    CurrentEstablishment,
+    CurrentSupplier,
+    CurrentUser,
+    DBSession,
+)
 from app.core.exceptions import ForbiddenError, NotFoundError
 from app.models import UserRole
 from app.models.establishment import Establishment
@@ -21,34 +26,13 @@ from app.services.supplier_order_service import SupplierOrderService
 router = APIRouter(prefix="/supplier-orders", tags=["Supplier Orders"])
 
 
-async def _get_my_establishment(db: DBSession, current_user: CurrentUser) -> Establishment:
-    result = await db.execute(
-        select(Establishment).where(Establishment.owner_id == current_user.id).limit(1)
-    )
-    est = result.scalar_one_or_none()
-    if not est:
-        raise ForbiddenError("Apenas donos de estabelecimento podem fazer pedidos")
-    return est
-
-
-async def _get_my_supplier(db: DBSession, current_user: CurrentUser) -> Supplier:
-    result = await db.execute(
-        select(Supplier).where(Supplier.owner_user_id == current_user.id)
-    )
-    supplier = result.scalar_one_or_none()
-    if not supplier:
-        raise ForbiddenError("Perfil de fornecedor não encontrado")
-    return supplier
-
-
 @router.post("", response_model=SupplierOrderResponse, status_code=status.HTTP_201_CREATED)
 async def create_order(
     data: SupplierOrderCreate,
     db: DBSession,
-    current_user: CurrentUser,
+    establishment: CurrentEstablishment,
 ) -> SupplierOrderResponse:
     """Place a B2B order (establishment owner)."""
-    establishment = await _get_my_establishment(db, current_user)
     service = SupplierOrderService(db)
     order = await service.create(establishment.id, data)
     return _enrich_order(order)
@@ -103,13 +87,12 @@ async def list_my_orders(
 @router.get("/incoming", response_model=SupplierOrderListResponse)
 async def list_incoming_orders(
     db: DBSession,
-    current_user: CurrentUser,
+    supplier: CurrentSupplier,
     status_filter: SupplierOrderStatus | None = Query(None, alias="status"),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=50),
 ) -> SupplierOrderListResponse:
     """List orders received by the current user's supplier profile."""
-    supplier = await _get_my_supplier(db, current_user)
     service = SupplierOrderService(db)
     orders, total = await service.list_for_supplier(
         supplier.id, status=status_filter, page=page, page_size=page_size
@@ -142,12 +125,26 @@ async def update_order_status(
     order_id: UUID,
     data: SupplierOrderStatusUpdate,
     db: DBSession,
-    current_user: CurrentUser,
+    supplier: CurrentSupplier,
 ) -> SupplierOrderResponse:
     """Update order status (supplier owner/admin only)."""
-    supplier = await _get_my_supplier(db, current_user)
     service = SupplierOrderService(db)
     order = await service.update_status(order_id, data, supplier.id)
+    if not order:
+        raise NotFoundError("Pedido")
+    full_order = await service.get(order.id)
+    return _enrich_order(full_order)  # type: ignore[arg-type]
+
+
+@router.patch("/{order_id}/cancel", response_model=SupplierOrderResponse)
+async def cancel_order(
+    order_id: UUID,
+    db: DBSession,
+    establishment: CurrentEstablishment,
+) -> SupplierOrderResponse:
+    """Buyer cancels a pending order (establishment owner only)."""
+    service = SupplierOrderService(db)
+    order = await service.cancel_by_buyer(order_id, establishment.id)
     if not order:
         raise NotFoundError("Pedido")
     full_order = await service.get(order.id)
@@ -168,14 +165,19 @@ def _check_order_access(order, current_user: CurrentUser) -> None:
     raise ForbiddenError()
 
 
+def _is_loaded(instance, attr: str) -> bool:
+    """True se o relacionamento já foi carregado (evita lazy IO em contexto sync)."""
+    return attr not in inspect(instance).unloaded
+
+
 def _enrich_order(order) -> SupplierOrderResponse:
     resp = SupplierOrderResponse.model_validate(order)
-    if order.supplier:
+    if _is_loaded(order, "supplier") and order.supplier:
         resp.supplier_name = order.supplier.name
-    if order.establishment:
+    if _is_loaded(order, "establishment") and order.establishment:
         resp.establishment_name = order.establishment.name
-    if order.items:
+    if _is_loaded(order, "items") and order.items:
         for item_resp, item in zip(resp.items, order.items, strict=False):
-            if item.product:
+            if _is_loaded(item, "product") and item.product:
                 item_resp.product_name = item.product.name
     return resp
