@@ -43,6 +43,8 @@ from app.api.v1 import (
     ad_campaigns,
     platform_subscription,
     mercadopago_oauth,
+    suppliers,
+    supplier_orders,
 )
 
 router = APIRouter(prefix="/api/v1", tags=["API v1"])
@@ -89,3 +91,5 @@ router.include_router(promotions.router)
 router.include_router(ad_campaigns.router)
 router.include_router(platform_subscription.router)
 router.include_router(mercadopago_oauth.router)
+router.include_router(suppliers.router)
+router.include_router(supplier_orders.router)

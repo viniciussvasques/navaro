@@ -18,6 +18,7 @@ class UserRole(str, enum.Enum):
     staff = "staff"
     admin = "admin"
     support = "support"
+    supplier = "supplier"   # Fornecedor B2B
 
 
 class User(BaseModel):

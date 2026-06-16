@@ -96,6 +96,20 @@ from app.models.support import (
     TicketCategory,
 )
 
+# Supplier (B2B marketplace)
+from app.models.supplier import (
+    Supplier,
+    SupplierOrder,
+    SupplierOrderItem,
+    SupplierOrderStatus,
+    SupplierProduct,
+    SupplierProductUnit,
+    SupplierPromotion,
+    SupplierReview,
+    SupplierSegment,
+    SupplierStock,
+)
+
 __all__ = [
     # Base
     "BaseModel",
@@ -168,4 +182,15 @@ __all__ = [
     "TicketStatus",
     "TicketPriority",
     "TicketCategory",
+    # Supplier
+    "Supplier",
+    "SupplierProduct",
+    "SupplierStock",
+    "SupplierOrder",
+    "SupplierOrderItem",
+    "SupplierPromotion",
+    "SupplierReview",
+    "SupplierSegment",
+    "SupplierOrderStatus",
+    "SupplierProductUnit",
 ]

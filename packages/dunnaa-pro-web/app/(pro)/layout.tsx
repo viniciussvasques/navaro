@@ -6,7 +6,8 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard, Calendar, ListOrdered, DollarSign, Scissors,
   Users, Settings, LogOut, ScanLine, UserCheck, Star, Package,
-  Bell, Megaphone, Crown, Zap, Menu, X,
+  Bell, Megaphone, Crown, Zap, Menu, X, Store, ShoppingBag, ShoppingCart,
+  Boxes, ChevronDown, ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,79 @@ const navItems = [
   { href: "/settings",      label: "Configurações",   icon: Settings },
 ];
 
+const supplierBuyerItems = [
+  { href: "/fornecedores",        label: "Explorar Fornecedores", icon: Store },
+  { href: "/pedidos-fornecedor",  label: "Meus Pedidos B2B",      icon: ShoppingBag },
+];
+
+const supplierPanelItems = [
+  { href: "/fornecedor",           label: "Dashboard",   icon: LayoutDashboard },
+  { href: "/fornecedor/catalogo",  label: "Catálogo",    icon: Package },
+  { href: "/fornecedor/estoque",   label: "Estoque",     icon: Boxes },
+  { href: "/fornecedor/pedidos",   label: "Pedidos",     icon: ShoppingCart },
+  { href: "/fornecedor/promocoes", label: "Promoções",   icon: Megaphone },
+  { href: "/fornecedor/avaliacoes",label: "Avaliações",  icon: Star },
+];
+
+function NavSection({
+  items,
+  pathname,
+  onNavigate,
+}: {
+  items: { href: string; label: string; icon: React.ElementType }[];
+  pathname: string;
+  onNavigate?: () => void;
+}) {
+  return (
+    <>
+      {items.map((item) => {
+        const Icon = item.icon;
+        const active = pathname === item.href || pathname.startsWith(item.href + "/");
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            onClick={onNavigate}
+            className={cn(
+              "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors",
+              active
+                ? "bg-[var(--color-primary)] text-white"
+                : "text-[var(--color-text-muted)] hover:bg-[var(--color-surface-elevated)] hover:text-[var(--color-text-primary)]"
+            )}
+          >
+            <Icon className="h-5 w-5 shrink-0" />
+            {item.label}
+          </Link>
+        );
+      })}
+    </>
+  );
+}
+
+function CollapsibleSection({
+  label,
+  children,
+  defaultOpen = false,
+}: {
+  label: string;
+  children: React.ReactNode;
+  defaultOpen?: boolean;
+}) {
+  const [open, setOpen] = React.useState(defaultOpen);
+  return (
+    <div>
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center justify-between px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors"
+      >
+        {label}
+        {open ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+      </button>
+      {open && <div className="space-y-0.5 mt-0.5">{children}</div>}
+    </div>
+  );
+}
+
 function NavContent({
   pathname,
   userName,
@@ -45,28 +119,26 @@ function NavContent({
   onNavigate?: () => void;
   onLogout: () => void;
 }) {
+  const isSupplierSection = pathname.startsWith("/fornecedor");
+  const isBuyerSection = pathname.startsWith("/fornecedores") || pathname.startsWith("/pedidos-fornecedor");
+
   return (
     <>
-      <nav className="flex-1 min-h-0 p-3 space-y-0.5 overflow-y-auto">
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={onNavigate}
-              className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors",
-                pathname === item.href
-                  ? "bg-[var(--color-primary)] text-white"
-                  : "text-[var(--color-text-muted)] hover:bg-[var(--color-surface-elevated)] hover:text-[var(--color-text-primary)]"
-              )}
-            >
-              <Icon className="h-5 w-5 shrink-0" />
-              {item.label}
-            </Link>
-          );
-        })}
+      <nav className="flex-1 min-h-0 p-3 space-y-3 overflow-y-auto">
+        {/* Main nav */}
+        <div className="space-y-0.5">
+          <NavSection items={navItems} pathname={pathname} onNavigate={onNavigate} />
+        </div>
+
+        {/* Supplier buyer section */}
+        <CollapsibleSection label="Fornecedores" defaultOpen={isBuyerSection}>
+          <NavSection items={supplierBuyerItems} pathname={pathname} onNavigate={onNavigate} />
+        </CollapsibleSection>
+
+        {/* Supplier panel section */}
+        <CollapsibleSection label="Painel Fornecedor" defaultOpen={isSupplierSection}>
+          <NavSection items={supplierPanelItems} pathname={pathname} onNavigate={onNavigate} />
+        </CollapsibleSection>
       </nav>
       <div className="p-3 border-t border-[var(--color-border)]">
         <p className="px-3 py-2 text-xs text-[var(--color-text-muted)] truncate">{userName}</p>
